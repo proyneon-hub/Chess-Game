@@ -3,8 +3,8 @@ export type Board = Piece[][];
 export type Square = [number, number];
 
 export const PIECE_SYMBOLS: Record<string, string> = {
-  K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
-  k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟",
+  K: "\u2654", Q: "\u2655", R: "\u2656", B: "\u2657", N: "\u2658", P: "\u2659",
+  k: "\u265a", q: "\u265b", r: "\u265c", b: "\u265d", n: "\u265e", p: "\u265f",
 };
 
 export const INITIAL_BOARD: Board = [
@@ -112,7 +112,8 @@ export function getLegalMoves(board: Board, row: number, col: number, whiteTurn:
   const p = board[row][col];
   if (!p || isWhite(p) !== whiteTurn) return [];
   return getPseudoMoves(board, row, col).filter(
-    ([tr, tc]) => !isInCheck(applyMove(board, [row, col], [tr, tc]), whiteTurn)
+    ([tr, tc]) => board[tr][tc]?.toLowerCase() !== "k" &&
+      !isInCheck(applyMove(board, [row, col], [tr, tc]), whiteTurn)
   );
 }
 

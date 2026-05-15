@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from "react";
 import {
-  Board,
-  Square,
+  type Board,
+  type Square,
   PIECE_SYMBOLS,
   INITIAL_BOARD,
   isWhite,
@@ -40,8 +40,8 @@ export default function ChessBoard() {
           let over = false;
           if (!hasLegal) {
             newStatus = check
-              ? `Checkmate — ${whiteTurn ? "White" : "Black"} wins!`
-              : "Stalemate — draw!";
+              ? `Checkmate - ${whiteTurn ? "White" : "Black"} wins!`
+              : "Stalemate - draw!";
             over = true;
           } else if (check) {
             newStatus = "Check!";
@@ -141,7 +141,7 @@ export default function ChessBoard() {
                       <div className="absolute inset-0 border-4 border-black/30 z-10" />
                     )}
                     {isMove && !piece && (
-                      <div className="w-5 h-5 rounded-full bg-black/22 z-10" />
+                      <div className="w-5 h-5 rounded-full bg-black/25 z-10" />
                     )}
                     {piece && (
                       <span
