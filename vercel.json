@@ -1,6 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "outputDirectory": "chess-nextjs/.next"
+  "installCommand": "cd chess-nextjs && npm install",
+  "buildCommand": "cd chess-nextjs && npm run build"
 }
