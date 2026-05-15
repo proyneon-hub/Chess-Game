@@ -1,0 +1,16 @@
+{
+  "name": "chess-game",
+  "private": true,
+  "workspaces": [
+    "chess-nextjs"
+  ],
+  "scripts": {
+    "dev": "npm --workspace chess-nextjs run dev",
+    "build": "npm --workspace chess-nextjs run build",
+    "start": "npm --workspace chess-nextjs run start",
+    "lint": "npm --workspace chess-nextjs run lint"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}
