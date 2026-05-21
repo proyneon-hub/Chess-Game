@@ -1,3 +1,6 @@
+/* Tailwind's base layer normalizes browser defaults, components contains any
+   plugin/component styles, and utilities powers the class names used in the
+   React components. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
