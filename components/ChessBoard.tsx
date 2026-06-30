@@ -12,16 +12,42 @@ import {
   hasAnyLegalMoves,
   isInCheck,
 } from "@/lib/chess";
+import {
+  type PieceIdBoard,
+  type RpgState,
+  describeKing,
+  initializePieceIds,
+  initializeRpgState,
+  resolveMoveAttempt,
+} from "@/lib/rpgChess";
 
 // Board labels are separate from the board matrix so the UI can render chess
 // coordinates while the engine continues to use zero-based row/column indexes.
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
+type GameState = {
+  board: Board;
+  pieceIds: PieceIdBoard;
+  rpgState: RpgState;
+};
+
+const createInitialGameState = (): GameState => {
+  const board = INITIAL_BOARD.map((r) => [...r]);
+  const pieceIds = initializePieceIds(board);
+
+  return {
+    board,
+    pieceIds,
+    rpgState: initializeRpgState(board, pieceIds),
+  };
+};
+
 export default function ChessBoard() {
-  // Each row is cloned from INITIAL_BOARD so resetting or moving pieces never
-  // mutates the exported starting position shared by the rest of the app.
-  const [board, setBoard] = useState<Board>(INITIAL_BOARD.map((r) => [...r]));
+  // Board state remains visible chess, while pieceIds/rpgState carry hidden
+  // identity, morale, fatigue, dice rolls, and king influence.
+  const [gameState, setGameState] = useState<GameState>(createInitialGameState);
+  const { board, pieceIds, rpgState } = gameState;
 
   // selected is the currently active piece, while validMoves is the cached set
   // of legal destinations used both for click handling and visual highlights.
@@ -33,6 +59,7 @@ export default function ChessBoard() {
   const [whiteTurn, setWhiteTurn] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [gameOver, setGameOver] = useState(false);
+  const [debugVisible, setDebugVisible] = useState(false);
 
   const handleClick = useCallback(
     (row: number, col: number) => {
@@ -44,7 +71,26 @@ export default function ChessBoard() {
         // legal moves or clears the selection before possibly selecting again.
         const isMove = validMoves.some(([r, c]) => r === row && c === col);
         if (isMove) {
-          const newBoard = applyMove(board, selected, [row, col]);
+          const resolution = resolveMoveAttempt(
+            board,
+            pieceIds,
+            rpgState,
+            selected,
+            [row, col]
+          );
+
+          if (!resolution.allowed) {
+            setGameState((current) => ({
+              ...current,
+              rpgState: resolution.rpgState,
+            }));
+            setSelected(null);
+            setValidMoves([]);
+            setStatus(resolution.publicMessage);
+            return;
+          }
+
+          const newBoard = applyMove(board, selected, resolution.destination);
 
           // After applying the move, evaluate the player who is about to move.
           // No legal moves plus check is checkmate; no legal moves without
@@ -62,11 +108,15 @@ export default function ChessBoard() {
           } else if (check) {
             newStatus = "Check!";
           }
-          setBoard(newBoard);
+          setGameState({
+            board: newBoard,
+            pieceIds: resolution.pieceIds,
+            rpgState: resolution.rpgState,
+          });
           setWhiteTurn(nextTurn);
           setSelected(null);
           setValidMoves([]);
-          setStatus(newStatus);
+          setStatus(newStatus ?? resolution.publicMessage);
           setGameOver(over);
           return;
         }
@@ -86,12 +136,12 @@ export default function ChessBoard() {
         setValidMoves(legal);
       }
     },
-    [board, selected, validMoves, whiteTurn, gameOver]
+    [board, pieceIds, rpgState, selected, validMoves, whiteTurn, gameOver]
   );
 
   // Reset all local game state back to a fresh copy of the initial position.
   const reset = () => {
-    setBoard(INITIAL_BOARD.map((r) => [...r]));
+    setGameState(createInitialGameState());
     setSelected(null);
     setValidMoves([]);
     setWhiteTurn(true);
@@ -221,6 +271,39 @@ export default function ChessBoard() {
       >
         New Game
       </button>
+
+      <button
+        onClick={() => setDebugVisible((visible) => !visible)}
+        className="px-4 py-1.5 border border-stone-700 text-stone-500 rounded hover:bg-stone-900 text-xs tracking-wider uppercase transition-colors"
+      >
+        {debugVisible ? "Hide Debug" : "Show Debug"}
+      </button>
+
+      {debugVisible && (
+        <div className="w-[calc(100vw-2rem)] max-w-xl border border-stone-800 bg-stone-950 px-4 py-3 text-xs text-stone-400">
+          <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono">
+            <span>White king: {describeKing(rpgState.kings.white)}</span>
+            <span>Black king: {describeKing(rpgState.kings.black)}</span>
+          </div>
+          <div className="mt-3 max-h-44 space-y-2 overflow-auto font-mono">
+            {rpgState.log.length === 0 ? (
+              <div>No hidden rolls yet.</div>
+            ) : (
+              rpgState.log.map((entry) => (
+                <div key={`${entry.turn}-${entry.pieceId}-${entry.visibleMove}`}>
+                  T{entry.turn} {entry.pieceId} {entry.visibleMove}: d20{" "}
+                  {entry.die} + piece {entry.modifiers.piece} + aura{" "}
+                  {entry.modifiers.kingAura} + board {entry.modifiers.board} +
+                  morale {entry.modifiers.morale} + fatigue{" "}
+                  {entry.modifiers.fatigue} = {entry.finalResult} vs{" "}
+                  {entry.threshold}. {entry.outcome}
+                  {entry.ruleBreak ? " rule-break" : ""}.
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

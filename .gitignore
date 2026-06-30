@@ -5,4 +5,5 @@ dist/
 tsconfig.tsbuildinfo
 
 *.log
+dev-server.*.log
 .env*.local
