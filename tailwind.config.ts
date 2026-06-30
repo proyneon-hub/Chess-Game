@@ -1,6 +1,4 @@
-// Avoid requiring tailwindcss types to prevent TS2307 in environments
-// where the package or its types are not installed.
-type Config = Record<string, any>;
+import type { Config } from "tailwindcss";
 
 // Tailwind scans only the app, component, and legacy pages folders so unused
 // utility classes can be removed from the production CSS bundle.

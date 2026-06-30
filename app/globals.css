@@ -4,3 +4,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.chess-board {
+  --square-size: 36px;
+}
+
+@media (min-width: 640px) {
+  .chess-board {
+    --square-size: 58px;
+  }
+}

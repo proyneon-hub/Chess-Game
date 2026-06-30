@@ -121,13 +121,12 @@ export default function ChessBoard() {
 
       {/* The rank labels sit beside the board and use the same square height so
           they stay aligned with each rendered row. */}
-      <div className="flex items-start">
+      <div className="chess-board flex items-start">
         <div className="flex flex-col">
           {RANKS.map((rank) => (
             <div
               key={rank}
-              className="w-5 flex items-center justify-center text-stone-500 text-xs font-mono"
-              style={{ height: 58 }}
+              className="w-4 sm:w-5 h-[var(--square-size)] flex items-center justify-center text-stone-500 text-xs font-mono"
             >
               {rank}
             </div>
@@ -137,7 +136,7 @@ export default function ChessBoard() {
         <div>
           <div
             className="grid border-2 border-stone-700 overflow-hidden shadow-2xl"
-            style={{ gridTemplateColumns: "repeat(8, 58px)" }}
+            style={{ gridTemplateColumns: "repeat(8, var(--square-size))" }}
           >
             {board.map((row, r) =>
               row.map((piece, c) => {
@@ -158,18 +157,18 @@ export default function ChessBoard() {
                   <div
                     key={`${r}-${c}`}
                     onClick={() => handleClick(r, c)}
-                    className="relative flex items-center justify-center cursor-pointer select-none"
-                    style={{ width: 58, height: 58, background: bg }}
+                    className="relative w-[var(--square-size)] h-[var(--square-size)] flex items-center justify-center cursor-pointer select-none"
+                    style={{ background: bg }}
                   >
                     {isCapture && (
                       <div className="absolute inset-0 border-4 border-black/30 z-10" />
                     )}
                     {isMove && !piece && (
-                      <div className="w-5 h-5 rounded-full bg-black/25 z-10" />
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-black/25 z-10" />
                     )}
                     {piece && (
                       <span
-                        className="text-4xl leading-none z-20"
+                        className="text-3xl sm:text-4xl leading-none z-20"
                         style={{
                           // White glyphs need a stronger shadow so they remain
                           // readable on the light board squares.
@@ -193,8 +192,7 @@ export default function ChessBoard() {
             {FILES.map((f) => (
               <div
                 key={f}
-                className="flex items-center justify-center text-stone-500 text-xs font-mono"
-                style={{ width: 58, height: 18 }}
+                className="w-[var(--square-size)] h-[18px] flex items-center justify-center text-stone-500 text-xs font-mono"
               >
                 {f}
               </div>
