@@ -6,11 +6,28 @@
 @tailwind utilities;
 
 .chess-board {
-  --square-size: 36px;
+  --square-size: clamp(38px, calc((94vw - 20px) / 8), 70px);
+  touch-action: manipulation;
 }
 
 @media (min-width: 640px) {
   .chess-board {
-    --square-size: 58px;
+    --square-size: clamp(58px, 7vw, 70px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .chess-board {
+    --square-size: 70px;
+  }
+}
+
+@keyframes dangerPulse {
+  from {
+    box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.55);
+  }
+
+  to {
+    box-shadow: inset 0 0 24px rgba(239, 68, 68, 1);
   }
 }

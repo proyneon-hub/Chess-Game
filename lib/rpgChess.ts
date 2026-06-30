@@ -298,7 +298,7 @@ const extendDestination = (
   return target;
 };
 
-const applyPieceIdMove = (
+export const applyPieceIdMove = (
   pieceIds: PieceIdBoard,
   from: Square,
   to: Square
