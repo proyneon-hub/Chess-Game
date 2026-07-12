@@ -1,104 +1,90 @@
 # Chess Game
 
-A playable chess game built with Next.js, TypeScript, and Tailwind CSS. The deployed experience presents as a chess game while the codebase includes an experimental hidden resolution layer for unusual piece behavior.
+A private, two-player chess game built with Next.js, TypeScript, and Tailwind CSS. Play locally, against a lightweight computer opponent, or invite a friend to a MongoDB-backed online match.
 
-## Overview
-
-Players select pieces, review highlighted legal moves, move or capture, and alternate turns. The interface intentionally avoids explaining every internal modifier so occasional hesitation or dramatic movement feels like part of the board's personality rather than a separate rules screen.
+Chess movement is validated using standard piece rules, while an intentionally hidden RPG-style resolution layer can affect whether a move succeeds and, on rare critical successes, where a piece ends up. Players see narrative outcomes; the raw rolls are available only in local development diagnostics.
 
 ## Features
 
-- Responsive chess board with file/rank labels
-- Desktop two-column layout with a dedicated game panel
-- Mobile-first single-column layout with collapsible logs
-- Selected-piece highlighting
-- Legal move dots and capture rings
-- Last-move and checked-king highlights
-- Check, checkmate, and stalemate status
-- Move history and undo support
-- Player-facing event log with narrative outcomes
-- Hidden D20-style move resolution for captures, risky movement, morale, fatigue, and rare extended movement
-- Local two-player, computer-opponent, and private online-invite play
-- MongoDB-persisted online matches with signed guest sessions
-- Developer diagnostics available only with `?debug=1`
+- Local pass-and-play, computer, and private online-invite modes
+- Responsive board with coordinate labels, selected-piece styling, legal-move markers, capture markers, and last-move highlights
+- Check, checkmate, stalemate, captures, and automatic queen promotion
+- Move history, narrative event log, and local-game undo (up to 20 accepted moves)
+- Private online matches persisted in MongoDB
+- Signed, HTTP-only guest sessions that assign the creator to White and the invited player to Black
+- Explicit invite acceptance: opening a link does not claim the Black seat
+- Automatic online-board refreshes every 1.5 seconds
+- Hidden D20 move resolution with king auras, morale, fatigue, and rare extended moves
+- Optional local diagnostics at `?debug=1`; hidden state is never returned by the online-match API
 
-## Tech Stack
+## Tech stack
 
-- Next.js 14
-- React 18
+- Next.js 14 and React 18
 - TypeScript
 - Tailwind CSS
+- MongoDB with Mongoose (online matches)
 
-## Getting Started
+## Requirements
+
+- Node.js 18.17 or later
+- MongoDB only if you plan to use online matches
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to play.
+Open [http://localhost:3000](http://localhost:3000).
 
-Online invite games require MongoDB. Copy `.env.example` to `.env.local`, then
-set `MONGODB_URI` and a long random `CHESS_AUTH_SECRET`. Configure the same
-values in the deployment provider before using online play in production.
-
-For diagnostics during local testing, open:
-
-```text
-http://localhost:3000?debug=1
-```
-
-## Available Scripts
+Local and computer games work without configuration. To enable online invites, create `.env.local` from the provided example and supply your MongoDB connection string and a long random signing secret:
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
+Copy-Item .env.example .env.local
 ```
 
-For a direct TypeScript check:
+```dotenv
+MONGODB_URI=mongodb://127.0.0.1:27017/rpg_chess
+CHESS_AUTH_SECRET=replace-with-a-long-random-secret
+MONGODB_SERVER_SELECTION_TIMEOUT_MS=5000
+```
+
+For local diagnostics, open [http://localhost:3000/?debug=1](http://localhost:3000/?debug=1). Diagnostics are available in local and computer games only.
+
+## How to play
+
+1. Choose **Play here**, **Play computer**, or **Play online**.
+2. Select a piece belonging to the side whose turn it is, then select a highlighted destination.
+3. For an online game, the creator selects **Copy invite link**. The recipient opens the link and selects **Join as Black**.
+4. Online players use the same browser profile to retain their guest-session identity. A game can have only one player per color.
+5. Use **Undo** only in a local pass-and-play game. It is unavailable for computer and online games.
+
+## Rules and gameplay notes
+
+The board enforces normal movement for all standard pieces and prevents moves that leave the moving king in check. It supports captures, check, checkmate, stalemate, and automatic promotion of pawns to queens.
+
+Castling and en passant are not implemented.
+
+After a legal destination is chosen, the hidden resolution layer rolls for the attempted move. A piece may hesitate or refuse the command; a natural 20 can, when safe and possible, carry it one extra square beyond the selected destination. This is deliberate game behavior, so the experience is not a strict implementation of tournament chess.
+
+## Online matches
+
+Online games use private, unlisted UUID invite links. The server stores the complete game state in MongoDB and uses an optimistic version check to reject simultaneous conflicting updates. The browser receives only the visible board, move history, and event messages; piece identities and RPG state remain server-side.
+
+Set `MONGODB_URI` and `CHESS_AUTH_SECRET` in your deployment environment as well as locally. `CHESS_AUTH_SECRET` is required in production; use a long, unique random value.
+
+## Scripts
 
 ```bash
-npx tsc --noEmit --incremental false
+npm run dev      # start the development server
+npm run build    # create a production build
+npm run start    # run the production build
+npm run lint     # run Next.js linting
+npx tsc --noEmit --incremental false  # type-check without emitting files
 ```
 
-## Game Controls
-
-1. Choose a local, computer, or online opponent.
-2. Select a piece belonging to your side to move.
-3. Choose one of the highlighted destination squares.
-4. In an online game, use `Copy invite link` to invite Black. The recipient must explicitly select `Join as Black`; merely opening the link does not claim the seat.
-5. Use `Undo` only in a local game.
-6. Use diagnostics only during development by adding `?debug=1` to the URL.
-
-## Current Chess Rules Supported
-
-- Standard movement for kings, queens, rooks, bishops, knights, and pawns
-- Captures
-- Pawn promotion to queen
-- Check detection
-- Checkmate and stalemate detection
-
-Castling and en passant are not currently implemented.
-
-## Hidden Resolution Layer
-
-The game intentionally keeps this layer out of the normal player UI. Internally it supports:
-
-- hidden D20 rolls behind moves
-- king strength rolls at game start
-- king tiers and aura modifiers
-- success, partial success, failure, critical failure, and critical success
-- rare natural-20 extended movement
-- piece morale and fatigue
-- diagnostics with raw roll details when `?debug=1` is present
-
-Normal players see only narrative results such as hesitation, resolve, or a piece surging beyond the line.
-
-## Testing Instructions
-
-Recommended local checks:
+## Verification checklist
 
 ```bash
 npm run lint
@@ -106,23 +92,20 @@ npx tsc --noEmit --incremental false
 npm run build
 ```
 
-Manual smoke test:
-
-1. Confirm the board renders and pieces are visible.
-2. Select a white piece and confirm legal moves appear.
-3. Make a legal move and confirm the turn changes.
-4. Try an illegal destination and confirm the status/event log explains it.
-5. Confirm move history, last-move highlighting, and undo behavior.
-6. Open `/?debug=1` and make moves until diagnostics show hidden rolls.
-7. Confirm captures, check, checkmate, and stalemate messages remain readable.
+For a manual check, start each game mode, make a legal move, verify the board and event log update, and test an online invite in a separate browser profile. In local mode, also confirm undo works; with `?debug=1`, confirm the diagnostics panel can be opened.
 
 ## Deployment
 
-The project is configured for Vercel as a Next.js app. The production branch is expected to be `main`.
+The repository includes a Vercel configuration for a Next.js deployment. Configure the MongoDB URI and signing secret in the deployment provider before enabling online play in production.
 
-## Known Issues
+## Project layout
 
-- Castling is not implemented.
-- En passant is not implemented.
-- The hidden resolution layer is experimental and may need balancing.
-- The nested `chess-nextjs` folder exists as a deployment shim that mirrors the root app setup.
+```text
+app/                    Next.js pages and online-match route handlers
+components/ChessBoard.tsx  Interactive board and game-mode UI
+lib/chess.ts            Chess movement and position validation
+lib/game.ts             Game state and move submission
+lib/rpgChess.ts         Hidden RPG resolution system
+lib/serverMatches.ts    MongoDB-backed match coordination
+models/GameMatch.ts     Mongoose match schema
+```
