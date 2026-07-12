@@ -43,6 +43,7 @@ export default function ChessBoard() {
   const [validMoves, setValidMoves] = useState<Square[]>([]);
   const [message, setMessage] = useState("Choose how you would like to play.");
   const [statusType, setStatusType] = useState<StatusType>("info");
+  const [creatingOnline, setCreatingOnline] = useState(false);
   const [computerThinking, setComputerThinking] = useState(false);
   const [debugVisible, setDebugVisible] = useState(false);
   const [debugAvailable, setDebugAvailable] = useState(false);
@@ -188,6 +189,10 @@ export default function ChessBoard() {
   };
 
   const createOnline = async () => {
+    if (creatingOnline) return;
+    setCreatingOnline(true);
+    setMessage("Creating a private online game...");
+    setStatusType("info");
     try {
       const response = await fetch("/api/matches", {
         method: "POST",
@@ -203,6 +208,8 @@ export default function ChessBoard() {
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not create a match.");
       setStatusType("error");
+    } finally {
+      setCreatingOnline(false);
     }
   };
 
@@ -256,10 +263,11 @@ export default function ChessBoard() {
         <h1 className="text-4xl font-light tracking-[0.35em] uppercase text-amber-600">Chess</h1>
         <p className="mt-5 max-w-md text-sm leading-6 text-stone-400">Choose your opponent. The board keeps its own counsel.</p>
         <div className="mt-8 grid w-full gap-3">
-          <button onClick={() => startLocal("local")} className="rounded border border-amber-500/45 bg-amber-950/20 px-5 py-4 text-left text-stone-100 hover:bg-amber-900/25">Play here <span className="block pt-1 text-xs text-stone-500">Two players on one board</span></button>
-          <button onClick={() => startLocal("computer")} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900">Play computer <span className="block pt-1 text-xs text-stone-500">You play White</span></button>
-          <button onClick={createOnline} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900">Play online <span className="block pt-1 text-xs text-stone-500">Create a private invite game</span></button>
+          <button type="button" onClick={() => startLocal("local")} className="rounded border border-amber-500/45 bg-amber-950/20 px-5 py-4 text-left text-stone-100 hover:bg-amber-900/25">Play here <span className="block pt-1 text-xs text-stone-500">Two players on one board</span></button>
+          <button type="button" onClick={() => startLocal("computer")} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900">Play computer <span className="block pt-1 text-xs text-stone-500">You play White</span></button>
+          <button type="button" onClick={() => void createOnline()} disabled={creatingOnline} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900 disabled:cursor-wait disabled:opacity-60">{creatingOnline ? "Creating online game..." : "Play online"}<span className="block pt-1 text-xs text-stone-500">Create a private invite game</span></button>
         </div>
+        <div role="status" className={`mt-5 w-full rounded border px-4 py-3 text-sm leading-relaxed ${statusStyles[statusType]}`}>{message}</div>
       </main>
     );
   }
