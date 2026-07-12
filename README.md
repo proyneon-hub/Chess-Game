@@ -18,6 +18,8 @@ Players select pieces, review highlighted legal moves, move or capture, and alte
 - Move history and undo support
 - Player-facing event log with narrative outcomes
 - Hidden D20-style move resolution for captures, risky movement, morale, fatigue, and rare extended movement
+- Local two-player, computer-opponent, and private online-invite play
+- MongoDB-persisted online matches with signed guest sessions
 - Developer diagnostics available only with `?debug=1`
 
 ## Tech Stack
@@ -35,6 +37,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to play.
+
+Online invite games require MongoDB. Copy `.env.example` to `.env.local`, then
+set `MONGODB_URI` and a long random `CHESS_AUTH_SECRET`. Configure the same
+values in the deployment provider before using online play in production.
 
 For diagnostics during local testing, open:
 
@@ -59,11 +65,12 @@ npx tsc --noEmit --incremental false
 
 ## Game Controls
 
-1. Select a piece belonging to the side to move.
-2. Choose one of the highlighted destination squares.
-3. Use `Undo` to step back one completed move.
-4. Use `New Game` to reset the board and reroll hidden state.
-5. Use diagnostics only during development by adding `?debug=1` to the URL.
+1. Choose a local, computer, or online opponent.
+2. Select a piece belonging to your side to move.
+3. Choose one of the highlighted destination squares.
+4. In an online game, use `Copy invite link` to invite Black. The recipient must explicitly select `Join as Black`; merely opening the link does not claim the seat.
+5. Use `Undo` only in a local game.
+6. Use diagnostics only during development by adding `?debug=1` to the URL.
 
 ## Current Chess Rules Supported
 
