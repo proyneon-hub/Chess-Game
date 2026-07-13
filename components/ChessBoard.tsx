@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Board, type Square, PIECE_SYMBOLS, getLegalMoves, isInCheck, isWhite } from "@/lib/chess";
-import { type GameKind, type GameState, type Side, createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
+import { type Difficulty, type GameKind, type GameState, type Side, DEPTH_FOR, createGameState, submitMove } from "@/lib/game";
+import { getBestMoves } from "@/lib/ai";
 import { describeKing } from "@/lib/rpgChess";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -37,6 +38,7 @@ const sameSquare = (first: Square, second: Square) => first[0] === second[0] && 
 
 export default function ChessBoard() {
   const [kind, setKind] = useState<GameKind | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [game, setGame] = useState<GameState>(createGameState);
   const [remote, setRemote] = useState<PublicMatch | null>(null);
   const [selected, setSelected] = useState<Square | null>(null);
@@ -111,24 +113,24 @@ export default function ChessBoard() {
     return () => window.clearInterval(timer);
   }, [kind, loadRemote]);
 
-  const playComputerTurn = useCallback((next: GameState, retries = 0) => {
+  const playComputerTurn = useCallback((next: GameState, rankedMoves?: MoveAttempt[], attempt = 0) => {
     if (next.status !== "active" || next.sideToMove !== "black") return;
     setComputerThinking(true);
     window.setTimeout(() => {
-      const choices = getAllLegalMoves(next.board, "black");
-      const intended = choices[Math.floor(Math.random() * choices.length)];
-      if (!intended) return;
+      const moves = rankedMoves ?? getBestMoves(next.board, "black", DEPTH_FOR[difficulty]);
+      const intended = moves[attempt];
+      if (!intended) { setComputerThinking(false); return; }
       const result = submitMove(next, intended);
       setGame(result.state);
       setMessage(result.message);
       setStatusType(result.special ? "special" : result.accepted ? "success" : "warning");
-      if (!result.accepted && retries < 2) {
-        playComputerTurn(result.state, retries + 1);
+      if (!result.accepted && attempt < 2) {
+        playComputerTurn(result.state, moves, attempt + 1);
         return;
       }
       setComputerThinking(false);
     }, 550);
-  }, []);
+  }, [difficulty]);
 
   const submitLocalMove = useCallback((from: Square, to: Square, side: Side) => {
     const result = submitMove(game, { from, to, side });
@@ -264,7 +266,14 @@ export default function ChessBoard() {
         <p className="mt-5 max-w-md text-sm leading-6 text-stone-400">Choose your opponent. The board keeps its own counsel.</p>
         <div className="mt-8 grid w-full gap-3">
           <button type="button" onClick={() => startLocal("local")} className="rounded border border-amber-500/45 bg-amber-950/20 px-5 py-4 text-left text-stone-100 hover:bg-amber-900/25">Play here <span className="block pt-1 text-xs text-stone-500">Two players on one board</span></button>
-          <button type="button" onClick={() => startLocal("computer")} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900">Play computer <span className="block pt-1 text-xs text-stone-500">You play White</span></button>
+          <div className="rounded border border-stone-700 text-left text-stone-100">
+            <button type="button" onClick={() => startLocal("computer")} className="w-full px-5 py-4 text-left hover:bg-stone-900">Play computer <span className="block pt-1 text-xs text-stone-500">You play White</span></button>
+            <div className="flex items-center gap-3 border-t border-stone-700 px-5 py-2 text-xs text-stone-400">
+              <span>Difficulty:</span>
+              <button type="button" onClick={() => setDifficulty("normal")} className={`rounded px-2 py-0.5 transition-colors ${difficulty === "normal" ? "bg-amber-800/50 text-amber-300 font-semibold" : "hover:text-stone-200"}`}>Normal<span className="ml-1 hidden text-stone-500 sm:inline">· 2 moves ahead</span></button>
+              <button type="button" onClick={() => setDifficulty("advanced")} className={`rounded px-2 py-0.5 transition-colors ${difficulty === "advanced" ? "bg-amber-800/50 text-amber-300 font-semibold" : "hover:text-stone-200"}`}>Advanced<span className="ml-1 hidden text-stone-500 sm:inline">· 4 moves ahead</span></button>
+            </div>
+          </div>
           <button type="button" onClick={() => void createOnline()} disabled={creatingOnline} className="rounded border border-stone-700 px-5 py-4 text-left text-stone-100 hover:bg-stone-900 disabled:cursor-wait disabled:opacity-60">{creatingOnline ? "Creating online game..." : "Play online"}<span className="block pt-1 text-xs text-stone-500">Create a private invite game</span></button>
         </div>
         <div role="status" className={`mt-5 w-full rounded border px-4 py-3 text-sm leading-relaxed ${statusStyles[statusType]}`}>{message}</div>

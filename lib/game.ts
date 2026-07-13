@@ -18,6 +18,8 @@ import {
 
 export type Side = "white" | "black";
 export type GameKind = "local" | "computer" | "online";
+export type Difficulty = "normal" | "advanced";
+export const DEPTH_FOR: Record<Difficulty, number> = { normal: 2, advanced: 4 };
 export type MatchStatus = "waiting" | "active" | "finished";
 
 export type MoveRecord = {
