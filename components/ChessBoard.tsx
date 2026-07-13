@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Board, type Square, PIECE_SYMBOLS, getLegalMoves, isInCheck, isWhite } from "@/lib/chess";
-import { type Difficulty, type GameKind, type GameState, type Side, DEPTH_FOR, createGameState, submitMove } from "@/lib/game";
+import { type Difficulty, type GameKind, type GameState, type MoveAttempt, type Side, DEPTH_FOR, createGameState, submitMove } from "@/lib/game";
 import { getBestMoves } from "@/lib/ai";
 import { describeKing } from "@/lib/rpgChess";
 
