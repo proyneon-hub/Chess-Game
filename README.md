@@ -2,7 +2,7 @@
 
 Chess for local pass-and-play, computer opponents, and private online invites. The interface uses ordinary chess controls. Pieces have persistent, hidden political memories; their behavior follows the same deterministic rules in every mode.
 
-[Play Chess](https://chess-game-six-zeta.vercel.app)
+[Open deployed Chess (Vercel sign-in required)](https://chess-game-pramits-projects-ce654619.vercel.app)
 
 The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
 
@@ -81,7 +81,9 @@ The repository root is the supported full application/deployment root. `chess-ne
 
 ## Production release
 
-Vercel builds the connected GitHub repository. Pushes to `main` publish production at [chess-game-six-zeta.vercel.app](https://chess-game-six-zeta.vercel.app); feature branches receive preview deployments. Use the repository root as the Vercel Root Directory, the Next.js framework preset, and a supported Node version listed above.
+Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Open the [deployed project](https://chess-game-pramits-projects-ce654619.vercel.app) or its [Vercel dashboard](https://vercel.com/pramits-projects-ce654619/chess-game). Use the repository root as the Vercel Root Directory, the Next.js framework preset, and a supported Node version listed above.
+
+On 2026-09-07, Vercel confirmed a successful Production deployment of release commit `40a8bef`. The deployment and project alias redirected anonymous visitors to Vercel sign-in, so an anonymous live-game smoke test could not complete. The repository's historical homepage, `chess-game-six-zeta.vercel.app`, returned `DEPLOYMENT_NOT_FOUND`; use the project link above. Public access requires the project owner to configure the intended production domain and deployment protection in Vercel. This release does not change those access controls.
 
 Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
 
