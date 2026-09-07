@@ -7,6 +7,7 @@ import {
   isInCheck,
   isWhite,
 } from "@/lib/chess";
+import { draw, freshSeed, seedRng } from "@/lib/rpg/rng";
 
 export type PieceIdBoard = (string | null)[][];
 export type KingTier = "Weak" | "Ordinary" | "Strong" | "Heroic" | "Legendary";
@@ -87,7 +88,7 @@ export type MoveResolution = {
   publicMessage: string;
 };
 
-const PIECE_STATS: Record<PieceKind, PieceStats> = {
+export const PIECE_STATS: Record<PieceKind, PieceStats> = {
   king: { skill: 2, courage: 4, loyalty: 5, power: 3, agility: 1, will: 5 },
   queen: { skill: 5, courage: 4, loyalty: 4, power: 5, agility: 4, will: 4 },
   rook: { skill: 3, courage: 4, loyalty: 5, power: 4, agility: 2, will: 3 },
@@ -108,11 +109,11 @@ const PIECE_NAMES: Record<PieceKind, string> = {
 const inBounds = (r: number, c: number) => r >= 0 && r < 8 && c >= 0 && c < 8;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
-const rollD20 = () => Math.floor(Math.random() * 20) + 1;
+const rollD20 = (random: () => number) => Math.floor(random() * 20) + 1;
 
 const sideOf = (piece: Piece): Side => (isWhite(piece) ? "white" : "black");
 
-const pieceKind = (piece: Piece): PieceKind => {
+export const pieceKind = (piece: Piece): PieceKind => {
   switch (piece?.toLowerCase()) {
     case "k":
       return "king";
@@ -162,16 +163,19 @@ export const initializePieceIds = (board: Board): PieceIdBoard => {
       const key = `${side}_${kind}` as const;
       counts[key] = (counts[key] ?? 0) + 1;
       return `${key}_${counts[key]}`;
-    })
+    }),
   );
 };
 
 export const initializeRpgState = (
   board: Board,
-  pieceIds: PieceIdBoard
+  pieceIds: PieceIdBoard,
+  random?: () => number,
 ): RpgState => {
-  const whiteStrength = rollD20();
-  const blackStrength = rollD20();
+  const rng = seedRng(freshSeed());
+  const roll = random ?? (() => draw(rng, "initialization"));
+  const whiteStrength = rollD20(roll);
+  const blackStrength = rollD20(roll);
   const whiteTier = determineKingTier(whiteStrength);
   const blackTier = determineKingTier(blackStrength);
   const pieces: Record<string, PieceRpgState> = {};
@@ -232,7 +236,7 @@ const kingAuraModifier = (
   rpgState: RpgState,
   pieceIds: PieceIdBoard,
   side: Side,
-  square: Square
+  square: Square,
 ) => {
   const kingId = `${side}_king_1`;
   const kingSquare = findPieceId(pieceIds, kingId);
@@ -240,26 +244,39 @@ const kingAuraModifier = (
 
   const distance = Math.max(
     Math.abs(kingSquare[0] - square[0]),
-    Math.abs(kingSquare[1] - square[1])
+    Math.abs(kingSquare[1] - square[1]),
   );
 
   const king = rpgState.kings[side];
   return distance <= king.auraRadius ? king.auraBonus : 0;
 };
 
-const isSquareThreatenedBy = (board: Board, square: Square, attackerWhite: boolean) => {
+const isSquareThreatenedBy = (
+  board: Board,
+  square: Square,
+  attackerWhite: boolean,
+) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const piece = board[r][c];
       if (!piece || isWhite(piece) !== attackerWhite) continue;
-      if (getPseudoMoves(board, r, c).some(([mr, mc]) => mr === square[0] && mc === square[1]))
+      if (
+        getPseudoMoves(board, r, c).some(
+          ([mr, mc]) => mr === square[0] && mc === square[1],
+        )
+      )
         return true;
     }
   }
   return false;
 };
 
-const moveTypeFor = (board: Board, from: Square, to: Square, side: Side): MoveType => {
+const moveTypeFor = (
+  board: Board,
+  from: Square,
+  to: Square,
+  side: Side,
+): MoveType => {
   if (isInCheck(board, side === "white")) return "escape";
   if (board[to[0]][to[1]]) return "capture";
   if (isSquareThreatenedBy(board, from, side === "black")) return "threatened";
@@ -282,7 +299,7 @@ const extendDestination = (
   board: Board,
   from: Square,
   to: Square,
-  side: Side
+  side: Side,
 ): Square | null => {
   if (board[to[0]][to[1]]) return null;
 
@@ -292,6 +309,7 @@ const extendDestination = (
   if (!inBounds(target[0], target[1])) return null;
 
   const occupant = board[target[0]][target[1]];
+  if (occupant?.toLowerCase() === "k") return null;
   if (occupant && sideOf(occupant) === side) return null;
   if (isInCheck(applyMove(board, from, target), side === "white")) return null;
 
@@ -301,7 +319,7 @@ const extendDestination = (
 export const applyPieceIdMove = (
   pieceIds: PieceIdBoard,
   from: Square,
-  to: Square
+  to: Square,
 ): PieceIdBoard => {
   const next = clonePieceIds(pieceIds);
   next[to[0]][to[1]] = next[from[0]][from[1]];
@@ -311,15 +329,18 @@ export const applyPieceIdMove = (
 
 const logEntry = (
   rpgState: RpgState,
-  entry: Omit<DebugLogEntry, "turn">
-): DebugLogEntry[] => [{ turn: rpgState.turn, ...entry }, ...rpgState.log].slice(0, 30);
+  entry: Omit<DebugLogEntry, "turn">,
+): DebugLogEntry[] =>
+  [{ turn: rpgState.turn, ...entry }, ...rpgState.log].slice(0, 30);
 
 export const resolveMoveAttempt = (
   board: Board,
   pieceIds: PieceIdBoard,
   rpgState: RpgState,
   from: Square,
-  to: Square
+  to: Square,
+  random: () => number,
+  guaranteed = false,
 ): MoveResolution => {
   const piece = board[from[0]][from[1]];
   const pieceId = pieceIds[from[0]][from[1]];
@@ -339,15 +360,21 @@ export const resolveMoveAttempt = (
   const side = sideOf(piece);
   const moveType = moveTypeFor(board, from, to, side);
   const threshold = thresholdFor(moveType);
-  const die = rollD20();
+  const die = guaranteed ? 10 : Math.floor(random() * 20) + 1;
   const pieceModifier =
     moveType === "capture" ? pieceState.stats.power : pieceState.stats.skill;
   const kingAura = kingAuraModifier(rpgState, pieceIds, side, from);
   const boardModifier = boardModifierFor(board, to, side);
-  const moraleModifier = pieceState.morale >= 5 ? 1 : pieceState.morale <= 1 ? -1 : 0;
+  const moraleModifier =
+    pieceState.morale >= 5 ? 1 : pieceState.morale <= 1 ? -1 : 0;
   const fatigueModifier = -pieceState.fatigue;
   const finalResult =
-    die + pieceModifier + kingAura + boardModifier + moraleModifier + fatigueModifier;
+    die +
+    pieceModifier +
+    kingAura +
+    boardModifier +
+    moraleModifier +
+    fatigueModifier;
   const nextRpgState: RpgState = {
     ...rpgState,
     pieces: { ...rpgState.pieces },
@@ -370,7 +397,9 @@ export const resolveMoveAttempt = (
   let ruleBreak = false;
   let message = `The ${PIECE_NAMES[pieceState.kind]} obeys.`;
 
-  if (die === 1) {
+  if (guaranteed) {
+    outcome = "success";
+  } else if (die === 1) {
     outcome = "critical-failure";
     allowed = false;
     updateMover({
@@ -415,6 +444,11 @@ export const resolveMoveAttempt = (
   if (allowed) {
     const capturedId = pieceIds[destination[0]][destination[1]];
     nextPieceIds = applyPieceIdMove(pieceIds, from, destination);
+    if (
+      pieceState.kind === "pawn" &&
+      (destination[0] === 0 || destination[0] === 7)
+    )
+      updateMover({ kind: "queen", stats: { ...PIECE_STATS.queen } });
 
     if (capturedId) {
       const captured = nextRpgState.pieces[capturedId];

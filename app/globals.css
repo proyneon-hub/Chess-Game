@@ -5,6 +5,43 @@
 @tailwind components;
 @tailwind utilities;
 
+.chess-square {
+  touch-action: manipulation;
+}
+.intended-destination {
+  animation: intendedOrder 1.5s ease-out;
+}
+.actual-destination {
+  animation: actualOrder 1.5s ease-out;
+}
+@keyframes intendedOrder {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+@keyframes actualOrder {
+  0%,
+  40% {
+    opacity: 0.2;
+  }
+  65%,
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 .chess-board {
   --square-size: clamp(38px, calc((94vw - 20px) / 8), 70px);
   touch-action: manipulation;

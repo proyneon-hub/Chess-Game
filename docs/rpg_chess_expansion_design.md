@@ -1,3 +1,5 @@
+﻿> Historical context: superseded by [Hidden Kingdom implementation](hidden-kingdom-implementation.md) and [current rule decisions](hidden-kingdom-rules.md). Visible RPG selectors, raw-stat reveals, campaigns, and missing special chess rules described here do not define the current product.
+
 # Chase Game RPG-Chess Expansion Design
 
 > **Project note:** This document defines an expansion layer for an existing **chase/chess-style game** where the visible game still looks like chess, but the hidden rules operate like a D&D-inspired role-playing system. The player sees pieces move on a board; behind the scenes, invisible dice rolls determine strength, morale, success, failure, and whether normal chess rules can be bent or broken.

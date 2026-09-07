@@ -1,0 +1,10 @@
+{
+  "workers": [
+    {
+      "elapsedMs": 1002.8999999761581,
+      "nodes": 10720,
+      "completedDepth": 3
+    }
+  ],
+  "longTasks": []
+}

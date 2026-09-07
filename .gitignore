@@ -7,3 +7,6 @@ tsconfig.tsbuildinfo
 *.log
 dev-server.*.log
 .env*.local
+playwright-report/
+test-results/
+.test-services/

@@ -1,23 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerMatch } from "@/lib/serverMatches";
-import { isDatabaseConnectivityError } from "@/lib/db";
 import { getGuestSession, persistGuestSession } from "@/lib/session";
-
+import { genericError, readBody, sameOrigin } from "@/lib/serverHttp";
+import { record } from "@/lib/game/validation";
 export const runtime = "nodejs";
-
 export async function POST(request: NextRequest) {
-  // Reading the body keeps this endpoint forwards-compatible without trusting
-  // client-supplied identity. The signed, HTTP-only guest cookie owns identity.
-  await request.json().catch(() => null);
+  if (!sameOrigin(request))
+    return NextResponse.json(
+      { error: "Invalid request origin." },
+      { status: 403 },
+    );
   try {
-    const session = getGuestSession();
-    const match = await createServerMatch(session.playerId);
-    const secure = request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
-    return persistGuestSession(NextResponse.json(match, { status: 201 }), session, secure);
+    const body = await readBody(request);
+    if (!record(body) || Object.keys(body).length)
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
+  try {
+    const session = getGuestSession(),
+      match = await createServerMatch(session.playerId);
+    return persistGuestSession(
+      NextResponse.json(match, {
+        status: 201,
+        headers: { "Cache-Control": "no-store" },
+      }),
+      session,
+      request.nextUrl.protocol === "https:" ||
+        request.headers.get("x-forwarded-proto") === "https",
+    );
   } catch (error) {
-    const message = isDatabaseConnectivityError(error)
-      ? "Database unavailable. Check MongoDB Atlas access and MONGODB_URI."
-      : error instanceof Error ? error.message : "Unable to create the match.";
-    return NextResponse.json({ error: message }, { status: isDatabaseConnectivityError(error) ? 503 : 500 });
+    return genericError(error);
   }
 }

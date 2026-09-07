@@ -1,111 +1,75 @@
-# Chess Game
+# Chess
 
-A private, two-player chess game built with Next.js, TypeScript, and Tailwind CSS. Play locally, against a lightweight computer opponent, or invite a friend to a MongoDB-backed online match.
+Chess for local pass-and-play, computer opponents, and private online invites. The interface uses ordinary chess controls. Pieces have persistent, hidden political memories; their behavior follows the same deterministic rules in every mode.
 
-Chess movement is validated using standard piece rules, while an intentionally hidden RPG-style resolution layer can affect whether a move succeeds and, on rare critical successes, where a piece ends up. Players see narrative outcomes; the raw rolls are available only in local development diagnostics.
+## Run
 
-## Features
+Use Node **22.13+ or 24** and npm. The framework remains Next.js 14.2.35 / React 18.
 
-- Local pass-and-play, computer, and private online-invite modes
-- Responsive board with coordinate labels, selected-piece styling, legal-move markers, capture markers, and last-move highlights
-- Check, checkmate, stalemate, captures, and automatic queen promotion
-- Move history, narrative event log, and local-game undo (up to 20 accepted moves)
-- Private online matches persisted in MongoDB
-- Signed, HTTP-only guest sessions that assign the creator to White and the invited player to Black
-- Explicit invite acceptance: opening a link does not claim the Black seat
-- Automatic online-board refreshes every 1.5 seconds
-- Hidden D20 move resolution with king auras, morale, fatigue, and rare extended moves
-- Optional local diagnostics at `?debug=1`; hidden state is never returned by the online-match API
-
-## Tech stack
-
-- Next.js 14 and React 18
-- TypeScript
-- Tailwind CSS
-- MongoDB with Mongoose (online matches)
-
-## Requirements
-
-- Node.js 18.17 or later
-- MongoDB only if you plan to use online matches
-
-## Run locally
-
-```bash
-npm install
+```sh
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [localhost:3000](http://localhost:3000). Local and computer games need no database. For online games, copy `.env.example` to `.env.local`, supply `MONGODB_URI`, and set a long random `CHESS_AUTH_SECRET`. Never commit that file.
 
-Local and computer games work without configuration. To enable online invites, create `.env.local` from the provided example and supply your MongoDB connection string and a long random signing secret:
+## Play
 
-```bash
-Copy-Item .env.example .env.local
-```
+- **Play here:** two players, one board, with Undo for up to 20 completed turns.
+- **Play computer:** White against a worker-based opponent. Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
+- **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity.
+- Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
+- After a piece hesitates, **Repeat order** executes that command; a different legal order also completes the turn. **Retry connection** resends the same network request.
+- Undo during a pending hesitation restores the start of that turn first. A later Undo reverses the preceding completed turn. New Game resets the seed; Leave cancels online work and clears the invite URL.
 
-```dotenv
-MONGODB_URI=mongodb://127.0.0.1:27017/rpg_chess
-CHESS_AUTH_SECRET=replace-with-a-long-random-secret
-MONGODB_SERVER_SELECTION_TIMEOUT_MS=5000
-```
+Castling, en passant, promotion choice, checkmate, stalemate, insufficient material, threefold/50-move claims, and fivefold/75-move automatic draws are supported. Draw rights deliberately use the visible chess position and ignore politics. This is an intentional chess variant, not a claim of certified tournament compliance.
 
-For local diagnostics, open [http://localhost:3000/?debug=1](http://localhost:3000/?debug=1). Diagnostics are available in local and computer games only.
+## Developer rule notes
 
-## How to play
+New games use `hidden-kingdom-v2`. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Subjects remember coercion, rescue, protection, losses, promotion, and rivalries. Tyranny can improve immediate compliance while increasing grievances.
 
-1. Choose **Play here**, **Play computer**, or **Play online**.
-2. Select a piece belonging to the side whose turn it is, then select a highlighted destination.
-3. For an online game, the creator selects **Copy invite link**. The recipient opens the link and selects **Join as Black**.
-4. Online players use the same browser profile to retain their guest-session identity. A game can have only one player per color.
-5. Use **Undo** only in a local pass-and-play game. It is unavailable for computer and online games.
+A late-game conspiracy needs strict causal prerequisites, two eligible own turns, three persistent warning stages, and three response turns before an attempt. Guards, separation, leadership recovery, or king movement provide counterplay. Regicide retains the king on the board and creates an explicit terminal result. Ordinary chess results take precedence.
 
-## Rules and gameplay notes
+The UI has no RPG selector, hidden statistics, or diagnostics panel. `?debug=1` does not reveal them. Local/computer concealment is experiential: browser source and memory can be inspected. Online RNG, subjects, political values, and internal plot objects remain server-private behind a nested public allowlist.
 
-The board enforces normal movement for all standard pieces and prevents moves that leave the moving king in check. It supports captures, check, checkmate, stalemate, and automatic promotion of pawns to queens.
+## Online persistence
 
-Castling and en passant are not implemented.
+MongoDB stores the complete match in one document. Every submitted intent has a UUID and expected match version. A compare-and-swap commit writes the board, politics, RNG, events, revision, and receipt together. Rejections do not advance RNG. Concurrent losers reload and check receipts; they never reroll automatically.
 
-After a legal destination is chosen, the hidden resolution layer rolls for the attempted move. A piece may hesitate or refuse the command; a natural 20 can, when safe and possible, carry it one extra square beyond the selected destination. This is deliberate game behavior, so the experience is not a strict implementation of tournament chess.
+The latest 64 `(player, actionId)` receipts are retained. An identical retry returns a duplicate acknowledgement and current public state. Reusing an id with changed payload returns 409. After a receipt ages out, its old expected revision still blocks replay; reusing that aged id with a new revision is a new intent. Polls are serialized and gated by match identity and revision; leaving aborts in-flight work.
 
-## Online matches
+Unversioned matches use an idempotent legacy adapter. Their D20 behavior continues with king-safety, promotion, bounded-refusal, and deterministic future-RNG fixes; they do not gain new subjects or conspiracies. The original prototype did not save its `Math.random` history, so past draws cannot be reconstructed. Unknown future schemas/configurations return a controlled incompatibility response without rewriting the match.
 
-Online games use private, unlisted UUID invite links. The server stores the complete game state in MongoDB and uses an optimistic version check to reject simultaneous conflicting updates. The browser receives only the visible board, move history, and event messages; piece identities and RPG state remain server-side.
+## Verify
 
-Set `MONGODB_URI` and `CHESS_AUTH_SECRET` in your deployment environment as well as locally. `CHESS_AUTH_SECRET` is required in production; use a long, unique random value.
-
-## Scripts
-
-```bash
-npm run dev      # start the development server
-npm run build    # create a production build
-npm run start    # run the production build
-npm run lint     # run Next.js linting
-npx tsc --noEmit --incremental false  # type-check without emitting files
-```
-
-## Verification checklist
-
-```bash
+```sh
 npm run lint
-npx tsc --noEmit --incremental false
+npm run typecheck
+npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e
+npm run simulate
 ```
 
-For a manual check, start each game mode, make a legal move, verify the board and event log update, and test an online invite in a separate browser profile. In local mode, also confirm undo works; with `?debug=1`, confirm the diagnostics panel can be opened.
+`npm test` includes behavioral fixtures and real MongoDB concurrency tests using an isolated `mongodb-memory-server` process. `npm run test:e2e` starts the **production build** on port 3100 with another isolated MongoDB database. It verifies separate browser sessions, transport retry, persistent warnings, promotion, keyboard controls, mobile layout, and lifecycle cancellation. Neither suite uses the database in `.env.local`. Initial runs download test browser/MongoDB binaries and need network access. On restricted Windows hosts, child-process creation may need sandbox approval.
 
-## Deployment
+`npm run simulate` writes 1,000 seeded games (500 color-swapped pairs) and a Markdown report. The fixed 240-ply harness cap is reported as truncation, not a gameplay draw. Optional `SIM_GAMES` is for shorter diagnostics. The tests follow the [Vitest guide](https://vitest.dev/guide/) and [Playwright web-server workflow](https://playwright.dev/docs/test-webserver).
 
-The repository includes a Vercel configuration for a Next.js deployment. Configure the MongoDB URI and signing secret in the deployment provider before enabling online play in production.
+Read the [implementation checklist and verification report](docs/hidden-kingdom-implementation.md), [balance measurements](docs/hidden-kingdom-balancing.md), and [rule decisions](docs/hidden-kingdom-rules.md). Historical design plans are retained as context and superseded by these documents.
 
-## Project layout
+## Layout and deployment compatibility
 
-```text
-app/                    Next.js pages and online-match route handlers
-components/ChessBoard.tsx  Interactive board and game-mode UI
-lib/chess.ts            Chess movement and position validation
-lib/game.ts             Game state and move submission
-lib/rpgChess.ts         Hidden RPG resolution system
-lib/serverMatches.ts    MongoDB-backed match coordination
-models/GameMatch.ts     Mongoose match schema
-```
+| Path                                | Responsibility                                                      |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `app/`                              | Canonical Next.js page and online API routes                        |
+| `components/chess/`, `hooks/`       | Board, promotion, history, local undo, online polling, AI lifecycle |
+| `lib/chess.ts`, `lib/chessRules.ts` | Ordinary movement, attack maps, special rights and draws            |
+| `lib/game.ts`, `lib/game/`          | Shared reducer, versioned types, validation, public DTO, migration  |
+| `lib/rpg/`                          | Seeded subjects, leadership, relationships, agency, court scheduler |
+| `lib/rpgChess.ts`                   | Legacy-only D20 compatibility resolver                              |
+| `lib/ai/`                           | Iterative worker search and own-side political evaluation           |
+| `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                            |
+| `tests/`, `scripts/`                | Behavioral, database and browser tests; reproducible measurements   |
+
+The repository root is the supported full application/deployment root. `chess-nextjs/` is retained for compatibility with historical URLs/build configuration; it imports the root UI but has no online route tree, so it offers local/computer play only. It is not a supported full online deployment. No release or deployment is performed by this implementation.

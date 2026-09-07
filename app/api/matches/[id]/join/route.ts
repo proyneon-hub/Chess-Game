@@ -1,25 +1,41 @@
 import { NextResponse } from "next/server";
-import { isDatabaseConnectivityError } from "@/lib/db";
-import { getGuestSession, persistGuestSession } from "@/lib/session";
 import { joinServerMatch } from "@/lib/serverMatches";
-
+import { getGuestSession, persistGuestSession } from "@/lib/session";
+import { genericError, readBody, sameOrigin } from "@/lib/serverHttp";
+import { record } from "@/lib/game/validation";
 export const runtime = "nodejs";
-
-type Context = { params: { id: string } };
-
-export async function POST(request: Request, { params }: Context) {
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } },
+) {
+  if (!sameOrigin(request))
+    return NextResponse.json(
+      { error: "Invalid request origin." },
+      { status: 403 },
+    );
   try {
-    const session = getGuestSession();
-    const result = await joinServerMatch(params.id, session.playerId);
-    const response = result.match
-      ? NextResponse.json({ ...result.match, error: result.error }, { status: result.status })
-      : NextResponse.json({ error: result.error }, { status: result.status });
-    const secure = new URL(request.url).protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
-    return persistGuestSession(response, session, secure);
+    const body = await readBody(request);
+    if (!record(body) || Object.keys(body).length)
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
+  try {
+    const session = getGuestSession(),
+      result = await joinServerMatch(params.id, session.playerId);
+    const response = NextResponse.json(
+      result.match
+        ? { ...result.match, error: result.error }
+        : { error: result.error },
+      { status: result.status, headers: { "Cache-Control": "no-store" } },
+    );
+    return persistGuestSession(
+      response,
+      session,
+      new URL(request.url).protocol === "https:" ||
+        request.headers.get("x-forwarded-proto") === "https",
+    );
   } catch (error) {
-    const message = isDatabaseConnectivityError(error)
-      ? "Database unavailable. Check MongoDB Atlas access and MONGODB_URI."
-      : "Unable to join the match.";
-    return NextResponse.json({ error: message }, { status: isDatabaseConnectivityError(error) ? 503 : 500 });
+    return genericError(error);
   }
 }

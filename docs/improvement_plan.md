@@ -1,3 +1,5 @@
+﻿> Historical context: superseded by [Hidden Kingdom implementation](hidden-kingdom-implementation.md) and [current rule decisions](hidden-kingdom-rules.md). Visible RPG selectors, raw-stat reveals, campaigns, and missing special chess rules described here do not define the current product.
+
 # UI Improvement Implementation Plan for Chess Game
 
 **Project:** Chess Game / RPG-Chess Expansion  

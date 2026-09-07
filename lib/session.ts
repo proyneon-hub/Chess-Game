@@ -1,19 +1,21 @@
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { type NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { UUID } from "@/lib/game/validation";
 
 const COOKIE_NAME = "rpg_chess_guest";
 
 const secret = () => {
   if (process.env.CHESS_AUTH_SECRET) return process.env.CHESS_AUTH_SECRET;
-  if (process.env.NODE_ENV === "production") throw new Error("CHESS_AUTH_SECRET is missing.");
+  if (process.env.NODE_ENV === "production")
+    throw new Error("CHESS_AUTH_SECRET is missing.");
   return "local-development-secret-change-me";
 };
 
 const signatureFor = (playerId: string) =>
   createHmac("sha256", secret()).update(playerId).digest("base64url");
 
-const validPlayerId = (value: string) => /^[0-9a-f-]{36}$/i.test(value);
+const validPlayerId = (value: string) => UUID.test(value);
 
 export type GuestSession = { playerId: string; isNew: boolean };
 
@@ -24,8 +26,16 @@ export const getGuestSession = (): GuestSession => {
     const playerId = token.slice(0, separator);
     const suppliedSignature = token.slice(separator + 1);
     const expectedSignature = signatureFor(playerId);
-    if (separator > 0 && validPlayerId(playerId) && suppliedSignature.length === expectedSignature.length) {
-      const valid = timingSafeEqual(Buffer.from(suppliedSignature), Buffer.from(expectedSignature));
+    if (
+      separator > 0 &&
+      validPlayerId(playerId) &&
+      /^[A-Za-z0-9_-]{43}$/.test(suppliedSignature) &&
+      suppliedSignature.length === expectedSignature.length
+    ) {
+      const valid = timingSafeEqual(
+        Buffer.from(suppliedSignature),
+        Buffer.from(expectedSignature),
+      );
       if (valid) return { playerId, isNew: false };
     }
   }
@@ -35,7 +45,7 @@ export const getGuestSession = (): GuestSession => {
 export const persistGuestSession = (
   response: NextResponse,
   session: GuestSession,
-  secure: boolean
+  secure: boolean,
 ) => {
   if (!session.isNew) return response;
   response.cookies.set({

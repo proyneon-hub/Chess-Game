@@ -1,108 +1,201 @@
-import { randomUUID } from "crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { connectToDatabase } from "@/lib/db";
-import { type GameState, type MoveAttempt, type Side, createGameState, submitMove } from "@/lib/game";
+import {
+  type GameState,
+  type Side,
+  createGameState,
+  submitMove,
+} from "@/lib/game";
+import { publicState, type PublicMatch } from "@/lib/game/publicState";
+import { migrateState } from "@/lib/game/migrate";
+import {
+  parseAction,
+  type ActionRequest,
+  UUID,
+  validateState,
+} from "@/lib/game/validation";
+import { CONFIG } from "@/lib/rpg/config";
 import { GameMatch } from "@/models/GameMatch";
-
+export type { PublicMatch } from "@/lib/game/publicState";
+type Receipt = {
+  playerId: string;
+  actionId: string;
+  hash: string;
+  version: number;
+  outcome: GameState["lastAction"];
+};
 type StoredMatch = {
   inviteId: string;
   whitePlayerId: string;
   blackPlayerId: string | null;
   state: GameState;
   version: number;
+  receipts?: Receipt[];
 };
-
-export type PublicMatch = {
-  id: string;
-  playerSide: Side | null;
-  waitingForOpponent: boolean;
-  version: number;
-  state: Omit<GameState, "pieceIds" | "rpgState">;
-};
-
-const toStoredMatch = (value: unknown) => value as StoredMatch;
-
-const publicMatch = (match: StoredMatch, playerId: string): PublicMatch => {
-  const playerSide = match.whitePlayerId === playerId
-    ? "white"
-    : match.blackPlayerId === playerId
-      ? "black"
-      : null;
-  const { pieceIds: _pieceIds, rpgState: _rpgState, ...state } = match.state;
-  return {
-    id: match.inviteId,
-    playerSide,
-    waitingForOpponent: !match.blackPlayerId,
-    version: match.version,
-    state,
-  };
-};
-
-export const createServerMatch = async (playerId: string) => {
+const stored = (v: unknown): StoredMatch => v as StoredMatch;
+const playerSide = (m: StoredMatch, id: string): Side | null =>
+  m.whitePlayerId === id ? "white" : m.blackPlayerId === id ? "black" : null;
+export const publicMatch = (m: StoredMatch, id: string): PublicMatch => ({
+  id: m.inviteId,
+  playerSide: playerSide(m, id),
+  waitingForOpponent: !m.blackPlayerId,
+  version: m.version,
+  state: publicState(migrateState(m.state)),
+});
+export async function createServerMatch(playerId: string) {
   await connectToDatabase();
+  const state = createGameState(randomBytes(4).readUInt32LE());
   const match = await GameMatch.create({
     inviteId: randomUUID(),
     whitePlayerId: playerId,
-    state: createGameState(),
+    state,
     version: 1,
+    receipts: [],
+    schemaVersion: state.schemaVersion,
+    rulesetVersion: state.rulesetVersion,
+    configVersion: state.configVersion,
   });
-  return publicMatch(toStoredMatch(match.toObject()), playerId);
-};
-
-export const getServerMatch = async (inviteId: string, playerId: string) => {
+  return publicMatch(stored(match.toObject()), playerId);
+}
+export async function getServerMatch(inviteId: string, playerId: string) {
+  if (!UUID.test(inviteId)) return null;
   await connectToDatabase();
-  const match = await GameMatch.findOne({ inviteId }).lean();
-  if (!match) return null;
-  return publicMatch(toStoredMatch(match), playerId);
-};
-
-// Joining is deliberately separate from reading an invite. Link-preview bots
-// and curious visitors can inspect a waiting game without consuming Black.
-export const joinServerMatch = async (inviteId: string, playerId: string) => {
+  const m = await GameMatch.findOne({ inviteId }).lean();
+  return m ? publicMatch(stored(m), playerId) : null;
+}
+const response = (
+  status: number,
+  error: string | null,
+  match: PublicMatch | null = null,
+  duplicate = false,
+) => ({ status, error, match, duplicate });
+export async function joinServerMatch(inviteId: string, playerId: string) {
+  if (!UUID.test(inviteId)) return response(404, "Match not found.");
   await connectToDatabase();
-  const existing = await GameMatch.findOne({ inviteId }).lean();
-  if (!existing) return { error: "Match not found.", match: null as PublicMatch | null, status: 404 };
-  const stored = toStoredMatch(existing);
-  if (stored.whitePlayerId === playerId || stored.blackPlayerId === playerId) {
-    return { error: null, match: publicMatch(stored, playerId), status: 200 };
-  }
+  const found = await GameMatch.findOne({ inviteId }).lean();
+  if (!found) return response(404, "Match not found.");
+  const m = stored(found);
+  migrateState(m.state);
+  if (playerSide(m, playerId))
+    return response(200, null, publicMatch(m, playerId));
   const claimed = await GameMatch.findOneAndUpdate(
-    { inviteId, blackPlayerId: null },
+    { inviteId, blackPlayerId: null, version: m.version },
     { $set: { blackPlayerId: playerId }, $inc: { version: 1 } },
-    { new: true }
+    { new: true },
   ).lean();
-  if (!claimed) return { error: "This game already has two players.", match: null as PublicMatch | null, status: 409 };
-  return { error: null, match: publicMatch(toStoredMatch(claimed), playerId), status: 200 };
-};
-
-export const submitServerMove = async (
+  return claimed
+    ? response(200, null, publicMatch(stored(claimed), playerId))
+    : response(409, "This game already has two players.");
+}
+// Canonical JSON hash is independent of key order. Promotion normalization is
+// based on the submitted shape: omitted promotion and q are equivalent, while
+// no other request fields (including expected revision) may change on retry.
+export const requestHash = (m: ActionRequest) =>
+  createHash("sha256")
+    .update(
+      JSON.stringify(
+        "type" in m
+          ? { type: m.type, expectedVersion: m.expectedVersion }
+          : {
+              from: m.from,
+              to: m.to,
+              promotion: m.promotion ?? "q",
+              expectedVersion: m.expectedVersion,
+            },
+      ),
+    )
+    .digest("hex");
+function receiptResponse(
+  m: StoredMatch,
+  playerId: string,
+  action: ActionRequest,
+  hash: string,
+) {
+  const receipt = m.receipts?.find(
+    (r) => r.playerId === playerId && r.actionId === action.actionId,
+  );
+  return receipt
+    ? receipt.hash === hash
+      ? {
+          ...response(200, null, publicMatch(m, playerId), true),
+          committedVersion: receipt.version,
+        }
+      : response(
+          409,
+          "This action id was already used for a different request.",
+          publicMatch(m, playerId),
+        )
+    : null;
+}
+export async function submitServerMove(
   inviteId: string,
   playerId: string,
-  move: Omit<MoveAttempt, "side">
-) => {
+  input: unknown,
+) {
+  const action = parseAction(input);
+  if (!action) return response(400, "A valid action is required.");
+  if (!UUID.test(inviteId)) return response(404, "Match not found.");
   await connectToDatabase();
-  const match = await GameMatch.findOne({ inviteId }).lean();
-  if (!match) return { error: "Match not found.", match: null as PublicMatch | null, status: 404 };
-  const stored = toStoredMatch(match);
-  const side: Side | null = stored.whitePlayerId === playerId
-    ? "white"
-    : stored.blackPlayerId === playerId
-      ? "black"
-      : null;
-  if (!side) return { error: "You are not a player in this match.", match: null as PublicMatch | null, status: 403 };
-  if (!stored.blackPlayerId) return { error: "Waiting for an opponent.", match: publicMatch(stored, playerId), status: 409 };
-
-  const result = submitMove(stored.state, { ...move, side });
-  // The version condition makes a second simultaneous request fail cleanly
-  // instead of resolving two hidden-RPG outcomes from the same position.
+  const found = await GameMatch.findOne({ inviteId }).lean();
+  if (!found) return response(404, "Match not found.");
+  const m = stored(found),
+    side = playerSide(m, playerId);
+  if (!side) return response(403, "You are not a player in this match.");
+  const state = migrateState(m.state),
+    hash = requestHash(action),
+    duplicate = receiptResponse(m, playerId, action, hash);
+  if (duplicate) return duplicate;
+  if (action.expectedVersion !== m.version)
+    return response(
+      409,
+      "The board changed. Select a move from the current position.",
+      publicMatch(m, playerId),
+    );
+  if (!m.blackPlayerId)
+    return response(409, "Waiting for an opponent.", publicMatch(m, playerId));
+  const intent =
+    "type" in action
+      ? { type: action.type, side }
+      : { from: action.from, to: action.to, promotion: action.promotion, side };
+  const result = submitMove(state, intent);
+  if (!result.requestAccepted)
+    return response(422, result.message, publicMatch(m, playerId));
+  validateState(result.state);
+  const receipts = [
+    ...(m.receipts ?? []),
+    {
+      playerId,
+      actionId: action.actionId,
+      hash,
+      version: m.version + 1,
+      outcome: result.state.lastAction,
+    },
+  ].slice(-CONFIG.receiptLimit);
   const updated = await GameMatch.findOneAndUpdate(
-    { inviteId, version: stored.version },
-    { $set: { state: result.state }, $inc: { version: 1 } },
-    { new: true }
+    { inviteId, version: m.version },
+    {
+      $set: {
+        state: result.state,
+        receipts,
+        schemaVersion: result.state.schemaVersion,
+        rulesetVersion: result.state.rulesetVersion,
+        configVersion: result.state.configVersion,
+      },
+      $inc: { version: 1 },
+    },
+    { new: true },
   ).lean();
-  if (!updated) return { error: "The board changed. Please try your move again.", match: null as PublicMatch | null, status: 409 };
-  return {
-    error: result.accepted ? null : result.message,
-    match: publicMatch(toStoredMatch(updated), playerId),
-    status: 200,
-  };
-};
+  if (updated)
+    return response(200, null, publicMatch(stored(updated), playerId));
+  const current = await GameMatch.findOne({ inviteId }).lean();
+  if (!current) return response(404, "Match not found.");
+  const latest = stored(current);
+  return (
+    receiptResponse(latest, playerId, action, hash) ??
+    response(
+      409,
+      "The board changed. Select a move from the current position.",
+      publicMatch(latest, playerId),
+    )
+  );
+}
