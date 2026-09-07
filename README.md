@@ -2,6 +2,10 @@
 
 Chess for local pass-and-play, computer opponents, and private online invites. The interface uses ordinary chess controls. Pieces have persistent, hidden political memories; their behavior follows the same deterministic rules in every mode.
 
+[Play Chess](https://chess-game-six-zeta.vercel.app)
+
+The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
+
 ## Run
 
 Use Node **22.13+ or 24** and npm. The framework remains Next.js 14.2.35 / React 18.
@@ -45,6 +49,7 @@ Unversioned matches use an idempotent legacy adapter. Their D20 behavior continu
 ```sh
 npm run lint
 npm run typecheck
+npm run format:check
 npm test
 npm run build
 npx playwright install chromium
@@ -72,4 +77,14 @@ Read the [implementation checklist and verification report](docs/hidden-kingdom-
 | `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                            |
 | `tests/`, `scripts/`                | Behavioral, database and browser tests; reproducible measurements   |
 
-The repository root is the supported full application/deployment root. `chess-nextjs/` is retained for compatibility with historical URLs/build configuration; it imports the root UI but has no online route tree, so it offers local/computer play only. It is not a supported full online deployment. No release or deployment is performed by this implementation.
+The repository root is the supported full application/deployment root. `chess-nextjs/` is retained for compatibility with historical URLs/build configuration; it imports the root UI but has no online route tree, so it offers local/computer play only. It is not a supported full online deployment.
+
+## Production release
+
+Vercel builds the connected GitHub repository. Pushes to `main` publish production at [chess-game-six-zeta.vercel.app](https://chess-game-six-zeta.vercel.app); feature branches receive preview deployments. Use the repository root as the Vercel Root Directory, the Next.js framework preset, and a supported Node version listed above.
+
+Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
+
+The release passed lint, TypeScript, formatting, the production build, **62 unit/integration tests**, and **9 production-browser tests**. The recorded 1,000-game simulation had zero invalid states, stalls, errors, or opening anomalies. See the [verification report](docs/hidden-kingdom-implementation.md) for coverage and numerical tuning. Nine high dependency findings remain documented in the retained Next.js 14/eslint stack.
+
+After a production push, verify the Vercel deployment status for that exact commit before treating the release as live. Local tests use isolated databases; they do not certify the production database configuration.

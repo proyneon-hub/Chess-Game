@@ -1,6 +1,6 @@
 # Hidden Kingdom implementation and verification
 
-Implemented in the existing repository on `feat/hidden-kingdom`, from baseline `340f779`. The complete supplied `CHESS_HIDDEN_KINGDOM_CODEX_IMPLEMENTATION.md` (2026-09-07) was read before implementation. No applicable AGENTS.md files or pre-existing user changes were found. Node 24.15.0 / npm 11.17.0 were used. The user subsequently authorized verification, commit and push of this feature branch. Deployment and merging remain outside this change.
+Implemented in the existing repository on `feat/hidden-kingdom`, from baseline `340f779`. The complete supplied `CHESS_HIDDEN_KINGDOM_CODEX_IMPLEMENTATION.md` (2026-09-07) was read before implementation. No applicable AGENTS.md files or pre-existing user changes were found. Node 24.15.0 / npm 11.17.0 were used. After implementation and verification, the user authorized committing and pushing the feature branch, then merging into `main` for production deployment and updating the README. The release procedure is documented in the README; the measurements below describe local verification.
 
 ## Phase checklist
 
