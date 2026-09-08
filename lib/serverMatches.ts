@@ -14,7 +14,7 @@ import {
   UUID,
   validateState,
 } from "@/lib/game/validation";
-import { CONFIG } from "@/lib/rpg/config";
+import { rulesFor } from "@/lib/rpg/config";
 import { GameMatch } from "@/models/GameMatch";
 export type { PublicMatch } from "@/lib/game/publicState";
 type Receipt = {
@@ -170,7 +170,7 @@ export async function submitServerMove(
       version: m.version + 1,
       outcome: result.state.lastAction,
     },
-  ].slice(-CONFIG.receiptLimit);
+  ].slice(-rulesFor(state).receiptLimit);
   const updated = await GameMatch.findOneAndUpdate(
     { inviteId, version: m.version },
     {

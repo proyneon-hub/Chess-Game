@@ -5,7 +5,7 @@ import { configFor } from "@/lib/rpg/config";
 import { refusalProbability } from "@/lib/rpg/agency";
 import { subjectAt } from "../fixtures";
 it("saved configuration versions retain their numeric formula", () => {
-  const current = createGameState(1),
+  const current = createGameState(1, "2026-09-07.3"),
     old = structuredClone(current);
   old.configVersion = "2026-09-07.1";
   old.simulation!.configVersion = old.configVersion;

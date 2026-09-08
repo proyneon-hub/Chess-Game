@@ -18,7 +18,7 @@ it("rescue builds trust and recovers fear with a cooldown", () => {
   expect(r.simulation!.kingdoms.white.legitimacy).toBe(66);
 });
 it("repeat and restraint produce distinct bounded leadership outcomes", () => {
-  const s = createGameState(1);
+  const s = createGameState(1, "2026-09-07.3");
   s.pendingRefusal = { from: [6, 4], to: [4, 4] };
   const repeat = submitMove(s, { ...s.pendingRefusal, side: "white" }).state;
   const restrained = submitMove(s, {

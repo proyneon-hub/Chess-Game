@@ -1,0 +1,108 @@
+{
+  "node": "v24.15.0",
+  "samples": 6,
+  "report": [
+    {
+      "difficulty": "normal",
+      "depth": 2,
+      "budgetMs": 250,
+      "results": [
+        {
+          "ply": 0,
+          "elapsedMs": 203.69450000000006,
+          "completedDepth": 2,
+          "nodes": 440,
+          "legal": true
+        },
+        {
+          "ply": 5,
+          "elapsedMs": 269.90110000000004,
+          "completedDepth": 1,
+          "nodes": 512,
+          "legal": true
+        },
+        {
+          "ply": 10,
+          "elapsedMs": 265.1803000000001,
+          "completedDepth": 1,
+          "nodes": 672,
+          "legal": true
+        },
+        {
+          "ply": 15,
+          "elapsedMs": 265.0498,
+          "completedDepth": 1,
+          "nodes": 576,
+          "legal": true
+        },
+        {
+          "ply": 20,
+          "elapsedMs": 264.7535999999998,
+          "completedDepth": 1,
+          "nodes": 640,
+          "legal": true
+        },
+        {
+          "ply": 25,
+          "elapsedMs": 267.40449999999987,
+          "completedDepth": 1,
+          "nodes": 704,
+          "legal": true
+        }
+      ],
+      "meanMs": 255.99729999999997,
+      "p95Ms": 269.90110000000004
+    },
+    {
+      "difficulty": "advanced",
+      "depth": 4,
+      "budgetMs": 1000,
+      "results": [
+        {
+          "ply": 0,
+          "elapsedMs": 1014.7650999999998,
+          "completedDepth": 2,
+          "nodes": 3168,
+          "legal": true
+        },
+        {
+          "ply": 5,
+          "elapsedMs": 1022.4722999999999,
+          "completedDepth": 2,
+          "nodes": 2688,
+          "legal": true
+        },
+        {
+          "ply": 10,
+          "elapsedMs": 1014.7079999999996,
+          "completedDepth": 2,
+          "nodes": 2752,
+          "legal": true
+        },
+        {
+          "ply": 15,
+          "elapsedMs": 1022.6950000000006,
+          "completedDepth": 2,
+          "nodes": 2080,
+          "legal": true
+        },
+        {
+          "ply": 20,
+          "elapsedMs": 1010.7806999999993,
+          "completedDepth": 2,
+          "nodes": 2848,
+          "legal": true
+        },
+        {
+          "ply": 25,
+          "elapsedMs": 1008.2108000000007,
+          "completedDepth": 2,
+          "nodes": 2560,
+          "legal": true
+        }
+      ],
+      "meanMs": 1015.6053166666667,
+      "p95Ms": 1022.6950000000006
+    }
+  ]
+}

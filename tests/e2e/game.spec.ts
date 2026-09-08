@@ -165,9 +165,9 @@ test("full computer search runs in a worker with no main-thread search task", as
     return { workers: w.aiReports, longTasks: w.longTasks };
   });
   expect(report.workers.length).toBeGreaterThan(0);
-  mkdirSync("docs/balance", { recursive: true });
+  mkdirSync("docs/progression", { recursive: true });
   writeFileSync(
-    "docs/balance/browser-ai.json",
+    "docs/progression/browser-ai.json",
     JSON.stringify(report, null, 2) + "\n",
   );
   expect(report.longTasks).toHaveLength(0);

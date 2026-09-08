@@ -1,0 +1,33 @@
+{
+    "comparison":  "candidate-6-comparison",
+    "rule":  "Rules and policies frozen. Only diagnostics, tests, documentation and formatting may change without a fresh version and holdout.",
+    "config":  "2026-09-08.6",
+    "fingerprints":  [
+                         {
+                             "sha256":  "809D1524C41B9756E4C580818226FF86B1C555896D8F4CF03304E0655147A660",
+                             "path":  "lib/rpg/config.ts"
+                         },
+                         {
+                             "sha256":  "A8A44B895AE6ACA41F66EA4C498C6ABDDD65FAD05C66F31B8E24006D36746069",
+                             "path":  "lib/rpg/leadershipV3.ts"
+                         },
+                         {
+                             "sha256":  "B051329C7E98425F7F62931F7B3444FAE071AFF7BB49C9284F942A75987B8F58",
+                             "path":  "lib/rpg/forecast.ts"
+                         },
+                         {
+                             "sha256":  "DBD5BF1699C8B836ADE4E699CC7C1B237189FD8328FCFEC5D6FE47E25300FB22",
+                             "path":  "lib/rpg/courtEligibility.ts"
+                         },
+                         {
+                             "sha256":  "6B32775869FF9AAB1CB15090D51193968FEB3AA706ACA2195642F3C70CD4A452",
+                             "path":  "scripts/progression-policies.ts"
+                         }
+                     ],
+    "frozenAtUtc":  "2026-09-08T15:22:52.0067465Z",
+    "pressure":  "pressure-6",
+    "holdout":  {
+                    "ordinary":  "70000-70499 paired colors, 1000 games",
+                    "pressure":  "80000-80249 paired colors, 500 games"
+                }
+}

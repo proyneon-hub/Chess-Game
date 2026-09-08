@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { type Difficulty, getAllLegalMoves } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
+import { refusalFallback } from "@/lib/ai/restraint";
 export function useComputerTurn(
   game: GameState,
   enabled: boolean,
@@ -18,7 +19,7 @@ export function useComputerTurn(
     let cancelled = false,
       settled = false;
     const revision = game.revision;
-    const fallback = getAllLegalMoves(game.board, "black", game.rights)[0];
+    const fallback = refusalFallback(game);
     const commit = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
       settled = true;
@@ -26,7 +27,7 @@ export function useComputerTurn(
       onMessage(result.message);
     };
     // After refusal, the same legal command completes with no search or roll.
-    if (game.pendingRefusal) {
+    if (game.pendingRefusal && game.schemaVersion !== 3) {
       const timer = setTimeout(
         () => commit({ ...game.pendingRefusal!, side: "black" }),
         150,

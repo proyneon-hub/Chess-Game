@@ -15,6 +15,11 @@ import { parseAction, validateState } from "@/lib/game/validation";
 import { migrateState } from "@/lib/game/migrate";
 import { initializePieceIds, initializeRpgState } from "@/lib/rpgChess";
 import { subjectAt } from "../fixtures";
+import { v3Fixture, constructedV3Court } from "../progression-fixtures";
+import { progression } from "@/lib/rpg/pressure";
+import { scheduleCourt } from "@/lib/rpg/conspiracy";
+import { remember } from "@/lib/rpg/subjects";
+import { relate } from "@/lib/rpg/relationships";
 let db: MongoMemoryServer;
 beforeAll(async () => {
   db = await MongoMemoryServer.create();
@@ -25,6 +30,14 @@ afterAll(async () => {
   await db?.stop();
 });
 const hidden = [
+  "progression",
+  "episodes",
+  "attackerIds",
+  "defenderIds",
+  "sourceActionRevision",
+  "forecast",
+  "contributions",
+  "recentHarmIntensity",
   "pieceIds",
   "simulation",
   "rpgState",
@@ -59,6 +72,86 @@ async function match() {
   return { white, black, m: joined.match! };
 }
 describe("actual MongoDB coordination", () => {
+  it("duplicate v3 transitions cannot repeat dispute creation, warnings or RNG", async () => {
+    const { m, white } = await match();
+    const s = constructedV3Court();
+    for (let n = 0; n < 2; n++) {
+      s.ply += 2;
+      s.revision++;
+      s.simulation!.turnContext.ply = s.ply;
+      s.simulation!.kingdoms.white.ownTurnsCompleted++;
+      scheduleCourt(s, "white", () => 0, false);
+    }
+    const a = subjectAt(s, [5, 3]),
+      b = subjectAt(s, [5, 5]);
+    remember(s, a, "rival_friction", b.id);
+    relate(s, a, b, -50);
+    validateState(s);
+    await GameMatch.updateOne({ inviteId: m.id }, { $set: { state: s } });
+    const action = {
+      actionId: randomUUID(),
+      expectedVersion: m.version,
+      from: [7, 0],
+      to: [6, 0],
+    };
+    const first = await submitServerMove(m.id, white, action);
+    expect(first.status).toBe(200);
+    const committed = (await GameMatch.findOne({ inviteId: m.id }).lean())!
+      .state;
+    expect(committed.simulation.counters.disputes).toBe(1);
+    expect(committed.simulation.plots[0].stage).toBe("preparing");
+    const retry = await submitServerMove(m.id, white, action);
+    expect(retry.duplicate).toBe(true);
+    expect((await GameMatch.findOne({ inviteId: m.id }).lean())!.state).toEqual(
+      committed,
+    );
+    assertPrivate(first);
+    assertPrivate(retry);
+  });
+  it("v2 and v3 retain versions after reconnect; obeyed pressure commits once across duplicate retries", async () => {
+    for (const version of ["2026-09-07.3", "2026-09-08.1"]) {
+      const { m, white } = await match();
+      const s =
+        version === "2026-09-08.1"
+          ? v3Fixture([
+              ["K", [7, 7]],
+              ["k", [0, 7]],
+              ["Q", [4, 3]],
+              ["r", [0, 0]],
+            ])
+          : createGameState(1, version);
+      const move =
+        version === "2026-09-08.1"
+          ? { from: [4, 3], to: [4, 0] }
+          : { from: [6, 4], to: [4, 4] };
+      await GameMatch.updateOne({ inviteId: m.id }, { $set: { state: s } });
+      const action = {
+        ...move,
+        actionId: randomUUID(),
+        expectedVersion: m.version,
+      };
+      const first = await submitServerMove(m.id, white, action);
+      expect(first.status).toBe(200);
+      const committed = await GameMatch.findOne({ inviteId: m.id }).lean();
+      const duplicate = await submitServerMove(m.id, white, action);
+      expect(duplicate.duplicate).toBe(true);
+      expect(
+        (await GameMatch.findOne({ inviteId: m.id }).lean())!.state,
+      ).toEqual(committed!.state);
+      const reconnect = await getServerMatch(m.id, white);
+      expect(reconnect?.state).toEqual(first.match!.state);
+      assertPrivate(reconnect);
+      assertPrivate(duplicate);
+      const loaded = migrateState(committed!.state);
+      expect(loaded.configVersion).toBe(version);
+      if (loaded.schemaVersion === 3)
+        expect(
+          Object.values(progression(loaded).subjects).flatMap(
+            (q) => q.episodes,
+          ),
+        ).toHaveLength(1);
+    }
+  });
   it("simultaneous identical intents converge to one receipt", async () => {
     const { m, white } = await match();
     const a = {

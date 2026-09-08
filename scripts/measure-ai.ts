@@ -42,9 +42,9 @@ const report = [
     ],
   };
 });
-mkdirSync("docs/balance", { recursive: true });
+mkdirSync("docs/progression", { recursive: true });
 writeFileSync(
-  "docs/balance/ai-performance.json",
+  "docs/progression/ai-performance.json",
   JSON.stringify({ node: process.version, samples: 6, report }, null, 2) + "\n",
 );
 console.log(

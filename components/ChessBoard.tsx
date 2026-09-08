@@ -331,6 +331,10 @@ export default function ChessBoard({
               clearUrl();
               setKind(null);
               setPromotion(null);
+              setSelected(null);
+              setNotice("");
+              setMessage("Choose how you would like to play.");
+              local.reset();
             }}
           >
             Choose opponent

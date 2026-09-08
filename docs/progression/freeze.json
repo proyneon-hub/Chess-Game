@@ -1,0 +1,11 @@
+{
+    "comparison":  "candidate-4-comparison",
+    "rule":  "No behavioral or policy changes after freeze without a new configuration and fresh holdout.",
+    "config":  "2026-09-08.4",
+    "frozenAtUtc":  "2026-09-08T15:05:54.8239078Z",
+    "pressure":  "pressure-4",
+    "holdout":  {
+                    "ordinary":  "50000-50499 paired colors, 1000 games",
+                    "pressure":  "60000-60249 paired colors, 500 games"
+                }
+}

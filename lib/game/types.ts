@@ -93,9 +93,44 @@ export type PrivateEvent = {
   subjectId?: string;
   details: Record<string, number | string | boolean>;
 };
+export type PressureCause =
+  | "avoidable_exposure"
+  | "neglected_under_threat"
+  | "repeated_risky_order"
+  | "coerced"
+  | "blamed_loss";
+export type PressureEpisode = {
+  id: string;
+  subjectId: string;
+  cause: PressureCause;
+  openedOwnTurn: number;
+  lastAppliedOwnTurn: number;
+  squareAtOpening: Square;
+  attackerIds: string[];
+  defenderIds: string[];
+  sourceActionRevision: number;
+  closedOwnTurn: number | null;
+  rewarded: boolean;
+  causes: PressureCause[];
+};
+export type SubjectPressure = {
+  episodes: PressureEpisode[];
+  lastHarm: number;
+  lastExposure: number;
+  lastRepeated: number;
+  lastNeglect: number;
+  lastProtection: number;
+  lastRetreat: number;
+  ambient: Record<string, number>;
+};
+export type ProgressionState = {
+  subjects: Record<string, SubjectPressure>;
+  sides: Record<
+    Side,
+    { retreats: number; lastAmbient: number; pairs: Record<string, number> }
+  >;
+};
 export type HiddenSimulation = {
-  schemaVersion: 2;
-  rulesetVersion: "hidden-kingdom-v2";
   configVersion: string;
   rngState: RngState;
   kingdoms: Record<Side, KingdomState>;
@@ -109,7 +144,14 @@ export type HiddenSimulation = {
   };
   privateEvents: PrivateEvent[];
   counters: Record<string, number>;
-};
+} & (
+  | { schemaVersion: 2; rulesetVersion: "hidden-kingdom-v2" }
+  | {
+      schemaVersion: 3;
+      rulesetVersion: "hidden-kingdom-v3";
+      progression: ProgressionState;
+    }
+);
 export type Terminal = {
   reason:
     | "checkmate"
@@ -138,8 +180,6 @@ export type ActionOutcome = {
   special: boolean;
 };
 export type GameState = {
-  schemaVersion: 1 | 2;
-  rulesetVersion: "legacy-v1" | "hidden-kingdom-v2";
   configVersion: string;
   board: Board;
   pieceIds: PieceIdBoard;
@@ -162,7 +202,11 @@ export type GameState = {
   warning: { message: string; square: Square | null } | null;
   pendingRefusal: Intention | null;
   lastAction: ActionOutcome | null;
-};
+} & (
+  | { schemaVersion: 1; rulesetVersion: "legacy-v1" }
+  | { schemaVersion: 2; rulesetVersion: "hidden-kingdom-v2" }
+  | { schemaVersion: 3; rulesetVersion: "hidden-kingdom-v3" }
+);
 export type MoveResult = ActionOutcome & {
   state: GameState;
   /** Compatibility alias; true for accepted refusals too. */ accepted: boolean;

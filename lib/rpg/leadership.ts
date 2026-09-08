@@ -12,12 +12,14 @@ import {
 } from "@/lib/rpg/context";
 import { capDeltas, remember } from "@/lib/rpg/subjects";
 import { relate, tickRelationships } from "@/lib/rpg/relationships";
-import { CONFIG, configFor } from "@/lib/rpg/config";
+import { rulesFor, configFor } from "@/lib/rpg/config";
 import { count } from "@/lib/rpg/events";
+import { leadershipV3 } from "./leadershipV3";
 
 // Facts are derived once from before/after boards; this is called once for a
 // completed action only. All aggregates are capped against the input state.
 export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
+  if (rulesFor(s).generation === 3) return leadershipV3(before, s, move);
   const sim = s.simulation!,
     kingdom = sim.kingdoms[move.side],
     oldMap = attackMap(before.board),
@@ -38,7 +40,7 @@ export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
       refused.resentment += 8;
       refused.fear += 6;
       refused.loyalty -= 3;
-      remember(s, refused, "coerced", id, 1, CONFIG.grievanceTurns);
+      remember(s, refused, "coerced", id, 1, rulesFor(s).grievanceTurns);
       count(s, "repeats");
       if (exchangeLoss(s.board, move.to, move.side, map) >= 100) {
         kingdom.tyranny += 2;
@@ -77,7 +79,7 @@ export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
     if (
       oldLoss >= 100 &&
       newLoss < oldLoss &&
-      own - mover.lastRescuedOwnTurn >= CONFIG.cooldown
+      own - mover.lastRescuedOwnTurn >= rulesFor(s).cooldown
     ) {
       kingdom.legitimacy++;
       mover.loyalty += 3;
@@ -114,7 +116,7 @@ export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
       (m) =>
         m.type === "protected_by" &&
         m.source === id &&
-        own - m.createdOwnTurn < CONFIG.cooldown,
+        own - m.createdOwnTurn < rulesFor(s).cooldown,
     );
     if (
       defendedNow &&
@@ -193,7 +195,7 @@ export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
     if (envious) {
       envious.resentment += 4;
       relate(s, envious, mover, -10);
-      remember(s, envious, "promotion_envy", id, 1, CONFIG.grievanceTurns);
+      remember(s, envious, "promotion_envy", id, 1, rulesFor(s).grievanceTurns);
       count(s, "envy");
     }
   }
@@ -222,9 +224,12 @@ export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
         !attackers(map, sq, opposite(move.side)).length &&
         attackers(map, sq, move.side).length > 0;
     if (calm) {
-      sub.fear -= CONFIG.recoveryFear;
-      sub.fatigue -= CONFIG.recoveryFatigue;
-      if (distance(sq, king) <= CONFIG.auraRadius && kingdom.legitimacy >= 60)
+      sub.fear -= rulesFor(s).recoveryFear;
+      sub.fatigue -= rulesFor(s).recoveryFatigue;
+      if (
+        distance(sq, king) <= rulesFor(s).auraRadius &&
+        kingdom.legitimacy >= 60
+      )
         sub.fear -= 2;
     } else sub.fatigue--;
     sub.memories = sub.memories.filter((m) => m.expiryOwnTurn > own);

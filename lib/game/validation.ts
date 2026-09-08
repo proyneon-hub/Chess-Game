@@ -3,6 +3,7 @@ import { kingsValid, sideOf } from "@/lib/chessRules";
 import { configFor } from "@/lib/rpg/config";
 import { numericSubjectFields } from "@/lib/rpg/subjects";
 import type { GameState, Intention } from "@/lib/game/types";
+import { validProgression } from "./validateProgression";
 export const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export type ActionRequest = (Intention | { type: "claim-draw" }) & {
@@ -69,7 +70,7 @@ export function validateState(value: unknown): asserts value is GameState {
   const fail = () => {
     throw new IncompatibleStateError();
   };
-  if (!record(value) || !integer(value.schemaVersion, 1, 2)) fail();
+  if (!record(value) || !integer(value.schemaVersion, 1, 3)) fail();
   const s = value as GameState;
   if (
     !["white", "black"].includes(s.sideToMove) ||
@@ -227,15 +228,23 @@ export function validateState(value: unknown): asserts value is GameState {
   }
   const sim = s.simulation;
   if (
-    s.rulesetVersion !== "hidden-kingdom-v2" ||
-    !configFor(s.configVersion) ||
+    s.rulesetVersion !== `hidden-kingdom-v${s.schemaVersion}` ||
+    configFor(s.configVersion)?.generation !== s.schemaVersion ||
     !sim ||
-    sim.schemaVersion !== 2 ||
+    sim.schemaVersion !== s.schemaVersion ||
     sim.configVersion !== s.configVersion ||
     sim.rulesetVersion !== s.rulesetVersion
   )
     fail();
   if (!sim) return fail();
+  if (sim.schemaVersion === 3) {
+    try {
+      if (!validProgression(s)) fail();
+    } catch {
+      fail();
+    }
+  }
+  if (sim.schemaVersion === 2 && "progression" in sim) fail();
   if (
     !record(sim.rngState) ||
     sim.rngState.algorithm !== "mulberry32-v1" ||

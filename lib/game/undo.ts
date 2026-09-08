@@ -1,5 +1,5 @@
 import type { GameState, MoveResult } from "@/lib/game/types";
-import { CONFIG } from "@/lib/rpg/config";
+import { rulesFor } from "@/lib/rpg/config";
 export type LocalHistory = { start: GameState; completed: GameState[] };
 export const recordTurn = (
   h: LocalHistory,
@@ -8,7 +8,9 @@ export const recordTurn = (
   result.turnConsumed
     ? {
         start: result.state,
-        completed: [...h.completed, h.start].slice(-CONFIG.undoLimit),
+        completed: [...h.completed, h.start].slice(
+          -rulesFor(result.state).undoLimit,
+        ),
       }
     : h;
 export const undoTurn = (

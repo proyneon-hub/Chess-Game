@@ -1,0 +1,560 @@
+{
+  "config": "2026-09-08.6",
+  "scope": "Measured simulation gates and raw causal traces; test suites recorded separately",
+  "checks": [
+    {
+      "name": "candidate-6-comparison: selected rules",
+      "passed": true,
+      "actual": "2026-09-08.6"
+    },
+    {
+      "name": "candidate-6-comparison: zero measured invariants",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "candidate-6-comparison: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      }
+    },
+    {
+      "name": "candidate-6-comparison: ordinary refusal .5–2%",
+      "passed": true,
+      "actual": [
+        960,
+        94495
+      ]
+    },
+    {
+      "name": "candidate-6-comparison: calm refusal <=.8%",
+      "passed": true,
+      "actual": [
+        270,
+        70898
+      ]
+    },
+    {
+      "name": "candidate-6-comparison: discovery 25–60% among games reaching 40",
+      "passed": true,
+      "actual": {
+        "wholeCohort": [
+          561,
+          1000
+        ],
+        "reached40": [
+          559,
+          976
+        ],
+        "firstEventPly": {
+          "n": 561,
+          "mean": 64.53475935828877,
+          "median": 59,
+          "p90": 115,
+          "p95": 138,
+          "p99": 209
+        },
+        "checkpoints": [
+          {
+            "ply": 20,
+            "observedByCheckpoint": 58,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 995,
+            "endedEarlierWithoutEvent": 5,
+            "truncated": 151
+          },
+          {
+            "ply": 40,
+            "observedByCheckpoint": 163,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 976,
+            "endedEarlierWithoutEvent": 22,
+            "truncated": 151
+          },
+          {
+            "ply": 60,
+            "observedByCheckpoint": 289,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 917,
+            "endedEarlierWithoutEvent": 68,
+            "truncated": 151
+          },
+          {
+            "ply": 80,
+            "observedByCheckpoint": 407,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 842,
+            "endedEarlierWithoutEvent": 107,
+            "truncated": 151
+          }
+        ]
+      }
+    },
+    {
+      "name": "candidate-6-comparison: retreats <=.5%",
+      "passed": true,
+      "actual": [
+        0,
+        94495
+      ]
+    },
+    {
+      "name": "candidate-6-comparison: regicide <=1%",
+      "passed": true,
+      "actual": [
+        0,
+        1000
+      ]
+    },
+    {
+      "name": "candidate-6-comparison: resolver p95 <=5ms",
+      "passed": true,
+      "actual": 1.5399000000033993
+    },
+    {
+      "name": "pressure-6: selected rules",
+      "passed": true,
+      "actual": "2026-09-08.6"
+    },
+    {
+      "name": "pressure-6: zero measured invariants",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "pressure-6: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      }
+    },
+    {
+      "name": "pressure-6: court eligibility 5–20%",
+      "passed": true,
+      "actual": [
+        73,
+        500
+      ]
+    },
+    {
+      "name": "pressure-6: disputes in multiple seeds",
+      "passed": true,
+      "actual": 18
+    },
+    {
+      "name": "pressure-6: plots in multiple seeds",
+      "passed": true,
+      "actual": 2
+    },
+    {
+      "name": "holdout-6: selected rules",
+      "passed": true,
+      "actual": "2026-09-08.6"
+    },
+    {
+      "name": "holdout-6: zero measured invariants",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "holdout-6: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      }
+    },
+    {
+      "name": "holdout-6: ordinary refusal .5–2%",
+      "passed": true,
+      "actual": [
+        887,
+        94088
+      ]
+    },
+    {
+      "name": "holdout-6: calm refusal <=.8%",
+      "passed": true,
+      "actual": [
+        258,
+        70779
+      ]
+    },
+    {
+      "name": "holdout-6: discovery 25–60% among games reaching 40",
+      "passed": true,
+      "actual": {
+        "wholeCohort": [
+          516,
+          1000
+        ],
+        "reached40": [
+          515,
+          977
+        ],
+        "firstEventPly": {
+          "n": 516,
+          "mean": 64.69961240310077,
+          "median": 56,
+          "p90": 124,
+          "p95": 148,
+          "p99": 210
+        },
+        "checkpoints": [
+          {
+            "ply": 20,
+            "observedByCheckpoint": 66,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 996,
+            "endedEarlierWithoutEvent": 4,
+            "truncated": 155
+          },
+          {
+            "ply": 40,
+            "observedByCheckpoint": 167,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 977,
+            "endedEarlierWithoutEvent": 22,
+            "truncated": 155
+          },
+          {
+            "ply": 60,
+            "observedByCheckpoint": 282,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 919,
+            "endedEarlierWithoutEvent": 69,
+            "truncated": 155
+          },
+          {
+            "ply": 80,
+            "observedByCheckpoint": 371,
+            "wholeCohort": 1000,
+            "reachedCheckpoint": 832,
+            "endedEarlierWithoutEvent": 124,
+            "truncated": 155
+          }
+        ]
+      }
+    },
+    {
+      "name": "holdout-6: retreats <=.5%",
+      "passed": true,
+      "actual": [
+        0,
+        94088
+      ]
+    },
+    {
+      "name": "holdout-6: regicide <=1%",
+      "passed": true,
+      "actual": [
+        0,
+        1000
+      ]
+    },
+    {
+      "name": "holdout-6: resolver p95 <=5ms",
+      "passed": true,
+      "actual": 1.5592000000178814
+    },
+    {
+      "name": "holdout-pressure-6: selected rules",
+      "passed": true,
+      "actual": "2026-09-08.6"
+    },
+    {
+      "name": "holdout-pressure-6: zero measured invariants",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "holdout-pressure-6: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      }
+    },
+    {
+      "name": "holdout-pressure-6: court eligibility 5–20%",
+      "passed": true,
+      "actual": [
+        70,
+        500
+      ]
+    },
+    {
+      "name": "holdout-pressure-6: disputes in multiple seeds",
+      "passed": true,
+      "actual": 19
+    },
+    {
+      "name": "holdout-pressure-6: plots in multiple seeds",
+      "passed": true,
+      "actual": 5
+    },
+    {
+      "name": "seed 80006: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_7",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80019: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_7",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80057: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_1",
+        "black_pawn_1"
+      ]
+    },
+    {
+      "name": "seed 80057: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_1",
+        "black_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80076: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_queen_1",
+        "black_pawn_1"
+      ]
+    },
+    {
+      "name": "seed 80080: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_1",
+        "black_bishop_1"
+      ]
+    },
+    {
+      "name": "seed 80087: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_knight_1",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80096: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_6",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80101: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_queen_1",
+        "white_knight_2"
+      ]
+    },
+    {
+      "name": "seed 80102: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_3",
+        "white_queen_1"
+      ]
+    },
+    {
+      "name": "seed 80113: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_1",
+        "black_pawn_4"
+      ]
+    },
+    {
+      "name": "seed 80117: natural plot grave histories",
+      "passed": true,
+      "actual": {
+        "leader": [
+          "white_knight_2:24:coerced",
+          "white_knight_2:33:coerced",
+          "white_knight_2:39:avoidable_exposure",
+          "white_knight_2:42:coerced"
+        ],
+        "accomplice": [
+          "white_pawn_3:28:avoidable_exposure"
+        ]
+      }
+    },
+    {
+      "name": "seed 80125: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_1",
+        "white_rook_1"
+      ]
+    },
+    {
+      "name": "seed 80141: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_1",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80141: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_8",
+        "white_rook_2"
+      ]
+    },
+    {
+      "name": "seed 80141: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_2",
+        "black_pawn_8"
+      ]
+    },
+    {
+      "name": "seed 80142: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_3",
+        "white_knight_2"
+      ]
+    },
+    {
+      "name": "seed 80153: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_1",
+        "white_queen_1"
+      ]
+    },
+    {
+      "name": "seed 80153: natural plot grave histories",
+      "passed": true,
+      "actual": {
+        "leader": [
+          "black_knight_2:30:avoidable_exposure",
+          "black_knight_2:54:avoidable_exposure"
+        ],
+        "accomplice": [
+          "black_rook_1:52:avoidable_exposure"
+        ]
+      }
+    },
+    {
+      "name": "seed 80155: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "white_pawn_7",
+        "white_queen_1"
+      ]
+    },
+    {
+      "name": "seed 80155: natural plot grave histories",
+      "passed": true,
+      "actual": {
+        "leader": [
+          "white_queen_1:41:avoidable_exposure",
+          "white_queen_1:49:avoidable_exposure"
+        ],
+        "accomplice": [
+          "white_rook_1:47:avoidable_exposure"
+        ]
+      }
+    },
+    {
+      "name": "seed 80170: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_queen_1",
+        "black_bishop_2"
+      ]
+    },
+    {
+      "name": "seed 80171: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_2",
+        "black_pawn_6"
+      ]
+    },
+    {
+      "name": "seed 80172: natural plot grave histories",
+      "passed": true,
+      "actual": {
+        "leader": [
+          "white_bishop_1:43:avoidable_exposure",
+          "white_bishop_1:57:avoidable_exposure"
+        ],
+        "accomplice": [
+          "white_rook_2:51:avoidable_exposure"
+        ]
+      }
+    },
+    {
+      "name": "seed 80203: natural plot grave histories",
+      "passed": true,
+      "actual": {
+        "leader": [
+          "black_pawn_5:22:avoidable_exposure",
+          "black_pawn_5:40:avoidable_exposure"
+        ],
+        "accomplice": [
+          "black_pawn_2:10:avoidable_exposure"
+        ]
+      }
+    },
+    {
+      "name": "seed 80209: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_knight_2",
+        "black_pawn_4"
+      ]
+    },
+    {
+      "name": "seed 80235: natural dispute has recorded cause",
+      "passed": true,
+      "actual": [
+        "black_rook_1",
+        "black_rook_2"
+      ]
+    },
+    {
+      "name": "holdout causal traces present",
+      "passed": true,
+      "actual": {
+        "verifiedPlots": 5,
+        "verifiedDisputes": 22
+      }
+    },
+    {
+      "name": "1000 historical v2 trajectories identical",
+      "passed": true,
+      "actual": 1000
+    }
+  ]
+}

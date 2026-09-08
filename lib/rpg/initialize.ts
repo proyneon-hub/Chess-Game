@@ -7,7 +7,7 @@ import type {
   PieceKind,
   SubjectState,
 } from "@/lib/game/types";
-import { CONFIG, clamp } from "@/lib/rpg/config";
+import { CONFIG, clamp, configFor } from "@/lib/rpg/config";
 import { draw, seedRng } from "@/lib/rpg/rng";
 export const roleStats: Record<
   PieceKind,
@@ -24,7 +24,10 @@ export function initializeSimulation(
   board: Board,
   ids: PieceIdBoard,
   seed: number,
+  configVersion: string = CONFIG.version,
 ): HiddenSimulation {
+  const rules = configFor(configVersion);
+  if (!rules) throw new Error("Unsupported rules configuration.");
   const rngState = seedRng(seed);
   const kingdom = (): KingdomState => ({
     legitimacy: 65,
@@ -119,9 +122,9 @@ export function initializeSimulation(
         };
     }
   return {
-    schemaVersion: 2,
-    rulesetVersion: "hidden-kingdom-v2",
-    configVersion: CONFIG.version,
+    schemaVersion: rules.generation,
+    rulesetVersion: `hidden-kingdom-v${rules.generation}`,
+    configVersion,
     rngState,
     kingdoms,
     subjects,
@@ -134,5 +137,30 @@ export function initializeSimulation(
     },
     privateEvents: [],
     counters: {},
-  };
+    ...(rules.generation === 3
+      ? {
+          progression: {
+            subjects: Object.fromEntries(
+              Object.keys(subjects).map((id) => [
+                id,
+                {
+                  episodes: [],
+                  lastHarm: -100,
+                  lastExposure: -100,
+                  lastRepeated: -100,
+                  lastNeglect: -100,
+                  lastProtection: -100,
+                  lastRetreat: -100,
+                  ambient: {},
+                },
+              ]),
+            ),
+            sides: {
+              white: { retreats: 0, lastAmbient: -100, pairs: {} },
+              black: { retreats: 0, lastAmbient: -100, pairs: {} },
+            },
+          },
+        }
+      : {}),
+  } as HiddenSimulation;
 }

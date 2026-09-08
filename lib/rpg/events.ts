@@ -1,6 +1,6 @@
 import type { GameState } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
-import { CONFIG } from "@/lib/rpg/config";
+import { rulesFor } from "@/lib/rpg/config";
 export function event(
   s: GameState,
   code: string,
@@ -32,7 +32,7 @@ export function event(
       details: options.details ?? {},
     });
     s.simulation.privateEvents = s.simulation.privateEvents.slice(
-      -CONFIG.privateEventLimit,
+      -rulesFor(s).privateEventLimit,
     );
     count(s, code);
   }

@@ -30,7 +30,7 @@ Castling, en passant, promotion choice, checkmate, stalemate, insufficient mater
 
 ## Developer rule notes
 
-New games use `hidden-kingdom-v2`. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Subjects remember coercion, rescue, protection, losses, promotion, and rivalries. Tyranny can improve immediate compliance while increasing grievances.
+New games in this working branch use `hidden-kingdom-v3` (selected configuration `2026-09-08.6`). Existing v2 saves retain their original configuration and behavior. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
 
 A late-game conspiracy needs strict causal prerequisites, two eligible own turns, three persistent warning stages, and three response turns before an attempt. Guards, separation, leadership recovery, or king movement provide counterplay. Regicide retains the king on the board and creates an explicit terminal result. Ordinary chess results take precedence.
 
@@ -59,9 +59,11 @@ npm run simulate
 
 `npm test` includes behavioral fixtures and real MongoDB concurrency tests using an isolated `mongodb-memory-server` process. `npm run test:e2e` starts the **production build** on port 3100 with another isolated MongoDB database. It verifies separate browser sessions, transport retry, persistent warnings, promotion, keyboard controls, mobile layout, and lifecycle cancellation. Neither suite uses the database in `.env.local`. Initial runs download test browser/MongoDB binaries and need network access. On restricted Windows hosts, child-process creation may need sandbox approval.
 
-`npm run simulate` writes 1,000 seeded games (500 color-swapped pairs) and a Markdown report. The fixed 240-ply harness cap is reported as truncation, not a gameplay draw. Optional `SIM_GAMES` is for shorter diagnostics. The tests follow the [Vitest guide](https://vitest.dev/guide/) and [Playwright web-server workflow](https://playwright.dev/docs/test-webserver).
+`npm run simulate -- --config 2026-09-08.6 --games 1000 --seed-start 90000 --out docs/progression/my-run` writes 1,000 seeded games (500 color-swapped pairs), raw JSON, a summary and a Markdown report. Use `--suite pressure` for the causal pressure policy or `--suite holdout` for the ordinary policy mix. Existing output directories are rejected. The fixed 240-ply harness cap is reported as truncation, not a gameplay draw. Optional `SIM_GAMES` is for shorter diagnostics. The tests follow the [Vitest guide](https://vitest.dev/guide/) and [Playwright web-server workflow](https://playwright.dev/docs/test-webserver).
 
-Read the [implementation checklist and verification report](docs/hidden-kingdom-implementation.md), [balance measurements](docs/hidden-kingdom-balancing.md), and [rule decisions](docs/hidden-kingdom-rules.md). Historical design plans are retained as context and superseded by these documents.
+The current, undeployed progression work is documented in the [phase checklist](docs/political-progression-implementation.md), [final results](docs/political-progression-results.md), [progression rules and replay walkthrough](docs/political-progression-rules.md), and [measurement index](docs/progression/measurement-index.md). Raw reports distinguish constructed rare-event tests, cooperative causal replays, natural seeded pressure play, and independent holdouts. No merge or deployment was performed for this work.
+
+Read the historical [implementation checklist and verification report](docs/hidden-kingdom-implementation.md), [balance measurements](docs/hidden-kingdom-balancing.md), and [rule decisions](docs/hidden-kingdom-rules.md). Historical design plans are retained as context and superseded by these documents.
 
 ## Layout and deployment compatibility
 
@@ -79,7 +81,7 @@ Read the [implementation checklist and verification report](docs/hidden-kingdom-
 
 The repository root is the supported full application/deployment root. `chess-nextjs/` is retained for compatibility with historical URLs/build configuration; it imports the root UI but has no online route tree, so it offers local/computer play only. It is not a supported full online deployment.
 
-## Production release
+## Previously deployed release
 
 Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Play at the public production domain, [test-chess-game-roy-kappa-five.vercel.app](https://test-chess-game-roy-kappa-five.vercel.app), or manage the project in its [Vercel dashboard](https://vercel.com/pramits-projects-ce654619/chess-game). The project uses the repository root and Node 24; `vercel.json` explicitly selects the Next.js framework.
 

@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { applyMove } from "../lib/chess";
 import { createGameState, getAllLegalMoves, submitMove } from "../lib/game";
@@ -9,10 +9,89 @@ import { evaluateBoard } from "../lib/ai";
 import { searchMoves } from "../lib/ai/search";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
 import { exchangeLoss } from "../lib/rpg/context";
-import { CONFIG } from "../lib/rpg/config";
+import { CONFIG, configFor } from "../lib/rpg/config";
+import { resolve, relative, isAbsolute, join } from "node:path";
+import { pressureChoice } from "./progression-policies";
+import { chooseAfterRefusal } from "../lib/ai/restraint";
+import { progression, harmfulEpisodes } from "../lib/rpg/pressure";
+import { assessOrder } from "../lib/rpg/facts";
+import { agencyForecast } from "../lib/rpg/agency";
+const flags: Record<string, string> = {};
+for (let i = 2; i < process.argv.length; i += 2) {
+  const key = process.argv[i],
+    value = process.argv[i + 1];
+  if (
+    !["--config", "--games", "--seed-start", "--out", "--suite"].includes(
+      key,
+    ) ||
+    value === undefined ||
+    flags[key] !== undefined
+  )
+    throw Error("Invalid or duplicate option: " + key);
+  flags[key] = value;
+}
+const version = flags["--config"] ?? CONFIG.version,
+  suite = flags["--suite"] ?? "ordinary",
+  seedStart = Number(flags["--seed-start"] ?? 10000);
+if (
+  !configFor(version) ||
+  (suite === "pressure" && configFor(version)?.generation !== 3) ||
+  !["ordinary", "pressure", "holdout", "development"].includes(suite) ||
+  !Number.isSafeInteger(seedStart) ||
+  seedStart < 0 ||
+  seedStart > 4294960000
+)
+  throw Error("Invalid config, suite or seed.");
+const output = resolve(
+    flags["--out"] ?? `docs/progression/${version}-${suite}-${seedStart}`,
+  ),
+  inside = relative(process.cwd(), output);
+if (
+  !inside ||
+  inside.startsWith("..") ||
+  isAbsolute(inside) ||
+  inside.split(/[\\/]/).some((x) => x.startsWith("."))
+)
+  throw Error("Output must be a visible directory inside the repository.");
+if (existsSync(output))
+  throw Error("Refusing to overwrite an existing report directory.");
+const timingNodes: number[] = [],
+  restraintCosts: number[] = [],
+  leadershipTimes: number[] = [];
+let privacyFailures = 0,
+  terminalViolations = 0,
+  duplicateMutations = 0;
+const measuredMetrics = [
+  "eligibleCommands",
+  "refusal",
+  "repeats",
+  "alternativeOrders",
+  "retreats",
+  "extensions",
+  "eligibleKingdomTurns",
+  "plots",
+  "plotWarning",
+  "plotThwarted",
+  "plotFailed",
+  "armedAttempts",
+  "regicides",
+  "rivalFriction",
+  "disputes",
+  "disputeResolutions",
+  "exposures",
+  "harmEpisodes",
+  "repeatedRisk",
+  "neglect",
+  "rescues",
+  "protections",
+  "envy",
+  "ambient",
+];
 const policies = ["neutral", "protective", "coercive", "ambition"],
-  games = Number(process.env.SIM_GAMES ?? 1000),
+  games = Number(flags["--games"] ?? process.env.SIM_GAMES ?? 1000),
   cap = 240;
+if (!Number.isSafeInteger(games) || games < 2 || games > 10000 || games % 2)
+  throw Error("Games must be an even integer from 2 to 10000.");
 const aggregate: Record<string, number> = {},
   resolver: number[] = [],
   ai: number[] = [],
@@ -29,6 +108,11 @@ const results: {
   terminal: string;
   winner: string | null;
   counters: Record<string, number>;
+  firstEventPly: number | null;
+  extrema: Record<string, number>;
+  gates: Record<string, boolean>;
+  maxStorage: Record<string, number>;
+  rareEvents: unknown[];
 }[] = [];
 const start = performance.now();
 let invalid = 0,
@@ -37,15 +121,27 @@ let invalid = 0,
   openingAnomalies = 0;
 for (let index = 0; index < games; index++) {
   const pair = Math.floor(index / 2),
-    seed = 10000 + pair,
-    policy = policies[pair % 4],
-    other = policies[(pair + 1) % 4];
+    seed = seedStart + pair,
+    policy = suite === "pressure" ? "pressure" : policies[pair % 4],
+    other = suite === "pressure" ? "tactical" : policies[(pair + 1) % 4];
   const white = index % 2 ? other : policy,
     black = index % 2 ? policy : other,
-    tactical = pair % 10 === 0,
+    tactical = suite !== "pressure" && pair % 10 === 0,
     policyRng = seedRng(seed);
-  let s = createGameState(seed),
+  let s = createGameState(seed, version),
     attempts = 0;
+  let firstEventPly: number | null = null;
+  const rareEvents: unknown[] = [];
+  const extrema = {
+    maxTyranny: 10,
+    minLegitimacy: 65,
+    minCohesion: 65,
+    minLoyalty: 65,
+    maxFear: 10,
+    maxResentment: 10,
+  };
+  const gates: Record<string, boolean> = {};
+  const maxStorage = { episodes: 0, memories: 0, relationships: 0 };
   try {
     while (s.status === "active" && s.ply < cap) {
       if (attempts++ > cap * 2 + 1) {
@@ -59,9 +155,38 @@ for (let index = 0; index < games; index++) {
       }
       const policy = s.sideToMove === "white" ? white : black;
       let move = choices[Math.floor(draw(policyRng) * choices.length)];
-      if (s.pendingRefusal && policy === "coercive")
+      if (policy === "pressure") move = pressureChoice(s, policyRng);
+      else if (s.pendingRefusal && policy === "coercive")
         move = { ...s.pendingRefusal, side: s.sideToMove };
-      else if (tactical) {
+      else if (policy === "tactical") {
+        const start = performance.now();
+        // Bounded novice tactical opponent: material/PST plus destination safety
+        // over eight seeded legal candidates. It captures threatened subjects
+        // whenever a capture wins this sample; no victim exemption exists.
+        const sample = Array.from(
+          { length: Math.min(8, choices.length) },
+          () => choices[Math.floor(draw(policyRng) * choices.length)],
+        );
+        move = sample
+          .map((m) => {
+            const board = applyMove(
+              s.board,
+              m.from,
+              m.to,
+              m.promotion,
+              s.rights,
+            );
+            return {
+              m,
+              score:
+                evaluateBoard(board) * (m.side === "white" ? 1 : -1) -
+                exchangeLoss(board, m.to, m.side),
+            };
+          })
+          .sort((a, b) => b.score - a.score)[0].m;
+        timingNodes.push(sample.length);
+        ai.push(performance.now() - start);
+      } else if (tactical) {
         const t = performance.now();
         const ranked = searchMoves({
           board: s.board,
@@ -73,9 +198,12 @@ for (let index = 0; index < games; index++) {
           own: ownPolitics(s, s.sideToMove),
         });
         ai.push(performance.now() - t);
+        timingNodes.push(ranked.nodes);
         move =
           ranked.moves[
-            Math.floor(draw(policyRng) * Math.min(3, ranked.moves.length))
+            policy === "tactical"
+              ? 0
+              : Math.floor(draw(policyRng) * Math.min(3, ranked.moves.length))
           ];
       } else if (policy !== "neutral") {
         const sample = Array.from(
@@ -110,13 +238,40 @@ for (let index = 0; index < games; index++) {
           })
           .sort((a, b) => b.score - a.score)[0].m;
       }
-      if (s.pendingRefusal && policy !== "coercive")
-        move =
-          choices.find(
-            (m) =>
-              m.from.join() !== s.pendingRefusal!.from.join() ||
-              m.to.join() !== s.pendingRefusal!.to.join(),
-          ) ?? move;
+      if (s.pendingRefusal && !["coercive", "pressure"].includes(policy)) {
+        if (s.schemaVersion === 3) {
+          const started = performance.now();
+          const leadership = chooseAfterRefusal(s);
+          leadershipTimes.push(performance.now() - started);
+          if (leadership) {
+            move = leadership.move;
+            if (leadership.restraint)
+              restraintCosts.push(leadership.tacticalCost);
+            const metric = leadership.restraint ? "aiRestraint" : "aiCoercion";
+            aggregate[metric] = (aggregate[metric] ?? 0) + 1;
+          }
+        } else
+          move =
+            choices.find(
+              (m) =>
+                m.from.join() !== s.pendingRefusal!.from.join() ||
+                m.to.join() !== s.pendingRefusal!.to.join(),
+            ) ?? move;
+      }
+      const commanded =
+        s.simulation!.subjects[s.pieceIds[move.from[0]][move.from[1]]!];
+      const cfg = configFor(version)!.progression;
+      const calm =
+        !!cfg &&
+        s.ply >= 8 &&
+        !s.pendingRefusal &&
+        commanded.currentKind !== "k" &&
+        commanded.fear <= 25 &&
+        commanded.resentment <= 20 &&
+        !commanded.grievance &&
+        harmfulEpisodes(s, commanded.id, cfg.harmWindow).length === 0 &&
+        assessOrder(s, move).residual < 100 &&
+        !agencyForecast(s, move).guaranteed;
       const before = s,
         t = performance.now(),
         r = submitMove(s, move);
@@ -142,28 +297,136 @@ for (let index = 0; index < games; index++) {
       const counts = breakdown[group] ?? (breakdown[group] = {});
       counts.attempts = (counts.attempts ?? 0) + 1;
       counts[r.resolution!] = (counts[r.resolution!] ?? 0) + 1;
-      for (const metric of [
-        "eligibleCommands",
-        "refusal",
-        "repeats",
-        "alternativeOrders",
-        "retreats",
-        "extensions",
-        "eligibleKingdomTurns",
-        "plots",
-        "plotWarning",
-        "plotThwarted",
-        "plotFailed",
-        "armedAttempts",
-        "regicides",
-        "rivalGrievances",
-      ]) {
+      if (
+        before.pendingRefusal &&
+        before.schemaVersion === 3 &&
+        !["coercive", "pressure"].includes(policy)
+      ) {
+        const same =
+          move.from.join() === before.pendingRefusal.from.join() &&
+          move.to.join() === before.pendingRefusal.to.join() &&
+          (move.promotion ?? "q") === (before.pendingRefusal.promotion ?? "q");
+        const key = same ? "aiCoercion" : "aiRestraint";
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+      if (calm) {
+        aggregate.calmCommands = (aggregate.calmCommands ?? 0) + 1;
+        counts.calmCommands = (counts.calmCommands ?? 0) + 1;
+        if (r.resolution === "refused") {
+          aggregate.calmRefusals = (aggregate.calmRefusals ?? 0) + 1;
+          counts.calmRefusals = (counts.calmRefusals ?? 0) + 1;
+        }
+      }
+      for (const metric of new Set([
+        ...measuredMetrics,
+        ...Object.keys(s.simulation!.counters).filter(
+          (k) =>
+            k !== "attempts" &&
+            !k.startsWith("eligible:") &&
+            !k.startsWith("refused:"),
+        ),
+      ])) {
         const n =
           (s.simulation!.counters[metric] ?? 0) -
           (before.simulation!.counters[metric] ?? 0);
         if (n) counts[metric] = (counts[metric] ?? 0) + n;
       }
-      if (before.ply < 8 && (r.resolution !== "executed" || r.special))
+      if (
+        firstEventPly === null &&
+        (r.resolution === "refused" ||
+          r.resolution === "autonomous" ||
+          r.special)
+      )
+        firstEventPly = before.ply + 1;
+      for (const kind of ["disputes", "plots"]) {
+        if (
+          s.schemaVersion === 3 &&
+          (s.simulation!.counters[kind] ?? 0) >
+            (before.simulation!.counters[kind] ?? 0)
+        ) {
+          const ids = new Set(
+            s.simulation!.plots.flatMap((p) => [p.ringleader, p.accomplice]),
+          );
+          for (const sub of Object.values(s.simulation!.subjects))
+            if (sub.grievance) {
+              ids.add(sub.id);
+              ids.add(sub.grievance);
+            }
+          rareEvents.push({
+            kind,
+            ply: s.ply,
+            revision: s.revision,
+            command: move,
+            kingdoms: structuredClone(s.simulation!.kingdoms),
+            participants: [...ids].map((id) => ({
+              subject: structuredClone(s.simulation!.subjects[id]),
+              episodes: structuredClone(
+                progression(s).subjects[id]?.episodes ?? [],
+              ),
+            })),
+            plots: structuredClone(s.simulation!.plots),
+          });
+        }
+      }
+      if (r.turnConsumed) {
+        for (const k of Object.values(s.simulation!.kingdoms)) {
+          extrema.maxTyranny = Math.max(extrema.maxTyranny, k.tyranny);
+          extrema.minLegitimacy = Math.min(extrema.minLegitimacy, k.legitimacy);
+          extrema.minCohesion = Math.min(extrema.minCohesion, k.cohesion);
+          if (k.tyranny >= (cfg?.plotTyranny ?? 40)) gates.tyranny = true;
+          if (k.legitimacy <= (cfg?.plotLegitimacy ?? 50))
+            gates.legitimacy = true;
+        }
+        for (const sub of Object.values(s.simulation!.subjects).filter(
+          (x) => x.currentKind !== "k" && x.status === "active",
+        )) {
+          extrema.minLoyalty = Math.min(extrema.minLoyalty, sub.loyalty);
+          extrema.maxFear = Math.max(extrema.maxFear, sub.fear);
+          extrema.maxResentment = Math.max(
+            extrema.maxResentment,
+            sub.resentment,
+          );
+          if (sub.loyalty <= (cfg?.leaderLoyalty ?? 45))
+            gates.leaderLoyalty = true;
+          if (sub.resentment >= (cfg?.leaderResentment ?? 60))
+            gates.leaderResentment = true;
+          if (sub.ambition >= (cfg?.leaderAmbition ?? 60))
+            gates.ambition = true;
+          maxStorage.memories = Math.max(
+            maxStorage.memories,
+            sub.memories.length,
+          );
+          maxStorage.relationships = Math.max(
+            maxStorage.relationships,
+            Object.keys(sub.relationships).length,
+          );
+        }
+        if (s.schemaVersion === 3)
+          for (const q of Object.values(progression(s).subjects))
+            maxStorage.episodes = Math.max(
+              maxStorage.episodes,
+              q.episodes.length,
+            );
+      }
+      if (
+        s.terminal?.reason === "regicide" &&
+        !s.simulation!.plots.some(
+          (p) => p.stage === "resolved" && p.warningEventIds.length === 3,
+        )
+      )
+        terminalViolations++;
+      if (
+        index % 20 === 0 &&
+        attempts % 30 === 0 &&
+        JSON.stringify(submitMove(before, move).state) !== JSON.stringify(s)
+      )
+        duplicateMutations++;
+      if (
+        before.ply < 8 &&
+        (r.resolution !== "executed" ||
+          r.special ||
+          (s.schemaVersion === 3 && (s.simulation!.counters.ambient ?? 0) > 0))
+      )
         openingAnomalies++;
       try {
         validateState(s);
@@ -172,11 +435,11 @@ for (let index = 0; index < games; index++) {
         break;
       }
       if (
-        /"(?:rngState|subjects|pieceIds|kingdoms|loyalty|personality|privateEvents|rpgState)"/.test(
+        /"(?:rngState|subjects|pieceIds|kingdoms|loyalty|personality|privateEvents|rpgState|progression|episodes|forecast|attackerIds|defenderIds)"/.test(
           JSON.stringify(publicState(s)),
         )
       ) {
-        invalid++;
+        privacyFailures++;
         break;
       }
     }
@@ -214,6 +477,11 @@ for (let index = 0; index < games; index++) {
     terminal: s.terminal?.reason ?? "truncated",
     winner: s.terminal?.winner ?? null,
     counters: s.simulation!.counters,
+    firstEventPly,
+    extrema,
+    gates,
+    maxStorage,
+    rareEvents,
   });
   if ((index + 1) % 50 === 0)
     console.log(
@@ -225,7 +493,10 @@ const stats = (v: number[]) => {
   return {
     n: v.length,
     mean: v.reduce((a, b) => a + b, 0) / (v.length || 1),
+    median: sorted[Math.floor(sorted.length * 0.5)] ?? 0,
+    p90: sorted[Math.floor(sorted.length * 0.9)] ?? 0,
     p95: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
+    p99: sorted[Math.floor(sorted.length * 0.99)] ?? 0,
   };
 };
 const terminalCounts: Record<string, number> = {};
@@ -250,7 +521,15 @@ const mean = pairs.reduce((a, b) => a + b, 0) / (pairs.length || 1),
     Math.max(1, pairs.length - 1),
   error95 = 1.96 * Math.sqrt(variance / Math.max(1, pairs.length));
 const report = {
-  configVersion: CONFIG.version,
+  configVersion: version,
+  metricsVersion: 4,
+  gateThresholds: configFor(version)!.progression ?? null,
+  suite,
+  seedStart,
+  policyNotes:
+    suite === "pressure"
+      ? "Pressure policy v3 (material weight .5; repeat dangerous dependence on an actual sole defender) vs seeded eight-candidate one-ply material/PST/risk opponent; no forced RNG or protected victims"
+      : "Original paired neutral/protective/coercive/promotion policies; deterministic depth-one top-three mix",
   games,
   cap,
   elapsedSeconds: (performance.now() - start) / 1000,
@@ -266,6 +545,7 @@ const report = {
     method: "paired normal approximation; draws/truncations contribute zero",
   },
   rates: {
+    calmRefusal: [aggregate.calmRefusals ?? 0, aggregate.calmCommands ?? 0],
     refusal: [aggregate.refusal ?? 0, aggregate.eligibleCommands ?? 0],
     retreat: [aggregate.retreats ?? 0, aggregate.eligibleCommands ?? 0],
     plots: [aggregate.plots ?? 0, aggregate.eligibleKingdomTurns ?? 0],
@@ -277,57 +557,127 @@ const report = {
   },
   resolverMs: stats(resolver),
   aiDecisionMs: stats(ai),
+  leadershipProjectionMs: stats(leadershipTimes),
   finalStateBytes: stats(sizes),
   finalApiBytes: stats(payloads),
   invalid,
   stalls,
   errors,
   openingAnomalies,
+  privacyFailures,
+  terminalViolations,
+  duplicateMutations,
+  discovery: {
+    wholeCohort: [
+      results.filter((r) => r.firstEventPly !== null).length,
+      games,
+    ],
+    reached40: [
+      results.filter((r) => r.plies >= 40 && r.firstEventPly !== null).length,
+      results.filter((r) => r.plies >= 40).length,
+    ],
+    firstEventPly: stats(
+      results.flatMap((r) =>
+        r.firstEventPly === null ? [] : [r.firstEventPly],
+      ),
+    ),
+    checkpoints: [20, 40, 60, 80].map((ply) => ({
+      ply,
+      observedByCheckpoint: results.filter(
+        (r) => r.firstEventPly !== null && r.firstEventPly <= ply,
+      ).length,
+      wholeCohort: games,
+      reachedCheckpoint: results.filter((r) => r.plies >= ply).length,
+      endedEarlierWithoutEvent: results.filter(
+        (r) => r.plies < ply && r.firstEventPly === null,
+      ).length,
+      truncated: results.filter((r) => r.terminal === "truncated").length,
+    })),
+  },
+  pressureGates: {
+    gamesWithDisputes: [
+      results.filter((r) => (r.counters.disputes ?? 0) > 0).length,
+      games,
+    ],
+    gamesWithEligibility: [
+      results.filter((r) => (r.counters.eligibleKingdomTurns ?? 0) > 0).length,
+      games,
+    ],
+    gamesWithPlots: [
+      results.filter((r) => (r.counters.plots ?? 0) > 0).length,
+      games,
+    ],
+    distinctDisputeSeeds: new Set(
+      results.filter((r) => (r.counters.disputes ?? 0) > 0).map((r) => r.seed),
+    ).size,
+    distinctPlotSeeds: new Set(
+      results.filter((r) => (r.counters.plots ?? 0) > 0).map((r) => r.seed),
+    ).size,
+  },
+  nodes: stats(timingNodes),
+  restraintTacticalCost: stats(restraintCosts),
+  gateCrossings: Object.fromEntries(
+    [
+      "tyranny",
+      "legitimacy",
+      "leaderLoyalty",
+      "leaderResentment",
+      "ambition",
+    ].map((g) => [g, [results.filter((r) => r.gates[g]).length, games]]),
+  ),
   results,
 };
-mkdirSync("docs/balance", { recursive: true });
+mkdirSync(output, { recursive: true });
+writeFileSync(join(output, "raw.json"), JSON.stringify(report) + "\n", {
+  flag: "wx",
+});
+const summary = {
+  ...report,
+  results: undefined,
+  breakdown: undefined,
+  aggregate: Object.fromEntries(
+    Object.entries(aggregate).filter(
+      ([k]) =>
+        !k.startsWith("policyPair:") &&
+        !k.startsWith("eligible:") &&
+        !k.startsWith("refused:"),
+    ),
+  ),
+};
 writeFileSync(
-  "docs/balance/seeded-games.json",
-  JSON.stringify(report, null, 2) + "\n",
+  join(output, "summary.json"),
+  JSON.stringify(summary, null, 2) + "\n",
+  { flag: "wx" },
 );
-const rate = (n: number, d: number) =>
-  d
-    ? `${n}/${d} (${((100 * n) / d).toFixed(3)}%)`
-    : `${n}/0 (no eligible observations)`;
-const lines = [
-  "# Hidden Kingdom balance measurement",
-  "",
-  `Config ${CONFIG.version}; ${games} seeded games, ${pairs.length} color-swapped pairs; ${cap}-ply harness cap. ${report.tacticalGames} games use depth-one tactical search; other policies sample legal commands with material/protection/promotion preferences. Truncations are not gameplay draws.`,
-  "",
-  "| Measurement | Result |",
-  "|---|---|",
-];
-for (const [key, [n, d]] of Object.entries(report.rates))
-  lines.push(`| ${key}: numerator / eligible denominator | ${rate(n, d)} |`);
-lines.push(
-  `| Repeats / alternatives / extensions | ${aggregate.repeats ?? 0} / ${aggregate.alternativeOrders ?? 0} / ${aggregate.extensions ?? 0} |`,
-  `| Opening anomalies / invalid / stalls / errors | ${openingAnomalies} / ${invalid} / ${stalls} / ${errors} |`,
+writeFileSync(
+  join(output, "report.md"),
+  `# ${version}: ${suite}\n\nSeed start ${seedStart}; ${games} games (${games / 2} color-swapped pairs), 240-ply cap. This is simulation evidence, not human playtesting.\n\nRefusals: ${report.rates.refusal.join(" / ")}. Discovery among games reaching ply 40: ${report.discovery.reached40.join(" / ")}. Court-eligible games: ${report.pressureGates.gamesWithEligibility.join(" / ")}.\n\nSee [summary](summary.json) for denominators/blockers and [raw](raw.json) for every game, extrema and policy/side/personality/phase breakdown. No historical output was overwritten.\n`,
+  { flag: "wx" },
 );
-for (const [key, value] of Object.entries({
-  resolverMs: report.resolverMs,
-  aiDecisionMs: report.aiDecisionMs,
-  finalStateBytes: report.finalStateBytes,
-  finalApiBytes: report.finalApiBytes,
-}))
-  lines.push(
-    `| ${key}: mean / p95 | ${value.mean.toFixed(3)} / ${value.p95.toFixed(3)} |`,
-  );
-lines.push(
-  "",
-  `Terminal distribution: ${JSON.stringify(terminalCounts)}. White wins ${w}, Black wins ${b}; mean paired color difference ${mean.toFixed(4)}, approximate 95% interval [${report.colorDifference.approx95.map((x) => x.toFixed(4)).join(", ")}]. This policy sample does not establish fairness or human chess quality.`,
-  "",
-  "Raw counts by personality, side, phase, policy pairing and match: [seeded-games.json](balance/seeded-games.json). Payload samples are final states with full public history. The harness measures depth-one AI; difficulty budgets are measured separately.",
-  "",
-  "Tuning .2 changes only the refusal baseline from .005 to .04 after the original 1000-game run produced zero refusals across 95,932 eligible commands. Original .1 rules and results remain available. Conspiracy probabilities and prerequisites were not raised. Constructed court tests demonstrate staged reachability, failure and counterplay. A zero plot denominator means ordinary policies did not generate eligible kingdoms, not that self-play tested regicide.",
-  "Configuration .3 adds a bounded -10 grievance only when a repeated losing order relies solely on an envied defender; this closes the otherwise unreachable -30 dispute threshold. See [rule decisions](hidden-kingdom-rules.md). Breakdown keys are leadership policy / commanded side / commanded personality / phase. Independent [AI timings](balance/ai-performance.json) and [browser worker observations](balance/browser-ai.json) measure difficulty budgets separately.",
-  "",
-  "Reproduce: `npm run simulate` on Node 22.13+ or 24. Optional SIM_GAMES is for shorter diagnostics; delivery uses 1000.",
-  `Elapsed ${report.elapsedSeconds.toFixed(1)} seconds.`,
+console.log(
+  JSON.stringify({
+    output,
+    config: version,
+    refusal: report.rates.refusal,
+    discovery: report.discovery.reached40,
+    pressure: report.pressureGates,
+    resolver: report.resolverMs,
+    invalid,
+    stalls,
+    errors,
+    openingAnomalies,
+    privacyFailures,
+    terminalViolations,
+    duplicateMutations,
+  }),
 );
-writeFileSync("docs/hidden-kingdom-balancing.md", lines.join("\n") + "\n");
-if (invalid || stalls || errors || openingAnomalies) process.exitCode = 1;
+if (
+  invalid ||
+  stalls ||
+  errors ||
+  openingAnomalies ||
+  privacyFailures ||
+  terminalViolations ||
+  duplicateMutations
+)
+  process.exitCode = 1;

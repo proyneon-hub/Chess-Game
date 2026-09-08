@@ -1,5 +1,5 @@
 import type { GameState, SubjectState, SubjectMemory } from "@/lib/game/types";
-import { CONFIG, clamp } from "@/lib/rpg/config";
+import { rulesFor, clamp } from "@/lib/rpg/config";
 export const numericSubjectFields = [
   "loyalty",
   "morale",
@@ -15,7 +15,7 @@ export function remember(
   type: string,
   source: string,
   intensity = 1,
-  duration: number = CONFIG.memoryTurns,
+  duration: number = rulesFor(s).memoryTurns,
 ) {
   const own = s.simulation!.kingdoms[sub.side].ownTurnsCompleted;
   const memory: SubjectMemory = {
@@ -33,7 +33,7 @@ export function remember(
     )
   )
     sub.memories.push(memory);
-  sub.memories = sub.memories.slice(-CONFIG.memoryLimit);
+  sub.memories = sub.memories.slice(-rulesFor(s).memoryLimit);
 }
 export function capDeltas(before: GameState, s: GameState) {
   const sim = s.simulation!;
@@ -43,8 +43,10 @@ export function capDeltas(before: GameState, s: GameState) {
         Math.round(
           clamp(
             sub[key],
-            before.simulation!.subjects[sub.id][key] - CONFIG.subjectDeltaCap,
-            before.simulation!.subjects[sub.id][key] + CONFIG.subjectDeltaCap,
+            before.simulation!.subjects[sub.id][key] -
+              rulesFor(s).subjectDeltaCap,
+            before.simulation!.subjects[sub.id][key] +
+              rulesFor(s).subjectDeltaCap,
           ),
         ),
       );
@@ -59,8 +61,10 @@ export function capDeltas(before: GameState, s: GameState) {
         Math.round(
           clamp(
             sim.kingdoms[side][key],
-            before.simulation!.kingdoms[side][key] - CONFIG.kingdomDeltaCap,
-            before.simulation!.kingdoms[side][key] + CONFIG.kingdomDeltaCap,
+            before.simulation!.kingdoms[side][key] -
+              rulesFor(s).kingdomDeltaCap,
+            before.simulation!.kingdoms[side][key] +
+              rulesFor(s).kingdomDeltaCap,
           ),
         ),
       );

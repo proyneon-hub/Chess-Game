@@ -1,6 +1,57 @@
 import type { GameState, SubjectState } from "@/lib/game/types";
-import { CONFIG, clamp } from "@/lib/rpg/config";
+import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations } from "@/lib/rpg/context";
+import { progression } from "./pressure";
+import { remember } from "./subjects";
+import { count } from "./events";
+export function riskFriction(s: GameState, side: SubjectState["side"]) {
+  const cfg = rulesFor(s).progression!;
+  const own = s.simulation!.kingdoms[side].ownTurnsCompleted;
+  for (const sub of Object.values(s.simulation!.subjects)
+    .filter(
+      (x) =>
+        x.side === side &&
+        x.status === "active" &&
+        ["proud", "ambitious"].includes(x.personality),
+    )
+    .sort((a, b) => a.id.localeCompare(b.id))) {
+    // Ambition changes sensitivity by at most two resentment points.
+    if (
+      sub.resentment <
+      cfg.frictionResentment -
+        Math.round(clamp((sub.ambition - 60) / 20, -2, 2))
+    )
+      continue;
+    const episodes = progression(s).subjects[sub.id].episodes.filter(
+      (e) =>
+        e.cause === "avoidable_exposure" &&
+        own - e.openedOwnTurn < cfg.harmWindow &&
+        e.defenderIds.length === 1,
+    );
+    const defenders = Array.from(
+      new Set(episodes.map((e) => e.defenderIds[0])),
+    ).sort();
+    for (const id of defenders) {
+      const other = s.simulation!.subjects[id];
+      if (
+        !other ||
+        other.status !== "active" ||
+        other.currentKind === "k" ||
+        episodes.filter((e) => e.defenderIds[0] === id).length < 2 ||
+        sub.memories.some(
+          (m) =>
+            m.type === "rival_friction" &&
+            m.source === id &&
+            own - m.createdOwnTurn < cfg.repeatCooldown,
+        )
+      )
+        continue;
+      remember(s, sub, "rival_friction", id, 1, cfg.graveWindow);
+      relate(s, sub, other, cfg.friction);
+      count(s, "rivalFriction");
+    }
+  }
+}
 export function relate(
   s: GameState,
   a: SubjectState,
@@ -19,7 +70,7 @@ export function relate(
   const own = s.simulation!.kingdoms[a.side].ownTurnsCompleted;
   if (
     reconcile &&
-    own - (a.relationships[b.id]?.lastReconciled ?? -4) < CONFIG.cooldown
+    own - (a.relationships[b.id]?.lastReconciled ?? -4) < rulesFor(s).cooldown
   )
     return;
   for (const [x, y] of [
@@ -27,7 +78,9 @@ export function relate(
     [b, a],
   ]) {
     if (!x.relationships[y.id]) {
-      if (Object.keys(x.relationships).length >= CONFIG.relationshipLimit) {
+      if (
+        Object.keys(x.relationships).length >= rulesFor(s).relationshipLimit
+      ) {
         const plot = s.simulation!.plots.find(
           (p) => !["resolved", "thwarted"].includes(p.stage),
         );
@@ -76,9 +129,23 @@ export function refreshDisputes(s: GameState, side: SubjectState["side"]) {
     );
   let active = 0;
   for (const { a, b, r } of pairs) {
+    const cfg = rulesFor(s).progression;
+    const cause =
+      !cfg ||
+      [a, b].some((x) =>
+        x.memories.some(
+          (m) =>
+            ["rival_friction", "promotion_envy"].includes(m.type) &&
+            m.source === (x.id === a.id ? b.id : a.id),
+        ),
+      );
     const should =
-      (r.disputed ? r.score <= -15 : r.score <= -30) &&
-      active < CONFIG.disputeLimit;
+      (r.disputed
+        ? r.score <= (cfg?.disputeClose ?? -15)
+        : cause && r.score <= (cfg?.disputeOpen ?? -30)) &&
+      active < rulesFor(s).disputeLimit;
+    if (cfg && should !== r.disputed)
+      count(s, should ? "disputes" : "disputeResolutions");
     r.disputed = should;
     if (b.relationships[a.id]) b.relationships[a.id].disputed = should;
     if (should) active++;
@@ -101,8 +168,12 @@ export function tickRelationships(s: GameState, side: SubjectState["side"]) {
       }
       r.separatedTurns =
         distance(pos[a.id], pos[id]) > 3 ? r.separatedTurns + 1 : 0;
-      if (r.separatedTurns >= 4 && r.score < -15)
-        r.score = Math.min(-15, r.score + 2);
+      const close = rulesFor(s).progression?.disputeClose;
+      if (
+        r.separatedTurns >= 4 &&
+        r.score < (close === undefined ? -15 : close + 1)
+      )
+        r.score = Math.min(close === undefined ? -15 : close + 1, r.score + 2);
     }
   refreshDisputes(s, side);
 }

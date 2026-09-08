@@ -15,7 +15,14 @@ import {
 } from "@/lib/rpg/context";
 import { clamp } from "@/lib/rpg/config";
 import type { ChessMove } from "@/lib/chessRules";
+import {
+  leadershipView,
+  materializeView,
+  type LeadershipView,
+} from "./leadershipView";
+import { agencyForecast } from "@/lib/rpg/agency";
 export type OwnPolitics = {
+  view?: LeadershipView;
   side: Side;
   kingdom: KingdomState;
   subjects: Record<string, SubjectState>;
@@ -34,6 +41,7 @@ export function ownPolitics(s: GameState, side: Side): OwnPolitics | null {
     ownPositions[sub.id] = positions[sub.id];
   }
   return {
+    ...(s.schemaVersion === 3 ? { view: leadershipView(s, side) } : {}),
     side,
     kingdom: structuredClone(s.simulation.kingdoms[side]),
     subjects,
@@ -63,15 +71,17 @@ export function politicalScore(
     king = findKing(after, own.side === "white")!;
   const loss = exchangeLoss(after, move.to, own.side, map),
     rescued = exchangeLoss(before, move.from, own.side) > loss;
-  const expectedObedience = clamp(
-    1 -
-      (((0.1 * sub.fear) / 100) * Number(loss >= 100) +
-        (0.1 * sub.resentment) / 100 -
-        (0.06 * sub.loyalty) / 100 -
-        (0.03 * own.kingdom.legitimacy) / 100),
-    0.78,
-    1,
-  );
+  const expectedObedience = own.view
+    ? 1 - agencyForecast(materializeView(own.view), move).refusal
+    : clamp(
+        1 -
+          (((0.1 * sub.fear) / 100) * Number(loss >= 100) +
+            (0.1 * sub.resentment) / 100 -
+            (0.06 * sub.loyalty) / 100 -
+            (0.03 * own.kingdom.legitimacy) / 100),
+        0.78,
+        1,
+      );
   let score =
     (expectedObedience - 1) * 100 +
     (rescued ? 25 : 0) -

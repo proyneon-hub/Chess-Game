@@ -1,11 +1,13 @@
 import { findKing, isInCheck, KIND_NAMES, type Side } from "@/lib/chess";
 import type { CourtPlot, GameState, SubjectState } from "@/lib/game/types";
 import { finish } from "@/lib/game";
-import { CONFIG, clamp } from "@/lib/rpg/config";
+import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
 import { count, event } from "@/lib/rpg/events";
 import { remember } from "@/lib/rpg/subjects";
 import type { Draw } from "@/lib/rpg/rng";
+import { courtEligibility } from "./courtEligibility";
+import { progression } from "./pressure";
 export const activePlot = (s: GameState) =>
   s.simulation?.plots.find(
     (p) => p.stage !== "resolved" && p.stage !== "thwarted",
@@ -30,7 +32,8 @@ export function guardCount(
     ).length,
   );
 }
-function thwart(s: GameState, p: CourtPlot) {
+function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
+  if (rulesFor(s).generation === 3) count(s, `thwart:${reason}`);
   p.stage = "thwarted";
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
@@ -69,26 +72,32 @@ export function scheduleCourt(
     pos = locations(s),
     check =
       startedInCheck || isInCheck(s.board, true) || isInCheck(s.board, false);
+  const cfg = rulesFor(s).progression;
   const active = activePlot(s);
   if (active) {
+    if (cfg) count(s, "court-blocker:active-plot");
     if (active.side !== side) return;
     const a = sim.subjects[active.ringleader],
       b = sim.subjects[active.accomplice];
     if (
       a.status !== "active" ||
       b.status !== "active" ||
-      a.loyalty > 45 ||
-      a.resentment < 55 ||
-      k.legitimacy > 50 ||
-      k.tyranny < 45
+      a.loyalty > (cfg?.recoveryLoyalty ?? 45) ||
+      a.resentment < (cfg?.recoveryResentment ?? 55) ||
+      k.legitimacy > (cfg?.recoveryLegitimacy ?? 50) ||
+      k.tyranny < (cfg?.recoveryTyranny ?? 45)
     ) {
-      thwart(s, active);
+      thwart(
+        s,
+        active,
+        a.status !== "active" || b.status !== "active" ? "capture" : "recovery",
+      );
       return;
     }
     active.separatedTurns =
       distance(pos[a.id], pos[b.id]) > 3 ? active.separatedTurns + 1 : 0;
     if (active.separatedTurns >= 2) {
-      thwart(s, active);
+      thwart(s, active, "separation");
       return;
     }
     if (own <= active.stageEnteredOwnTurn) return;
@@ -102,12 +111,13 @@ export function scheduleCourt(
     const king = findKing(s.board, side === "white")!;
     if (check || distance(pos[a.id], king) > 2) {
       active.deferredTurns++;
-      if (active.deferredTurns >= 2) thwart(s, active);
+      if (active.deferredTurns >= 2)
+        thwart(s, active, check ? "check" : "king-distance");
       return;
     }
     const guards = guardCount(s, active);
     if (guards >= 2) {
-      thwart(s, active);
+      thwart(s, active, "guards");
       return;
     }
     // These must be previously committed distinct stages, each followed by a
@@ -133,8 +143,8 @@ export function scheduleCourt(
         (0.04 * k.tyranny) / 100 -
         (0.03 * k.legitimacy) / 100 -
         0.03 * guards,
-      CONFIG.plotMinChance,
-      CONFIG.plotMaxChance,
+      rulesFor(s).plotMinChance,
+      rulesFor(s).plotMaxChance,
     );
     count(s, "armedAttempts");
     active.stage = "resolved";
@@ -155,8 +165,45 @@ export function scheduleCourt(
     }
     return;
   }
+  if (cfg) {
+    const assessment = courtEligibility(s, side, startedInCheck),
+      tracking = progression(s).sides[side];
+    for (const blocker of assessment.blockers)
+      count(s, `court-blocker:${blocker}`);
+    const old = tracking.pairs;
+    tracking.pairs = {};
+    if (assessment.gate)
+      for (const { a, b } of assessment.pairs) {
+        const key = `${a.id}|${b.id}`;
+        tracking.pairs[key] = (old[key] ?? 0) + 1;
+      }
+    const candidates = assessment.pairs.filter(
+      ({ a, b }) => (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2,
+    );
+    if (!candidates.length) return;
+    count(s, "eligibleKingdomTurns");
+    count(s, `eligibleCourt:${side}`);
+    if (rng() >= rulesFor(s).plotChance) return;
+    const { a, b } = candidates[0];
+    k.plotAttemptUsed = true;
+    const plot: CourtPlot = {
+      side,
+      ringleader: a.id,
+      accomplice: b.id,
+      stage: "gathering",
+      stageEnteredOwnTurn: own,
+      warningEventIds: [],
+      warningOwnTurns: [],
+      separatedTurns: 0,
+      deferredTurns: 0,
+    };
+    sim.plots.push(plot);
+    count(s, "plots");
+    warning(s, plot);
+    return;
+  }
   const gate =
-    s.ply >= CONFIG.crisis &&
+    s.ply >= rulesFor(s).crisis &&
     !check &&
     !k.plotAttemptUsed &&
     k.tyranny >= 60 &&
@@ -207,7 +254,7 @@ export function scheduleCourt(
     );
   if (!candidates.length) return;
   count(s, "eligibleKingdomTurns");
-  if (rng() >= CONFIG.plotChance) return;
+  if (rng() >= rulesFor(s).plotChance) return;
   const { a, b } = candidates[0];
   k.plotAttemptUsed = true;
   const plot: CourtPlot = {

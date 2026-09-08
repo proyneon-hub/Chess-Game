@@ -25,6 +25,7 @@ export type SearchInput = {
   own: OwnPolitics | null;
 };
 export type SearchResult = {
+  scores?: { move: ChessMove; score: number }[];
   moves: ChessMove[];
   completedDepth: number;
   nodes: number;
@@ -157,6 +158,9 @@ export function searchMoves(input: SearchInput): SearchResult {
     }))
     .sort((a, b) => b.score - a.score);
   return {
+    ...(input.own?.view
+      ? { scores: ranked.map((c) => ({ move: c.move, score: c.score })) }
+      : {}),
     moves: [
       ...shortlist.map((c) => c.move),
       ...ranked

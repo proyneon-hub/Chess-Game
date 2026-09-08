@@ -1,0 +1,9 @@
+{
+  "baselineCommit": "3001374dae79c58bd8acad3a848f16a524f0bbec",
+  "compared": "every per-game result, counter, terminal and color assignment",
+  "games": 1000,
+  "exactMatches": 1000,
+  "invalid": 0,
+  "stalls": 0,
+  "errors": 0
+}

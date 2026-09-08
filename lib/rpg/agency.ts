@@ -10,11 +10,37 @@ import {
 } from "@/lib/chess";
 import { captureSquare, legalFinalBoard } from "@/lib/chessRules";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
-import { CONFIG, clamp, configFor } from "@/lib/rpg/config";
+import { rulesFor, clamp, configFor } from "@/lib/rpg/config";
 import { distance, exchangeLoss, moveContext } from "@/lib/rpg/context";
 import type { Draw } from "@/lib/rpg/rng";
 import { count } from "@/lib/rpg/events";
+import { forecastV3 } from "./forecast";
+import { progression } from "./pressure";
+export const agencyForecast = (s: GameState, m: MoveAttempt) => {
+  if (rulesFor(s).generation === 3) return forecastV3(s, m);
+  const guaranteed =
+    s.ply < rulesFor(s).grace ||
+    s.board[m.from[0]][m.from[1]]?.toLowerCase() === "k" ||
+    !!s.pendingRefusal ||
+    isInCheck(s.board, m.side === "white");
+  const refusal = guaranteed ? 0 : refusalProbability(s, m).probability;
+  return {
+    refusal,
+    retreat: 0,
+    heroism: 0,
+    execution: 1 - refusal,
+    guaranteed,
+    contributions: {},
+    retreatTo: null,
+    heroicTo: null,
+  };
+};
 export function refusalProbability(s: GameState, m: MoveAttempt) {
+  if (rulesFor(s).generation === 3)
+    return {
+      probability: forecastV3(s, m).refusal,
+      context: moveContext(s, m),
+    };
   const c = moveContext(s, m),
     sub = c.sub,
     k = s.simulation!.kingdoms[m.side];
@@ -77,7 +103,7 @@ export function refusalProbability(s: GameState, m: MoveAttempt) {
       memory +
       aura,
     0,
-    CONFIG.refusalMax,
+    rulesFor(s).refusalMax,
   );
   return { probability: p, context: c };
 }
@@ -91,8 +117,63 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     special: false,
     message: "",
   };
+  if (rulesFor(s).generation === 3) {
+    const f = forecastV3(s, m);
+    if (f.guaranteed) return normal;
+    count(s, "eligibleCommands");
+    count(
+      s,
+      `eligible:${m.side}:${sub.personality}:${s.ply < 16 ? "discovery" : s.ply < 40 ? "established" : "crisis"}`,
+    );
+    const roll = rng();
+    sim.privateEvents.push({
+      seq: ++s.eventSeq,
+      code: "agency",
+      subjectId: sub.id,
+      details: {
+        roll,
+        refusalProbability: f.refusal,
+        retreatProbability: f.retreat,
+        heroicProbability: f.heroism,
+      },
+    });
+    sim.privateEvents = sim.privateEvents.slice(-rulesFor(s).privateEventLimit);
+    if (roll < f.refusal) {
+      sub.fear = clamp(sub.fear + 2);
+      sub.resentment = clamp(sub.resentment + 2);
+      count(s, `refused:${m.side}:${sub.personality}`);
+      return {
+        ...normal,
+        kind: "refused" as const,
+        message: `The ${name} hesitates before moving to ${String.fromCharCode(97 + m.to[1])}${8 - m.to[0]}.`,
+      };
+    }
+    if (roll < f.refusal + f.retreat && f.retreatTo) {
+      const p = progression(s);
+      p.subjects[sub.id].lastRetreat = sim.kingdoms[m.side].ownTurnsCompleted;
+      p.sides[m.side].retreats++;
+      return {
+        ...normal,
+        kind: "autonomous" as const,
+        destination: f.retreatTo,
+        special: true,
+        message: `The ${name} withdraws from the attack.`,
+      };
+    }
+    if (roll < f.refusal + f.retreat + f.heroism && f.heroicTo) {
+      sim.kingdoms[m.side].extensionsUsed++;
+      count(s, "extensions");
+      return {
+        ...normal,
+        destination: f.heroicTo,
+        special: true,
+        message: `The ${name} carries the charge farther than ordered.`,
+      };
+    }
+    return normal;
+  }
   if (
-    s.ply < CONFIG.grace ||
+    s.ply < rulesFor(s).grace ||
     sub.currentKind === "k" ||
     s.pendingRefusal ||
     isInCheck(s.board, m.side === "white")
@@ -111,7 +192,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     subjectId: sub.id,
     details: { roll, refusalProbability: p, pressureLoss: context.afterLoss },
   });
-  sim.privateEvents = sim.privateEvents.slice(-CONFIG.privateEventLimit);
+  sim.privateEvents = sim.privateEvents.slice(-rulesFor(s).privateEventLimit);
   if (roll < p) {
     sub.fear = clamp(sub.fear + 2);
     sub.resentment = clamp(sub.resentment + 2);
@@ -128,9 +209,9 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     };
   }
   const retreatProbability =
-    s.ply >= CONFIG.established && sub.fear >= 75 && sub.loyalty <= 55
+    s.ply >= rulesFor(s).established && sub.fear >= 75 && sub.loyalty <= 55
       ? Math.min(
-          CONFIG.retreatMax,
+          rulesFor(s).retreatMax,
           ((0.05 * sub.fear) / 100) * (1 - sub.loyalty / 100),
         )
       : 0;
@@ -175,14 +256,14 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     }
   }
   if (
-    s.ply >= CONFIG.established &&
+    s.ply >= rulesFor(s).established &&
     sub.morale >= 75 &&
     sub.loyalty >= 65 &&
-    sim.kingdoms[m.side].extensionsUsed < CONFIG.extensionLimit &&
+    sim.kingdoms[m.side].extensionsUsed < rulesFor(s).extensionLimit &&
     "rbqn".includes(sub.currentKind) &&
     !s.board[m.to[0]][m.to[1]] &&
     Math.floor(rng() * 20) === 19 &&
-    rng() <= CONFIG.heroicChance
+    rng() <= rulesFor(s).heroicChance
   ) {
     const destination: Square = [
       m.to[0] + Math.sign(m.to[0] - m.from[0]),

@@ -36,7 +36,7 @@ import type {
   Terminal,
 } from "@/lib/game/types";
 import { initializeSimulation, roleStats } from "@/lib/rpg/initialize";
-import { CONFIG, configFor } from "@/lib/rpg/config";
+import { CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
 import { type Draw, draw, freshSeed } from "@/lib/rpg/rng";
 import { count, event } from "@/lib/rpg/events";
 import { leadership } from "@/lib/rpg/leadership";
@@ -57,17 +57,22 @@ export const getAllLegalMoves = (
   side: Side,
   rights?: ChessRights,
 ) => allMoves(board, side, rights);
-export const createGameState = (seed: number = freshSeed()): GameState => {
+export const createGameState = (
+  seed: number = freshSeed(),
+  configVersion: string = CONFIG.version,
+): GameState => {
   const board = INITIAL_BOARD.map((r) => [...r]),
     pieceIds = initializePieceIds(board),
     rights = freshRights();
+  const config = configFor(configVersion);
+  if (!config) throw new Error("Unsupported rules configuration.");
   return {
-    schemaVersion: 2,
-    rulesetVersion: "hidden-kingdom-v2",
-    configVersion: CONFIG.version,
+    schemaVersion: config.generation,
+    rulesetVersion: `hidden-kingdom-v${config.generation}`,
+    configVersion,
     board,
     pieceIds,
-    simulation: initializeSimulation(board, pieceIds, seed),
+    simulation: initializeSimulation(board, pieceIds, seed, configVersion),
     sideToMove: "white",
     status: "active",
     result: null,
@@ -84,7 +89,7 @@ export const createGameState = (seed: number = freshSeed()): GameState => {
     warning: null,
     pendingRefusal: null,
     lastAction: null,
-  };
+  } as GameState;
 };
 export const normalizeIntention = (s: GameState, m: Intention): Intention => ({
   from: [...m.from],
@@ -151,11 +156,11 @@ export function submitMove(
     return reject(state, "This game has already ended.");
   if (action.side !== state.sideToMove)
     return reject(state, "It is not your turn.");
-  if (
-    state.rulesetVersion === "hidden-kingdom-v2" &&
-    !configFor(state.configVersion)
-  )
+  try {
+    rulesFor(state);
+  } catch {
     return reject(state, "This game uses an unsupported rules configuration.");
+  }
   if ("type" in action) {
     if (action.type !== "claim-draw") return reject(state, "Unknown action.");
     const repeated =
