@@ -2,7 +2,7 @@
 
 Chess for local pass-and-play, computer opponents, and private online invites. The interface uses ordinary chess controls. Pieces have persistent, hidden political memories; their behavior follows the same deterministic rules in every mode.
 
-[Open deployed Chess (Vercel sign-in required)](https://chess-game-pramits-projects-ce654619.vercel.app)
+[Play Chess — no sign-in required](https://test-chess-game-roy-kappa-five.vercel.app)
 
 The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
 
@@ -81,9 +81,11 @@ The repository root is the supported full application/deployment root. `chess-ne
 
 ## Production release
 
-Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Open the [deployed project](https://chess-game-pramits-projects-ce654619.vercel.app) or its [Vercel dashboard](https://vercel.com/pramits-projects-ce654619/chess-game). Use the repository root as the Vercel Root Directory, the Next.js framework preset, and a supported Node version listed above.
+Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Play at the public production domain, [test-chess-game-roy-kappa-five.vercel.app](https://test-chess-game-roy-kappa-five.vercel.app), or manage the project in its [Vercel dashboard](https://vercel.com/pramits-projects-ce654619/chess-game). The project uses the repository root and Node 24; `vercel.json` explicitly selects the Next.js framework.
 
-On 2026-09-07, Vercel confirmed a successful Production deployment of release commit `40a8bef`. The deployment and project alias redirected anonymous visitors to Vercel sign-in, so an anonymous live-game smoke test could not complete. The repository's historical homepage, `chess-game-six-zeta.vercel.app`, returned `DEPLOYMENT_NOT_FOUND`; use the project link above. Public access requires the project owner to configure the intended production domain and deployment protection in Vercel. This release does not change those access controls.
+Public access was verified on 2026-09-07 against production commit `0e73af7`: HTTP 200 without Vercel sign-in, ordinary chess controls, local moves and undo, a computer reply, and online invites between two independent guest sessions. Online checks covered Black orientation, synchronized moves in both directions, reconnect, hidden-state privacy, and Leave. Both smoke checks reported zero browser page errors. Online verification created one new test match and did not modify existing matches.
+
+Vercel's generated deployment/team URLs remain sign-in protected; share the public production domain above. The historical `chess-game-six-zeta.vercel.app` address returns `DEPLOYMENT_NOT_FOUND`. No deployment-protection change was needed once the configured public domain was identified.
 
 Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
 

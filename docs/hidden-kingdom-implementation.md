@@ -79,4 +79,10 @@ The tuned ordinary harness observed **39 refusals / 96,063 eligible commands (0.
 
 AI depth is a target, not a guarantee: the Node measurement completed depths 1–2 at Normal and 2 at Advanced within its budgets; the optimized browser sample completed depth 3. It always retained a legal completed iteration or fallback and never searched the full tree on the main thread.
 
-The browser run covers Chromium, keyboard controls and a narrow viewport; it is not exhaustive device or assistive-technology certification. Online was verified against an isolated real MongoDB process, not the user's deployed Atlas/Vercel environment. Tests leave production data untouched. The preserved Next.js 14/eslint dependency stack has nine network-audited high findings; addressing those requires separate dependency/framework review. Local hidden state is inspectable by its browser owner, while online hidden state is server-private.
+The full browser suite covers Chromium, keyboard controls and a narrow viewport; it is not exhaustive device or assistive-technology certification. Automated unit/integration and full browser suites use isolated MongoDB processes and leave production data untouched. The preserved Next.js 14/eslint dependency stack has nine network-audited high findings; addressing those requires separate dependency/framework review. Local hidden state is inspectable by its browser owner, while online hidden state is server-private.
+
+## Production follow-up
+
+After the user authorized merging, deployment and public play, Vercel confirmed Production deployment of `0e73af7`. On 2026-09-07, authenticated inspection identified `https://test-chess-game-roy-kappa-five.vercel.app` as the configured public production domain. It serves the game anonymously; generated deployment/team aliases require Vercel sign-in. No protection settings were changed.
+
+Live Chromium smoke checks passed for HTTP 200, production debug suppression, local movement and undo, computer completion, an online invite with two separate signed guest sessions, Black orientation, moves synchronized in both directions, reconnect, public DTO privacy and Leave. Both checks recorded zero page errors. This bounded production test created one new match and did not modify existing matches; it supplements the isolated suites rather than replacing their broader coverage.
