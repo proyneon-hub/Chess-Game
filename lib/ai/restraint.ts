@@ -7,7 +7,7 @@ import { applyMove } from "@/lib/chess";
 import { materializeView } from "./leadershipView";
 export function refusalFallback(s: GameState): MoveAttempt | undefined {
   const moves = getAllLegalMoves(s.board, s.sideToMove, s.rights);
-  if (s.schemaVersion === 3 && s.pendingRefusal)
+  if (s.schemaVersion >= 3 && s.pendingRefusal)
     return moves.find((m) => !sameIntention(m, s.pendingRefusal!)) ?? moves[0];
   return s.pendingRefusal
     ? { ...s.pendingRefusal, side: s.sideToMove }
@@ -24,7 +24,7 @@ export function chooseAfterRefusal(
 ): LeadershipChoice | undefined {
   if (!s.pendingRefusal) return undefined;
   const repeat = { ...s.pendingRefusal, side: s.sideToMove };
-  if (s.schemaVersion !== 3)
+  if (s.schemaVersion < 3)
     return { move: repeat, restraint: false, tacticalCost: 0 };
   const own = ownPolitics(s, s.sideToMove)!;
   const view = materializeView(own.view!),

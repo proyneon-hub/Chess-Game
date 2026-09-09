@@ -4,6 +4,7 @@ import {
   getLegalMoves,
   isInCheck,
   KIND_NAMES,
+  squareName,
   sameSquare,
   validSquare,
   type Square,
@@ -11,13 +12,18 @@ import {
 import { captureSquare, legalFinalBoard } from "@/lib/chessRules";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
 import { rulesFor, clamp, configFor } from "@/lib/rpg/config";
-import { distance, exchangeLoss, moveContext } from "@/lib/rpg/context";
+import {
+  distance,
+  exchangeLoss,
+  moveContext,
+  locations,
+} from "@/lib/rpg/context";
 import type { Draw } from "@/lib/rpg/rng";
 import { count } from "@/lib/rpg/events";
 import { forecastV3 } from "./forecast";
 import { progression } from "./pressure";
 export const agencyForecast = (s: GameState, m: MoveAttempt) => {
-  if (rulesFor(s).generation === 3) return forecastV3(s, m);
+  if (rulesFor(s).generation >= 3) return forecastV3(s, m);
   const guaranteed =
     s.ply < rulesFor(s).grace ||
     s.board[m.from[0]][m.from[1]]?.toLowerCase() === "k" ||
@@ -36,7 +42,7 @@ export const agencyForecast = (s: GameState, m: MoveAttempt) => {
   };
 };
 export function refusalProbability(s: GameState, m: MoveAttempt) {
-  if (rulesFor(s).generation === 3)
+  if (rulesFor(s).generation >= 3)
     return {
       probability: forecastV3(s, m).refusal,
       context: moveContext(s, m),
@@ -112,12 +118,13 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     sub = sim.subjects[s.pieceIds[m.from[0]][m.from[1]]!],
     name = KIND_NAMES[sub.currentKind];
   const normal = {
+    outcome: "obeyed" as "obeyed" | "retreat" | "heroic",
     kind: "executed" as "executed" | "refused" | "autonomous",
     destination: m.to,
     special: false,
     message: "",
   };
-  if (rulesFor(s).generation === 3) {
+  if (rulesFor(s).generation >= 3) {
     const f = forecastV3(s, m);
     if (f.guaranteed) return normal;
     count(s, "eligibleCommands");
@@ -142,10 +149,14 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       sub.fear = clamp(sub.fear + 2);
       sub.resentment = clamp(sub.resentment + 2);
       count(s, `refused:${m.side}:${sub.personality}`);
+      const c = s.schemaVersion === 4 ? moveContext(s, m) : null;
+      const rival = c?.disputeRelevant ? sim.subjects[c.defenders[0]] : null;
       return {
         ...normal,
         kind: "refused" as const,
-        message: `The ${name} hesitates before moving to ${String.fromCharCode(97 + m.to[1])}${8 - m.to[0]}.`,
+        message: rival
+          ? `The ${name} at ${squareName(m.from)} hesitates under the ${KIND_NAMES[rival.currentKind]} at ${squareName(locations(s)[rival.id])}'s watch.`
+          : `The ${name} hesitates before moving to ${String.fromCharCode(97 + m.to[1])}${8 - m.to[0]}.`,
       };
     }
     if (roll < f.refusal + f.retreat && f.retreatTo) {
@@ -155,6 +166,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       return {
         ...normal,
         kind: "autonomous" as const,
+        outcome: "retreat" as const,
         destination: f.retreatTo,
         special: true,
         message: `The ${name} withdraws from the attack.`,
@@ -166,6 +178,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       return {
         ...normal,
         destination: f.heroicTo,
+        outcome: "heroic" as const,
         special: true,
         message: `The ${name} carries the charge farther than ordered.`,
       };
@@ -246,6 +259,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       const destination = candidates[0].to;
       return {
         kind: "autonomous" as const,
+        outcome: "retreat" as const,
         destination,
         special: true,
         message:
@@ -278,6 +292,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       count(s, "extensions");
       return {
         kind: "executed" as const,
+        outcome: "heroic" as const,
         destination,
         special: true,
         message: `The ${name} carries the charge farther than ordered.`,

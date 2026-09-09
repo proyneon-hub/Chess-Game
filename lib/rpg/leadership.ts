@@ -1,6 +1,6 @@
 import { findKing, isInCheck, type Square } from "@/lib/chess";
 import { material, captureSquare, positionKey } from "@/lib/chessRules";
-import type { GameState, MoveAttempt } from "@/lib/game/types";
+import type { GameState, MoveAttempt, ResolvedOrder } from "@/lib/game/types";
 import { sameIntention } from "@/lib/game";
 import {
   attackMap,
@@ -18,8 +18,13 @@ import { leadershipV3 } from "./leadershipV3";
 
 // Facts are derived once from before/after boards; this is called once for a
 // completed action only. All aggregates are capped against the input state.
-export function leadership(before: GameState, s: GameState, move: MoveAttempt) {
-  if (rulesFor(s).generation === 3) return leadershipV3(before, s, move);
+export function leadership(
+  before: GameState,
+  s: GameState,
+  move: MoveAttempt,
+  order?: ResolvedOrder,
+) {
+  if (rulesFor(s).generation >= 3) return leadershipV3(before, s, move, order);
   const sim = s.simulation!,
     kingdom = sim.kingdoms[move.side],
     oldMap = attackMap(before.board),

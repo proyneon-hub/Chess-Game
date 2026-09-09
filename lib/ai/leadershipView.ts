@@ -10,7 +10,10 @@ import { progression } from "@/lib/rpg/pressure";
 // Enemy subjects are constructed solely from visible pieces. Never copy enemy
 // hidden attributes, participant identities, pressure episodes or RNG streams.
 export type LeadershipView = Omit<GameState, "simulation"> & {
-  simulation: Omit<Extract<HiddenSimulation, { schemaVersion: 3 }>, "rngState">;
+  simulation: Omit<
+    Extract<HiddenSimulation, { schemaVersion: 3 | 4 }>,
+    "rngState"
+  >;
 };
 export function materializeView(view: LeadershipView): GameState {
   return {
@@ -32,6 +35,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
     pieceIds = s.board.map((row) => row.map(() => null as string | null));
   const emptyPressure = () => ({
     episodes: [],
+    ...(s.schemaVersion === 4 ? { hazard: null } : {}),
     lastHarm: -100,
     lastExposure: -100,
     lastRepeated: -100,
@@ -95,8 +99,8 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
   return {
     ...visible,
     configVersion: s.configVersion,
-    schemaVersion: 3,
-    rulesetVersion: "hidden-kingdom-v3",
+    schemaVersion: s.schemaVersion,
+    rulesetVersion: s.rulesetVersion,
     pieceIds,
     rights: structuredClone(s.rights),
     positions: { ...s.positions },
@@ -104,8 +108,8 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
     ply: s.ply,
     eventSeq: s.eventSeq,
     simulation: {
-      schemaVersion: 3,
-      rulesetVersion: "hidden-kingdom-v3",
+      schemaVersion: s.schemaVersion,
+      rulesetVersion: s.rulesetVersion,
       configVersion: s.configVersion,
       subjects,
       kingdoms: {

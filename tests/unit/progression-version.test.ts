@@ -5,7 +5,7 @@ import { publicState } from "@/lib/game/publicState";
 import { validateState } from "@/lib/game/validation";
 import { progression } from "@/lib/rpg/pressure";
 it("v3 defaults, old matches and private episode state have explicit version boundaries", () => {
-  const s = createGameState(1);
+  const s = createGameState(1, "2026-09-08.6");
   expect(s.schemaVersion).toBe(3);
   expect(s.rulesetVersion).toBe("hidden-kingdom-v3");
   validateState(s);

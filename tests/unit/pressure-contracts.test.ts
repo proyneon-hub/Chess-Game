@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { v3Fixture } from "../progression-fixtures";
+import { v3Fixture, v4Fixture } from "../progression-fixtures";
 import { subjectAt } from "../fixtures";
 import { createGameState, submitMove } from "@/lib/game";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
@@ -131,52 +131,55 @@ it("protection cannot repeat its reward when the same defender returns against t
     protectedState.simulation!.counters.protections,
   );
 });
-it("capture witnesses use their own clock, history expires on that side, and combined deltas remain capped", () => {
-  const s = v3Fixture(
-    [
-      ["K", [7, 7]],
-      ["k", [0, 7]],
-      ["R", [4, 0]],
-      ["q", [4, 3]],
-      ["b", [3, 4]],
-      ["n", [5, 4]],
-    ],
-    40,
-  );
-  s.simulation!.kingdoms.white.ownTurnsCompleted = 20;
-  s.simulation!.kingdoms.black.ownTurnsCompleted = 5;
-  const victim = subjectAt(s, [4, 3]),
-    witness = subjectAt(s, [3, 4]);
-  episode(s, [4, 3], 4);
-  relate(s, witness, victim, 10);
-  remember(s, witness, "expires", victim.id, 1, 1);
-  const after = go(s, [4, 0], [4, 3]);
-  expect(progression(after).subjects[victim.id].episodes[0].closedOwnTurn).toBe(
-    5,
-  );
-  expect(progression(after).subjects[witness.id].lastHarm).toBe(5);
-  expect(
-    after.simulation!.subjects[witness.id].memories.find(
-      (m) => m.type === "ally_lost",
-    )?.createdOwnTurn,
-  ).toBe(5);
-  expect(
-    after.simulation!.subjects[witness.id].memories.some(
-      (m) => m.type === "expires",
-    ),
-  ).toBe(true);
-  for (const [id, sub] of Object.entries(after.simulation!.subjects))
-    for (const field of numericSubjectFields)
-      expect(
-        Math.abs(sub[field] - s.simulation!.subjects[id][field]),
-      ).toBeLessThanOrEqual(12);
-  const done = go(after, [0, 7], [1, 7]);
-  expect(
-    done.simulation!.subjects[witness.id].memories.some(
-      (m) => m.type === "expires",
-    ),
-  ).toBe(false);
-});
+it.each([v3Fixture, v4Fixture])(
+  "capture witnesses use their own clock, history expires on that side, and combined deltas remain capped",
+  (fixture) => {
+    const s = fixture(
+      [
+        ["K", [7, 7]],
+        ["k", [0, 7]],
+        ["R", [4, 0]],
+        ["q", [4, 3]],
+        ["b", [3, 4]],
+        ["n", [5, 4]],
+      ],
+      40,
+    );
+    s.simulation!.kingdoms.white.ownTurnsCompleted = 20;
+    s.simulation!.kingdoms.black.ownTurnsCompleted = 5;
+    const victim = subjectAt(s, [4, 3]),
+      witness = subjectAt(s, [3, 4]);
+    episode(s, [4, 3], 4);
+    relate(s, witness, victim, 10);
+    remember(s, witness, "expires", victim.id, 1, 1);
+    const after = go(s, [4, 0], [4, 3]);
+    expect(
+      progression(after).subjects[victim.id].episodes[0].closedOwnTurn,
+    ).toBe(5);
+    expect(progression(after).subjects[witness.id].lastHarm).toBe(5);
+    expect(
+      after.simulation!.subjects[witness.id].memories.find(
+        (m) => m.type === "ally_lost",
+      )?.createdOwnTurn,
+    ).toBe(5);
+    expect(
+      after.simulation!.subjects[witness.id].memories.some(
+        (m) => m.type === "expires",
+      ),
+    ).toBe(true);
+    for (const [id, sub] of Object.entries(after.simulation!.subjects))
+      for (const field of numericSubjectFields)
+        expect(
+          Math.abs(sub[field] - s.simulation!.subjects[id][field]),
+        ).toBeLessThanOrEqual(12);
+    const done = go(after, [0, 7], [1, 7]);
+    expect(
+      done.simulation!.subjects[witness.id].memories.some(
+        (m) => m.type === "expires",
+      ),
+    ).toBe(false);
+  },
+);
 it("undo restores episodes, RNG and ambient cooldowns for deterministic replay", () => {
   const s = v3Fixture([
     ["K", [7, 7]],

@@ -27,7 +27,7 @@ export function useComputerTurn(
       onMessage(result.message);
     };
     // After refusal, the same legal command completes with no search or roll.
-    if (game.pendingRefusal && game.schemaVersion !== 3) {
+    if (game.pendingRefusal && game.schemaVersion < 3) {
       const timer = setTimeout(
         () => commit({ ...game.pendingRefusal!, side: "black" }),
         150,

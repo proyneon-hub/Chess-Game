@@ -4,6 +4,7 @@ import type {
   MoveAttempt,
   PressureCause,
   PressureEpisode,
+  ResolvedOrder,
 } from "@/lib/game/types";
 import { rulesFor, clamp } from "./config";
 import { assessOrder, derivePoliticalFacts, type PoliticalFact } from "./facts";
@@ -19,11 +20,22 @@ import { progression } from "./pressure";
 import { capDeltas, remember } from "./subjects";
 import { relate, tickRelationships, riskFriction } from "./relationships";
 import { count, event } from "./events";
+import { deriveResolvedFacts } from "./factsV4";
+import {
+  emitObservation,
+  relationshipObservations,
+  type Observation,
+} from "./observations";
 export const cohesionRecovery = (value: number) =>
   Math.round(clamp((value - 65) / 35, -1, 1));
 export const prestigeConfidence = (value: number) =>
   Math.round(clamp((value - 50) / 25, -2, 2));
-export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
+export function leadershipV3(
+  before: GameState,
+  s: GameState,
+  m: MoveAttempt,
+  order?: ResolvedOrder,
+) {
   const rules = rulesFor(s),
     cfg = rules.progression!,
     sim = s.simulation!,
@@ -39,7 +51,20 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
     return;
   }
   const context = assessOrder(before, m, s.board),
-    facts = derivePoliticalFacts(before, s, m, context);
+    facts =
+      s.schemaVersion === 4 && order
+        ? deriveResolvedFacts(before, s, order)
+        : derivePoliticalFacts(before, s, m, context);
+  const observations: Observation[] = [];
+  const trust = (f: PoliticalFact) => {
+    if (s.schemaVersion === 4)
+      observations.push({
+        kind: "trust",
+        subjectId: f.subjectId,
+        square: f.square,
+        message: `The ${KIND_NAMES[sim.subjects[f.subjectId].currentKind]} at ${squareName(f.square)} settles after the change of orders.`,
+      });
+  };
   function harm(f: PoliticalFact, cause: PressureCause): PressureEpisode {
     const q = p.subjects[f.subjectId];
     let ep = f.episodeId
@@ -60,7 +85,8 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
         attackerIds: f.attackers ?? [],
         defenderIds: f.defenders ?? [],
         sourceActionRevision: s.revision,
-        closedOwnTurn: cause === "avoidable_exposure" ? null : own,
+        closedOwnTurn:
+          cause === "avoidable_exposure" && f.physical !== false ? null : own,
         rewarded: false,
         causes: [cause],
       };
@@ -74,6 +100,15 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
     return ep;
   }
   function ambient(f: PoliticalFact, text: string) {
+    if (s.schemaVersion === 4) {
+      observations.push({
+        kind: "neglect",
+        subjectId: f.subjectId,
+        square: f.square,
+        message: text,
+      });
+      return;
+    }
     const q = p.subjects[f.subjectId],
       side = p.sides[m.side];
     if (
@@ -92,7 +127,7 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
       case "exposure":
         harm(f, "avoidable_exposure");
         q.lastExposure = own;
-        sub.fear += cfg.exposureFear;
+        if (f.physical !== false) sub.fear += cfg.exposureFear;
         sub.resentment += cfg.exposureResentment;
         sub.loyalty += cfg.exposureLoyalty;
         count(s, "exposures");
@@ -137,11 +172,13 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
         k.legitimacy += 2;
         k.lastMercyRewardOwnTurn = own;
         count(s, "alternativeOrders");
+        trust(f);
         break;
       case "safe": {
         const ep = q.episodes.find((e) => e.id === f.episodeId)!;
         ep.closedOwnTurn = own;
         if (
+          f.playerCredit !== false &&
           !ep.rewarded &&
           own - ep.openedOwnTurn >= rules.cooldown &&
           own - sub.lastRescuedOwnTurn >= rules.cooldown
@@ -154,12 +191,30 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
           sub.lastRescuedOwnTurn = own;
           remember(s, sub, "rescued", ep.id);
           count(s, "rescues");
+          trust(f);
           if (sub.id !== moverId && sub.relationships[moverId]?.disputed)
             relate(s, sub, mover, 6, true);
         }
         break;
       }
       case "protection":
+        if (f.playerCredit === false) {
+          sub.fear += cfg.protectionFear;
+          q.lastProtection = own;
+          if (f.episodeId)
+            q.episodes.find((e) => e.id === f.episodeId)!.rewarded = true;
+          remember(s, sub, "protection_episode", f.key!, 1, cfg.graveWindow);
+          remember(s, sub, "protected_by", moverId);
+          relate(
+            s,
+            mover,
+            sub,
+            sub.relationships[moverId]?.disputed ? 6 : 4,
+            !!sub.relationships[moverId]?.disputed,
+          );
+          count(s, "autonomousProtections");
+          break;
+        }
         sub.fear += cfg.protectionFear;
         sub.resentment += cfg.protectionResentment;
         sub.loyalty += cfg.protectionLoyalty;
@@ -177,6 +232,7 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
           !!sub.relationships[moverId]?.disputed,
         );
         count(s, "protections");
+        trust(f);
         break;
       case "capture": {
         const victim = before.simulation!.subjects[f.capturedId!],
@@ -219,6 +275,7 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
             count(s, "blamedLoss");
           }
         }
+        if (s.schemaVersion === 4) p.subjects[victim.id].hazard = null;
         for (const ep of p.subjects[victim.id].episodes)
           if (ep.closedOwnTurn === null) ep.closedOwnTurn = victimOwn;
         if (context.capturedValue > context.risk) {
@@ -263,7 +320,12 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
   if (mover.currentKind !== "k") {
     if (
       context.risk >= 100 &&
-      !facts.some((f) => f.subjectId === moverId && f.kind === "exposure")
+      !facts.some(
+        (f) =>
+          f.subjectId === moverId &&
+          f.kind === "exposure" &&
+          f.physical !== false,
+      )
     )
       mover.fear += 2;
     mover.fatigue += mover.lastMovedOwnTurn === own - 1 ? 4 : 1;
@@ -285,11 +347,35 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
       const i = q.episodes.findIndex((e) => e.closedOwnTurn !== null);
       q.episodes.splice(i < 0 ? 0 : i, 1);
     }
-    if (sub.status !== "active" || sub.currentKind === "k") continue;
-    const sq = pos[sub.id],
-      calm =
-        !attackers(map, sq, opposite(m.side)).length &&
-        attackers(map, sq, m.side).length > 0;
+    if (sub.status !== "active" || sub.currentKind === "k") {
+      if (s.schemaVersion === 4) q.hazard = null;
+      continue;
+    }
+    const sq = pos[sub.id];
+    if (s.schemaVersion === 4) {
+      const danger = exchangeLoss(s.board, sq, m.side, map) >= 100;
+      if (!danger) q.hazard = null;
+      if (sub.id === moverId && order && order.outcome !== "obeyed") {
+        if (
+          danger &&
+          !facts.some((f) => f.subjectId === moverId && f.kind === "exposure")
+        )
+          q.hazard = {
+            square: [...sq],
+            openedOwnTurn: own,
+            sourceActionRevision: s.revision,
+          };
+        if (!danger)
+          for (const ep of q.episodes)
+            if (ep.closedOwnTurn === null) {
+              ep.closedOwnTurn = own;
+              ep.rewarded = true;
+            }
+      }
+    }
+    const calm =
+      !attackers(map, sq, opposite(m.side)).length &&
+      attackers(map, sq, m.side).length > 0;
     if (calm) {
       sub.fear -=
         rules.recoveryFear +
@@ -308,4 +394,9 @@ export function leadershipV3(before: GameState, s: GameState, m: MoveAttempt) {
   riskFriction(s, m.side);
   tickRelationships(s, m.side);
   capDeltas(before, s);
+  if (s.schemaVersion === 4)
+    emitObservation(s, m.side, [
+      ...observations,
+      ...relationshipObservations(before, s, m.side),
+    ]);
 }

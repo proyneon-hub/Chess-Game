@@ -1,0 +1,1335 @@
+{
+  "measuredGames": 10604,
+  "checks": [
+    {
+      "name": "frozen config unchanged",
+      "passed": true,
+      "actual": "2026-09-09.1",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: hooks/useComputerTurn.ts",
+      "passed": true,
+      "actual": "aed131cf40272d17597141e85a7ef234a10cfbd480be2056d3abfbec8c3dc50a",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: hooks/useLocalGame.ts",
+      "passed": true,
+      "actual": "131a6d47cec2174dec4d65424754beca3c4b3365afe3e8a08307c5102984aa82",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: hooks/useOnlineMatch.ts",
+      "passed": true,
+      "actual": "6263d08e78877f4d9016facb85f54defd41956e4f0de4915faaba2dd35fb34f4",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai.ts",
+      "passed": true,
+      "actual": "a78aa8ec34fa03dbd09a5b19566f48fa96e39e6e2c378bc3d39c549d458bfada",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai/leadershipView.ts",
+      "passed": true,
+      "actual": "26b4e5a28afa085dbc226473647dfd3e4c8e2cb1bf278450591ca41dd8341494",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai/politicalEvaluation.ts",
+      "passed": true,
+      "actual": "df04a2ad69a17c5ac618037ff690bae6d6fa1acf7347f80a8203610e6ad5c231",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai/restraint.ts",
+      "passed": true,
+      "actual": "d1fe5324fab5e0547be41d3ae466369b3e782ceefbe5d8624dbadb39d616459d",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai/search.ts",
+      "passed": true,
+      "actual": "fc3a40fdd581e0f05091a66f2e0e0ca2d0e1ea3f360beb3a0670e85746dd1abb",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/ai/worker.ts",
+      "passed": true,
+      "actual": "1ad80c27e711fcc7b4686ff2c07b9a85bf525814d5120d717f93d928d1fd8e7b",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/chess.ts",
+      "passed": true,
+      "actual": "aee7123258058cce03b94ae6bd43ebcd58d8246c291b0546b7f13d252aea6fbc",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/chessRules.ts",
+      "passed": true,
+      "actual": "3b7955fa3da4649934df42c9fd7edc84d41d781fdb0a5f65d847c547cf96d521",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/db.ts",
+      "passed": true,
+      "actual": "3d3229c19f52379d274367577158b3ff32c5743a00eac0f3f201f103436c6b12",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game.ts",
+      "passed": true,
+      "actual": "c702828f927606b3bd356173988353be73a0bbb13a2f20b06cf9ec24e9f1a2c8",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/migrate.ts",
+      "passed": true,
+      "actual": "c40f3cd2676554196c72bb709cbfebf454d4e9835a1f4cf103a2829214372dc8",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/publicState.ts",
+      "passed": true,
+      "actual": "492d83208147d35c139db60816d0b965afba41cf7ed67d07b0f5b75d90fce7a1",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/types.ts",
+      "passed": true,
+      "actual": "89c86d2f53b9e870ea21f5e0df40c005ba812bbad7435a314ff20a0b3902df27",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/undo.ts",
+      "passed": true,
+      "actual": "a20e6dc3cdc7c6174be96757f801b61f01749927464a4799de87316fba901457",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/validateProgression.ts",
+      "passed": true,
+      "actual": "c775d21a9980f65cbae3e892709daeac2518a4b18343f93d3708f0c4fd46ecf6",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/game/validation.ts",
+      "passed": true,
+      "actual": "84403219d2064084cc5c5e1ef90ef3a47726f2b5113b947fc4fc6dcde349acbc",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/agency.ts",
+      "passed": true,
+      "actual": "bb8e814fb042ccfbbde91f43879240acda909eaca1ad58b32f7763c7ae41c910",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/config.ts",
+      "passed": true,
+      "actual": "8964f80e11fec3cf8d9aaa4c1ff8e71b6c65e771f28810361cb32a3c78177d0c",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/conspiracy.ts",
+      "passed": true,
+      "actual": "8b6f459d8bc07b6ea1a38aa4fae92587623157400480c1a461e7fdf47ad79062",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/context.ts",
+      "passed": true,
+      "actual": "db200cd8bc02cb53aada5dd7e3bbc4c2d53b4a37ecd58cd21b2c8c608e5f3b93",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/courtEligibility.ts",
+      "passed": true,
+      "actual": "dbd5bf1699c8b836ade4e699cc7c1b237189fd8328fcfec5d6fe47e25300fb22",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/events.ts",
+      "passed": true,
+      "actual": "947cd9c6294d841be190874e263247125c1802d063882e9241a0345eac010590",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/facts.ts",
+      "passed": true,
+      "actual": "6ce0cb50165c4784cc7ee592397b0e9cd0c9c3325303e3895bc7a63cd0f12342",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/factsV4.ts",
+      "passed": true,
+      "actual": "adf463a174857b0c8a98d30768516037f59d77501e2d35373d037dd1d9280364",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/forecast.ts",
+      "passed": true,
+      "actual": "b051329c7e98425f7f62931f7b3444fae071aff7bb49c9284f942a75987b8f58",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/initialize.ts",
+      "passed": true,
+      "actual": "8f8273c693438d66c2f3f4c80803afa1b9c9cb21e3b9a79157ff53274b8b5a24",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/leadership.ts",
+      "passed": true,
+      "actual": "d886ab084b440b4bc55ee8c1b7d12fb64918a358e87ce11717f303358c76bacc",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/leadershipV3.ts",
+      "passed": true,
+      "actual": "35298c6d90732c32d0a47b46fc5e88f32185629d40111a696f6b74a1ddc319c7",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/observations.ts",
+      "passed": true,
+      "actual": "0a6575efccc15cd5d097c607de3929701a300ad99c2b75941f486b107210ede0",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/pressure.ts",
+      "passed": true,
+      "actual": "09d256c3ba5ca081b152802ae68130bfe30aa1311005f801868fa70d3f4770c4",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/relationships.ts",
+      "passed": true,
+      "actual": "16371da478da668fbe47e2e17109d7cb7f89358c77445a3c965a86a369c4c713",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/rng.ts",
+      "passed": true,
+      "actual": "d416c32fcbe587e5380b24b8e5dfba96523132ee04e350f3d17bd9999254a056",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpg/subjects.ts",
+      "passed": true,
+      "actual": "7a927b686ea871666eb357e4ab7454cd4301cf7e968cf3997850f46e828780f9",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/rpgChess.ts",
+      "passed": true,
+      "actual": "bc53554209cbecb3d4b9d00d80655946a88ccad3ac195b3c396a269607ad48d9",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/serverHttp.ts",
+      "passed": true,
+      "actual": "a1e98bcf7012a6838949da0c0e3aa9208487b839f05522b8d03576970dd1c1f2",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/serverMatches.ts",
+      "passed": true,
+      "actual": "b756d8a5a3c884b37c26113648b27a1d04b9c48887984be78ab1d14f060c9e2a",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: lib/session.ts",
+      "passed": true,
+      "actual": "fe84434bf62126da45b94b9d32af8bb6fe8736bce1881ff0da784fb8a2f892d8",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: scripts/board-policies.ts",
+      "passed": true,
+      "actual": "1d911f585c4087a2fef5580047c992d2fedc5c1233b164d3a75306e7aaca5a38",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: scripts/political-diagnostics.ts",
+      "passed": true,
+      "actual": "c6f83de441f70b82dfe64f538c2254eb9b4b8fef159381e991bb1c74c1fb0c32",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: scripts/progression-policies.ts",
+      "passed": true,
+      "actual": "6b32775869ff9aab1cb15090d51193968feb3aa706aca2195642f3c70cd4a452",
+      "category": "correctness"
+    },
+    {
+      "name": "frozen source: scripts/simulate-balance.ts",
+      "passed": true,
+      "actual": "8c0d79308e372a12abb86946b6e578ec4bbf350b0327de263973728927c0e689",
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-mistreatment: zero measured invariants",
+      "passed": false,
+      "actual": 1,
+      "category": "superseded-measurement"
+    },
+    {
+      "name": "board-2026-09-09.1-board-mistreatment: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 122000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-mistreatment: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 120000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-protective: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-protective: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 121000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-2026-09-09.1-board-protective: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-mistreatment-corrected: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "board-mistreatment-corrected: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 122000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-mistreatment-corrected: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-opening-probe-initial: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "board-opening-probe-initial: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 2,
+        "seedStart": 122000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "board-opening-probe-initial: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 200000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 210000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "natural-replay-110456: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "natural-replay-110456: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 2,
+        "seedStart": 110456,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "natural-replay-110456: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "review-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "review-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 100,
+        "seedStart": 92000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "review-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "review-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "review-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 100,
+        "seedStart": 91000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "review-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.2-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.3-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.4-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.5-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.6-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 200,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 400,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "screen-2026-09-09.7-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v3-development-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-ordinary: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-ordinary: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 100000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-ordinary: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-pressure: zero measured invariants",
+      "passed": true,
+      "actual": 0,
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-pressure: complete paired cohort",
+      "passed": true,
+      "actual": {
+        "games": 1000,
+        "seedStart": 110000,
+        "cap": 240
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-pressure: bounded storage",
+      "passed": true,
+      "actual": {
+        "episodes": 6,
+        "memories": 12,
+        "relationships": 4
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "opening classifier correction preserves every board-policy game outcome",
+      "passed": true,
+      "actual": {
+        "originalOpeningAnomalies": 1,
+        "correctedOpeningAnomalies": 0
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-ordinary: selected rules and cohort",
+      "passed": true,
+      "actual": {
+        "config": "2026-09-09.1",
+        "games": 1000
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-ordinary: refusal .5–2%",
+      "passed": true,
+      "actual": [
+        960,
+        91009
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-ordinary: calm refusal <=.8%",
+      "passed": true,
+      "actual": [
+        285,
+        68179
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-ordinary: discovery 25–60% among games reaching 40",
+      "passed": true,
+      "actual": [
+        533,
+        958
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-ordinary: retreat <=.5%",
+      "passed": true,
+      "actual": [
+        0,
+        91009
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-ordinary: regicide <=1%",
+      "passed": true,
+      "actual": [
+        0,
+        1000
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-ordinary: resolver p95 <=5ms",
+      "passed": true,
+      "actual": 1.8295999999972992,
+      "category": "ordinary"
+    },
+    {
+      "name": "v4-development-pressure: selected rules and cohort",
+      "passed": true,
+      "actual": {
+        "config": "2026-09-09.1",
+        "games": 1000
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "v4-development-pressure: court eligibility 5–20%",
+      "passed": true,
+      "actual": [
+        176,
+        1000
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: multiple dispute seeds",
+      "passed": true,
+      "actual": 47,
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: multiple plot seeds",
+      "passed": true,
+      "actual": 13,
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: natural disputeRelevantCommands in >1 seed",
+      "passed": true,
+      "actual": [
+        110001,
+        110026,
+        110036,
+        110056,
+        110061,
+        110094,
+        110111,
+        110183,
+        110223,
+        110225,
+        110235,
+        110237,
+        110280,
+        110296,
+        110297,
+        110322,
+        110339,
+        110364,
+        110428,
+        110430,
+        110438,
+        110451,
+        110469
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        110456
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: all observed attempts previously warned",
+      "passed": true,
+      "actual": {
+        "attempts": 1
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: selected rules and cohort",
+      "passed": true,
+      "actual": {
+        "config": "2026-09-09.1",
+        "games": 1000
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: independent declared seeds",
+      "passed": true,
+      "actual": 200000,
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-ordinary: refusal .5–2%",
+      "passed": true,
+      "actual": [
+        969,
+        93126
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-ordinary: calm refusal <=.8%",
+      "passed": true,
+      "actual": [
+        280,
+        69828
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-ordinary: discovery 25–60% among games reaching 40",
+      "passed": true,
+      "actual": [
+        555,
+        967
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-ordinary: retreat <=.5%",
+      "passed": true,
+      "actual": [
+        0,
+        93126
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-ordinary: regicide <=1%",
+      "passed": true,
+      "actual": [
+        0,
+        1000
+      ],
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-ordinary: resolver p95 <=5ms",
+      "passed": true,
+      "actual": 2.700299999996787,
+      "category": "ordinary"
+    },
+    {
+      "name": "holdout-pressure: selected rules and cohort",
+      "passed": true,
+      "actual": {
+        "config": "2026-09-09.1",
+        "games": 1000
+      },
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-pressure: independent declared seeds",
+      "passed": true,
+      "actual": 210000,
+      "category": "correctness"
+    },
+    {
+      "name": "holdout-pressure: court eligibility 5–20%",
+      "passed": true,
+      "actual": [
+        147,
+        1000
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: multiple dispute seeds",
+      "passed": true,
+      "actual": 25,
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: multiple plot seeds",
+      "passed": false,
+      "actual": 1,
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural disputeRelevantCommands in >1 seed",
+      "passed": true,
+      "actual": [
+        210000,
+        210018,
+        210033,
+        210051,
+        210212,
+        210252,
+        210296,
+        210298,
+        210308,
+        210370,
+        210376,
+        210409,
+        210457
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        210397
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: all observed attempts previously warned",
+      "passed": true,
+      "actual": {
+        "attempts": 1
+      },
+      "category": "correctness"
+    }
+  ],
+  "passed": 150,
+  "failed": [
+    {
+      "name": "board-2026-09-09.1-board-mistreatment: zero measured invariants",
+      "passed": false,
+      "actual": 1,
+      "category": "superseded-measurement"
+    },
+    {
+      "name": "v4-development-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        110456
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: multiple plot seeds",
+      "passed": false,
+      "actual": 1,
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        210397
+      ],
+      "category": "progression"
+    }
+  ],
+  "unresolved": [
+    {
+      "name": "v4-development-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "v4-development-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        110456
+      ],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: multiple plot seeds",
+      "passed": false,
+      "actual": 1,
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural retreats in >1 seed",
+      "passed": false,
+      "actual": [],
+      "category": "progression"
+    },
+    {
+      "name": "holdout-pressure: natural armedAttempts in >1 seed",
+      "passed": false,
+      "actual": [
+        210397
+      ],
+      "category": "progression"
+    }
+  ],
+  "supersededMeasurementFailures": [
+    {
+      "name": "board-2026-09-09.1-board-mistreatment: zero measured invariants",
+      "passed": false,
+      "actual": 1,
+      "category": "superseded-measurement"
+    }
+  ],
+  "humanPlaytest": "pending",
+  "deployment": "not performed"
+}

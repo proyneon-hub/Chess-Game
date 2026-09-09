@@ -120,7 +120,12 @@ export type ProgressionConfig = {
 export type RuleConfig = {
   readonly [K in keyof typeof ORIGINAL]: K extends "version" ? string : number;
 } & {
-  readonly generation: 2 | 3;
+  readonly generation: 2 | 3 | 4;
+  readonly responsibility?: {
+    readonly rivalryWindow: number;
+    readonly preferNearbyLeader: boolean;
+    readonly armedDeferrals: number;
+  };
   readonly progression?: ProgressionConfig;
 };
 export const CANDIDATE_1: RuleConfig = Object.freeze({
@@ -197,7 +202,7 @@ export const CANDIDATE_5: RuleConfig = Object.freeze({
     recoveryResentment: 15,
   }),
 });
-export const CONFIG: RuleConfig = Object.freeze({
+export const V3_CONFIG: RuleConfig = Object.freeze({
   ...CANDIDATE_5,
   version: "2026-09-08.6",
   progression: Object.freeze({
@@ -211,6 +216,70 @@ export const CONFIG: RuleConfig = Object.freeze({
     recoveryResentment: 8,
   }),
 });
+export const CONFIG: RuleConfig = Object.freeze({
+  ...V3_CONFIG,
+  version: "2026-09-09.1",
+  generation: 4,
+  responsibility: Object.freeze({
+    rivalryWindow: 8,
+    preferNearbyLeader: false,
+    armedDeferrals: 2,
+  }),
+});
+// Screened individually first on fixed development subsets; never mutate a
+// tested entry. The default remains the corrected baseline until selection.
+export const READABLE_CANDIDATES: readonly RuleConfig[] = Object.freeze([
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.2",
+    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+  }),
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.3",
+    responsibility: Object.freeze({
+      ...CONFIG.responsibility!,
+      rivalryWindow: 12,
+    }),
+  }),
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.4",
+    responsibility: Object.freeze({
+      ...CONFIG.responsibility!,
+      preferNearbyLeader: true,
+    }),
+  }),
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.5",
+    responsibility: Object.freeze({
+      ...CONFIG.responsibility!,
+      armedDeferrals: 4,
+    }),
+  }),
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.6",
+    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+    responsibility: Object.freeze({
+      ...CONFIG.responsibility!,
+      preferNearbyLeader: true,
+      armedDeferrals: 4,
+    }),
+  }),
+  Object.freeze({
+    ...CONFIG,
+    version: "2026-09-09.7",
+    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+    responsibility: Object.freeze({
+      ...CONFIG.responsibility!,
+      rivalryWindow: 12,
+      preferNearbyLeader: true,
+      armedDeferrals: 4,
+    }),
+  }),
+]);
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -220,7 +289,9 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [CANDIDATE_3.version]: CANDIDATE_3,
   [CANDIDATE_4.version]: CANDIDATE_4,
   [CANDIDATE_5.version]: CANDIDATE_5,
+  [V3_CONFIG.version]: V3_CONFIG,
   [CONFIG.version]: CONFIG,
+  ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
 export const configFor = (version: string) =>
   Object.hasOwn(CONFIGS, version) ? CONFIGS[version] : undefined;

@@ -1,0 +1,370 @@
+{
+  "docs/readable-politics/acceptance.json": {
+    "sha256": "da1c1b46481e9bb9cb4bbd1abcb639956c170d5740e748e40745d66568229d9e",
+    "bytes": 33787
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-mistreatment/raw.json": {
+    "sha256": "2fd664e1c5c489474636c2e508e11d0bf7d19b95c836caa804370a4986dd16fa",
+    "bytes": 381580
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-mistreatment/report.md": {
+    "sha256": "91ccd7414a29559e2ca29ddb31f8cf2f55d43cd7e6b0ee36570ff3b5693ee1ad",
+    "bytes": 442
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-mistreatment/summary.json": {
+    "sha256": "c5ce5ea150eec675043f88d172ccde9e01c25974d6fef192d1b6ff303256bb54",
+    "bytes": 6866
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-ordinary/raw.json": {
+    "sha256": "df5c654e6abeb6d7a023e365c1a146a09325919b11e8444f051ffae9fa763ff3",
+    "bytes": 363471
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-ordinary/report.md": {
+    "sha256": "980314323012754c4db7b7623cd798522d324e99dc80cb29e54d39b8dbc2c234",
+    "bytes": 438
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-ordinary/summary.json": {
+    "sha256": "8bfc667d8fce3450a0f84623e30b4b4464513faee83b159c33b466b8228008fa",
+    "bytes": 6821
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-protective/raw.json": {
+    "sha256": "0bf3ace7c4ffd054c13d3e1c4ddfd1cf12829ffa256c87e79557232863e940f4",
+    "bytes": 374420
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-protective/report.md": {
+    "sha256": "6f3cfa89f1b884e1cd39546daa3b2d5cafd19a65725af972afb29274822fb62f",
+    "bytes": 440
+  },
+  "docs/readable-politics/board-2026-09-09.1-board-protective/summary.json": {
+    "sha256": "6767ca9edef54b226760d8d26ef19b43eb751ece2497f0ad9d7a1c9c86902f0d",
+    "bytes": 6816
+  },
+  "docs/readable-politics/board-mistreatment-corrected/raw.json": {
+    "sha256": "d4aaecc405080b298bb786f34d112eb644fdebf2d9530be3df851a5b2bc69120",
+    "bytes": 406061
+  },
+  "docs/readable-politics/board-mistreatment-corrected/report.md": {
+    "sha256": "91ccd7414a29559e2ca29ddb31f8cf2f55d43cd7e6b0ee36570ff3b5693ee1ad",
+    "bytes": 442
+  },
+  "docs/readable-politics/board-mistreatment-corrected/summary.json": {
+    "sha256": "cbf47779c15870e6ee2e12db35fe52a958745a99ab9f1b3c4b09fd3c35471735",
+    "bytes": 6872
+  },
+  "docs/readable-politics/board-opening-probe-initial/raw.json": {
+    "sha256": "ba8b95f525deb91c0a260925f9262a61010198eadda542f5177f68bdd20abf36",
+    "bytes": 61475
+  },
+  "docs/readable-politics/board-opening-probe-initial/report.md": {
+    "sha256": "e99a1ae944d5cb0e6cc8f9aa9531d478e7ae8dc50059463c6377b30d0fc30d6a",
+    "bytes": 429
+  },
+  "docs/readable-politics/board-opening-probe-initial/summary.json": {
+    "sha256": "2e08b9ec62ddd0bf1a9e749a9c6143cccd5608a6079a8a4dc33fa31cb7310a77",
+    "bytes": 6416
+  },
+  "docs/readable-politics/changed-files.md": {
+    "sha256": "671b8833111f5c94c42b89095f16e78a675dacebdd4a4063d2bb54c9890af6f0",
+    "bytes": 3095
+  },
+  "docs/readable-politics/freeze.json": {
+    "sha256": "f692d950b71fde66ac0d8a49b9a655cb62e3257eb4735d682f8e08be2e57193a",
+    "bytes": 7811
+  },
+  "docs/readable-politics/holdout-ordinary/raw.json": {
+    "sha256": "8e5b4508ffc51423c28428becadb5e6b2ac415c0e0a9ae521af96961d7fec97a",
+    "bytes": 1963466
+  },
+  "docs/readable-politics/holdout-ordinary/report.md": {
+    "sha256": "ec5b4d9538ad7ca2ba7ca3761a9015c29d0771401845138c643d264ea11b3558",
+    "bytes": 437
+  },
+  "docs/readable-politics/holdout-ordinary/summary.json": {
+    "sha256": "17078ec6ab702cb2a2ec779ca0eb457f39f5ad27ae930db7ff9c98d2e64d1c36",
+    "bytes": 8049
+  },
+  "docs/readable-politics/holdout-pressure/raw.json": {
+    "sha256": "457e966b8b4326ea924e2ed180b623b3c2c715132390376453381a063ef74134",
+    "bytes": 2115337
+  },
+  "docs/readable-politics/holdout-pressure/report.md": {
+    "sha256": "5a075aba786d45cc66f72550519d87fe8939ac97450e510ff348d8d947542628",
+    "bytes": 439
+  },
+  "docs/readable-politics/holdout-pressure/summary.json": {
+    "sha256": "b5e590a93f9dde6ba3a39388ac8ac15d752461195f0960982014911e4d192e95",
+    "bytes": 8444
+  },
+  "docs/readable-politics/implementation.md": {
+    "sha256": "7cf6f3eb32c9494e72e28310ab476d55931e54babbd53d568b3ab8a984e67785",
+    "bytes": 4157
+  },
+  "docs/readable-politics/measurement-correction.json": {
+    "sha256": "2b857ba516411af7c1aec01b03f38fa0cad61006ac9ea989a3e31dd87a803547",
+    "bytes": 1249
+  },
+  "docs/readable-politics/natural-replay-110456/raw.json": {
+    "sha256": "caf8cf82a2ee0093010efc01c77301ead715780338fb0a54638f7ddbba2cd361",
+    "bytes": 118083
+  },
+  "docs/readable-politics/natural-replay-110456/report.md": {
+    "sha256": "118193ef29514d01e319f2c31d0ee677417655f3380d4d88b38f8f691bcbc040",
+    "bytes": 420
+  },
+  "docs/readable-politics/natural-replay-110456/summary.json": {
+    "sha256": "2d6c740045c0e76a04e230d13a3804b4231b68e09b13006ad246119c593fa2ff",
+    "bytes": 7473
+  },
+  "docs/readable-politics/replay-and-playtest.md": {
+    "sha256": "02dadba626b3bee14516421b82dd89ba2b05ae6839a54224b7798e391a23e05e",
+    "bytes": 3870
+  },
+  "docs/readable-politics/results.md": {
+    "sha256": "2ab9994597dcb37bf1f63ba135b0d5958c40d616d421bd340ea9480047e7d818",
+    "bytes": 7931
+  },
+  "docs/readable-politics/review-ordinary/raw.json": {
+    "sha256": "c4b91408ad42a3c91fd5b852c18d2abee84c1c8a114300aad84aac588554564f",
+    "bytes": 289843
+  },
+  "docs/readable-politics/review-ordinary/report.md": {
+    "sha256": "75b84a3a7bd4e995bdbf3f241bb12c8c709def9b95faa4375554172c4977cf8b",
+    "bytes": 429
+  },
+  "docs/readable-politics/review-ordinary/summary.json": {
+    "sha256": "e047b30ab4e41eff0e9fca362c58693d9e6f271312d16292600846d22f81c90c",
+    "bytes": 6697
+  },
+  "docs/readable-politics/review-pressure/raw.json": {
+    "sha256": "92d99ee0a4d729f693624685efbf58a0630cbd641945caea531d055a182c5ff9",
+    "bytes": 255249
+  },
+  "docs/readable-politics/review-pressure/report.md": {
+    "sha256": "dd51910b951bb06c2cad386487526283b1fbb8557081723869eab865944bbc86",
+    "bytes": 429
+  },
+  "docs/readable-politics/review-pressure/summary.json": {
+    "sha256": "f6728dd5a25e10fb99bb010cd09812b79be05d42f5c6647a366f37442fc626fd",
+    "bytes": 7000
+  },
+  "docs/readable-politics/screen-2026-09-09.2-ordinary/raw.json": {
+    "sha256": "5152502389989493be5b90e94bd3808f946211e3d5131f8928e7dea5990291e0",
+    "bytes": 492706
+  },
+  "docs/readable-politics/screen-2026-09-09.2-ordinary/report.md": {
+    "sha256": "9dd60096cef8a8afc06ce8ee79dc033aa4631f43fd81f7786ec5bf83b8321a71",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.2-ordinary/summary.json": {
+    "sha256": "77ea8987b3ac3320fb4e29193f396d8111601812b02c05d7fa3bb6d740d7dcaf",
+    "bytes": 7387
+  },
+  "docs/readable-politics/screen-2026-09-09.2-pressure/raw.json": {
+    "sha256": "ddc265e07327b46241c41b2b61aeca70c3ec90318bce8b4994eac40470f1a334",
+    "bytes": 940876
+  },
+  "docs/readable-politics/screen-2026-09-09.2-pressure/report.md": {
+    "sha256": "239f8c1f9a2c15bacd7db967979ccfa8f25476e0ed26795e6d296fe4419d3708",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.2-pressure/summary.json": {
+    "sha256": "42d1a5f83684171e8a71023cfdb2f1df5f1741c3ab42071dfded9486a6164c4b",
+    "bytes": 8238
+  },
+  "docs/readable-politics/screen-2026-09-09.3-ordinary/raw.json": {
+    "sha256": "2ac24a810145994b2e438ab17d86614284d06d7d13bcef67250c852941c5a84c",
+    "bytes": 492712
+  },
+  "docs/readable-politics/screen-2026-09-09.3-ordinary/report.md": {
+    "sha256": "67423288e03f1e1f41a45724d9cddff0af78357f1444d0ba12306d541548de34",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.3-ordinary/summary.json": {
+    "sha256": "398e860db24cbad83f555988bcd1a743448e9bc619057a141eb9f26cbdc18216",
+    "bytes": 7393
+  },
+  "docs/readable-politics/screen-2026-09-09.3-pressure/raw.json": {
+    "sha256": "0d69b40055c25a3c3572e6180013bef9ab72d364a9bb072457c2e36308c3c6dc",
+    "bytes": 951833
+  },
+  "docs/readable-politics/screen-2026-09-09.3-pressure/report.md": {
+    "sha256": "1dccba4e270884cabaa6a051abce2b6b230490225478ad1402a3eab558abb7b9",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.3-pressure/summary.json": {
+    "sha256": "6ecb532e95d38d791a337a07131730616e43bc54574192583aa00218ea3083f0",
+    "bytes": 8259
+  },
+  "docs/readable-politics/screen-2026-09-09.4-ordinary/raw.json": {
+    "sha256": "f4a7cdd87101a322e110bbcb9bffcc4d9cb1826ec440bcfd2e4ad26fff1ab227",
+    "bytes": 492705
+  },
+  "docs/readable-politics/screen-2026-09-09.4-ordinary/report.md": {
+    "sha256": "8c2f97e1f214e16bac41fd59da6a83fee9fca20b6169a9a1fe6bc467b29bdeef",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.4-ordinary/summary.json": {
+    "sha256": "56585b823766e1dbd3aa764b4e0562fe41293d4610f477115d51e0df2a6ac71d",
+    "bytes": 7386
+  },
+  "docs/readable-politics/screen-2026-09-09.4-pressure/raw.json": {
+    "sha256": "86eddb9c8fafd68d50083bbec434955a6df2e80fab5d805b16733eba15783486",
+    "bytes": 940719
+  },
+  "docs/readable-politics/screen-2026-09-09.4-pressure/report.md": {
+    "sha256": "deac90e1a9f1d1efe41e31c214e1ff1356763b03876222b06cf3605b13b91e90",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.4-pressure/summary.json": {
+    "sha256": "5f92078c76358461579cccd13c1360f36ba7abd8669ff441c4777740c3ec7039",
+    "bytes": 8231
+  },
+  "docs/readable-politics/screen-2026-09-09.5-ordinary/raw.json": {
+    "sha256": "05a412fdb6cf309235405716a7dc15eec4925f680270d4af0d00c4fad34bc708",
+    "bytes": 492707
+  },
+  "docs/readable-politics/screen-2026-09-09.5-ordinary/report.md": {
+    "sha256": "a126f2a85b441df0b836b5cb309acdac97d541180b708aa34b6113504e5930bd",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.5-ordinary/summary.json": {
+    "sha256": "51bad024d4ffdfc55687989b051b6253f61b56a56bb4356e5f7d97c5230d2e47",
+    "bytes": 7388
+  },
+  "docs/readable-politics/screen-2026-09-09.5-pressure/raw.json": {
+    "sha256": "4291bffb27eb2759cdda9fffb987f07777dcc2ef5736d66d77bc3d49ad509d37",
+    "bytes": 940728
+  },
+  "docs/readable-politics/screen-2026-09-09.5-pressure/report.md": {
+    "sha256": "f0cd9de784e2363803f9d3d80d2b7886ad51863a94469a78b03418dbc1e240ad",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.5-pressure/summary.json": {
+    "sha256": "b68a9217fca53d59bcac045368aa59d8352ce0f7170fbf279b41dfb7c9c05bbc",
+    "bytes": 8240
+  },
+  "docs/readable-politics/screen-2026-09-09.6-ordinary/raw.json": {
+    "sha256": "505aeb0f06b179af07f8a90a3af713b23499c6833ea3234483de97010bfebb24",
+    "bytes": 492712
+  },
+  "docs/readable-politics/screen-2026-09-09.6-ordinary/report.md": {
+    "sha256": "6c3a9569a09dd7eadf7c2d2ef24f64ae502a926bb4cd268b765079dd37761600",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.6-ordinary/summary.json": {
+    "sha256": "25ecb3c7e017d94847440e9c13f2254f903c4c516b164f89a5c6373fb65f4374",
+    "bytes": 7393
+  },
+  "docs/readable-politics/screen-2026-09-09.6-pressure/raw.json": {
+    "sha256": "622267b641b23eccd1838cea237110b847f10cc8a160b6857060bac6e6155c41",
+    "bytes": 940868
+  },
+  "docs/readable-politics/screen-2026-09-09.6-pressure/report.md": {
+    "sha256": "d41eea44c1a1c639d88e3306ebd46aaeadad96126d001b7f5edac69b153840e4",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.6-pressure/summary.json": {
+    "sha256": "67d348802dd143a920255be578be725a8322af844a1f8493c05fde6936d3322d",
+    "bytes": 8230
+  },
+  "docs/readable-politics/screen-2026-09-09.7-ordinary/raw.json": {
+    "sha256": "60fce30d4b17168b90da6e4c558c2cccd5dfadd83bb5b8a7d4c0ebfe28374c1d",
+    "bytes": 492712
+  },
+  "docs/readable-politics/screen-2026-09-09.7-ordinary/report.md": {
+    "sha256": "4ce355be00b33db5f4c9c58f8cb5da1fe23f2001244fc6ef3d57f1252ec23592",
+    "bytes": 434
+  },
+  "docs/readable-politics/screen-2026-09-09.7-ordinary/summary.json": {
+    "sha256": "62228be1c323b641d8670ac4d382f041abfd27c1ecfe27cf95d5166df802776d",
+    "bytes": 7393
+  },
+  "docs/readable-politics/screen-2026-09-09.7-pressure/raw.json": {
+    "sha256": "1e067e9786af90815d81fa2070f2bf96daa260307b9054a8719e16e4400df7dc",
+    "bytes": 951970
+  },
+  "docs/readable-politics/screen-2026-09-09.7-pressure/report.md": {
+    "sha256": "d47b6434644d15af54f2727eaa85f3937214dd8db639ef285acbc7273ef8029f",
+    "bytes": 435
+  },
+  "docs/readable-politics/screen-2026-09-09.7-pressure/summary.json": {
+    "sha256": "4207d5ea18c61d1da9b9299ee6997b62ca603b41200547515e7248608e9bbe26",
+    "bytes": 8246
+  },
+  "docs/readable-politics/tuning-ledger.md": {
+    "sha256": "691f2ae0d29f9d91735e53a48a2e52cca2a6bed7afea0141fb8e5f12345054bf",
+    "bytes": 4960
+  },
+  "docs/readable-politics/v3-development-ordinary/raw.json": {
+    "sha256": "4f355374570b447ff9250a79acaf0e6799c2ee69b514134a20bbf8e8f801942d",
+    "bytes": 1838396
+  },
+  "docs/readable-politics/v3-development-ordinary/report.md": {
+    "sha256": "d8e66fed402e8eaf2d41e7b4f873a88b0eb58a5b8129e1302f8a56d5b3e6d0e8",
+    "bytes": 437
+  },
+  "docs/readable-politics/v3-development-ordinary/summary.json": {
+    "sha256": "d7efda27a15a55544b371e960f3eb3ae3d818241076b44fbbee91b90db71857b",
+    "bytes": 6897
+  },
+  "docs/readable-politics/v3-development-pressure/raw.json": {
+    "sha256": "ed1854561298bbd160d940f385404ace14d55f5cdb2dfa4c1f047c74bb88c4cf",
+    "bytes": 2194163
+  },
+  "docs/readable-politics/v3-development-pressure/report.md": {
+    "sha256": "3ca08a927b01985cfc5d82e2e85a1f6f09b0436d287d3d5c065d7eebb3222179",
+    "bytes": 439
+  },
+  "docs/readable-politics/v3-development-pressure/summary.json": {
+    "sha256": "83b326463a3508bddd95869ca9e77dc101709806a491112477a28c3be4da40e4",
+    "bytes": 7250
+  },
+  "docs/readable-politics/v4-development-ordinary/raw.json": {
+    "sha256": "18cb8b21ec5bf29f89b083fa22391a6987cf70166f9ced953343f6b852571180",
+    "bytes": 1951164
+  },
+  "docs/readable-politics/v4-development-ordinary/report.md": {
+    "sha256": "3ac8d6f174bd73a26adf12bba4f9eb5ffbe93aac93b083b2d0087a804bea43a1",
+    "bytes": 437
+  },
+  "docs/readable-politics/v4-development-ordinary/summary.json": {
+    "sha256": "9178fbbe282b00aec4e57e8f19e72d8e63f85b526768f4369a160828dc3ed9ce",
+    "bytes": 7628
+  },
+  "docs/readable-politics/v4-development-pressure/raw.json": {
+    "sha256": "741a51310a90807713116e5cd860cdb2cbda171e41efdfb2bf4d59cff9f9187e",
+    "bytes": 2335979
+  },
+  "docs/readable-politics/v4-development-pressure/report.md": {
+    "sha256": "d8115a2300e97f08b763ef32b8f6785ecd45fd11702b0610e69cfcf1ef51303d",
+    "bytes": 439
+  },
+  "docs/readable-politics/v4-development-pressure/summary.json": {
+    "sha256": "788c36387ac3fe563f326f60252d6d62186bf4b3a0b690d66dff7dff2d40c33a",
+    "bytes": 8729
+  },
+  "docs/readable-politics/verification-browser.json": {
+    "sha256": "04f0d733bb76808fbaf3fd848b02459b025360d0fea292c6fce4c30328dc8374",
+    "bytes": 263
+  },
+  "docs/readable-politics/verification-complete.json": {
+    "sha256": "f7a61461ba3517ca790c8b33730a3f69514b563bd67b204201e4c30d79fed6d2",
+    "bytes": 875
+  },
+  "docs/readable-politics/verification-final.json": {
+    "sha256": "a4fa4c9025117c0d3336030493b510f4dc45029cb2104f7f70412a8f38cfffea",
+    "bytes": 671
+  },
+  "docs/readable-politics/verification-release.json": {
+    "sha256": "d82b32544ccae4007242261cef814be359e644a16430fa7c643ea0ae65fe6267",
+    "bytes": 726
+  },
+  "docs/readable-politics-checklist.md": {
+    "sha256": "426bdbd1781a8928bf2fa7e7c20b55be962f60736250bcdddb8bed12c1590ec1",
+    "bytes": 1292
+  },
+  "tests/goldens/pre-v4.json": {
+    "sha256": "601c3f2514efcf64c580e42b0af9f7e185cecf54e4af0721a3d2cc2a023b0eea",
+    "bytes": 961273
+  }
+}

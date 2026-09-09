@@ -4,7 +4,7 @@ import type {
   PressureEpisode,
 } from "@/lib/game/types";
 export function progression(s: GameState): ProgressionState {
-  if (s.simulation?.schemaVersion !== 3)
+  if (!s.simulation || s.simulation.schemaVersion === 2)
     throw new Error("V3 pressure state required.");
   return s.simulation.progression;
 }

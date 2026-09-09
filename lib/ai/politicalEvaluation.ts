@@ -41,7 +41,7 @@ export function ownPolitics(s: GameState, side: Side): OwnPolitics | null {
     ownPositions[sub.id] = positions[sub.id];
   }
   return {
-    ...(s.schemaVersion === 3 ? { view: leadershipView(s, side) } : {}),
+    ...(s.schemaVersion >= 3 ? { view: leadershipView(s, side) } : {}),
     side,
     kingdom: structuredClone(s.simulation.kingdoms[side]),
     subjects,

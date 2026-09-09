@@ -53,3 +53,28 @@ export function constructedV3Court() {
   s.revision = 10;
   return s;
 }
+
+export function v4Fixture(...args: Parameters<typeof v3Fixture>) {
+  const s = v3Fixture(...args);
+  s.schemaVersion = 4;
+  s.rulesetVersion = "hidden-kingdom-v4";
+  s.configVersion = "2026-09-09.1";
+  s.simulation = initializeSimulation(s.board, s.pieceIds, 42, s.configVersion);
+  s.simulation.turnContext.ply = s.ply;
+  return s;
+}
+export function constructedV4Court() {
+  const s = constructedV3Court();
+  s.schemaVersion = 4;
+  s.rulesetVersion = "hidden-kingdom-v4";
+  s.configVersion = "2026-09-09.1";
+  s.simulation = {
+    ...s.simulation!,
+    schemaVersion: 4,
+    rulesetVersion: "hidden-kingdom-v4",
+    configVersion: s.configVersion,
+    progression: progression(s),
+  };
+  for (const q of Object.values(progression(s).subjects)) q.hazard = null;
+  return s;
+}

@@ -77,6 +77,10 @@ export type PoliticalFact = {
   defenders?: string[];
   capturedId?: string;
   key?: string;
+  /** V4 only: whether the actual board supports a physical exposure. */
+  physical?: boolean;
+  /** V4 only: an autonomous benefit does not earn leadership credit. */
+  playerCredit?: boolean;
 };
 export function derivePoliticalFacts(
   before: GameState,

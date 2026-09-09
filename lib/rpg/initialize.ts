@@ -137,7 +137,7 @@ export function initializeSimulation(
     },
     privateEvents: [],
     counters: {},
-    ...(rules.generation === 3
+    ...(rules.generation >= 3
       ? {
           progression: {
             subjects: Object.fromEntries(
@@ -145,6 +145,7 @@ export function initializeSimulation(
                 id,
                 {
                   episodes: [],
+                  ...(rules.generation === 4 ? { hazard: null } : {}),
                   lastHarm: -100,
                   lastExposure: -100,
                   lastRepeated: -100,

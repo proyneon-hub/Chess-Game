@@ -4,7 +4,12 @@ import mongoose from "mongoose";
 import { boardFixture } from "../fixtures";
 import { lateCourt, courtTurn } from "../scenarios";
 import type { GameState } from "@/lib/game/types";
-import { constructedV3Court, v3Fixture } from "../progression-fixtures";
+import {
+  constructedV3Court,
+  v3Fixture,
+  constructedV4Court,
+  v4Fixture,
+} from "../progression-fixtures";
 import { submitMove } from "@/lib/game";
 import { scheduleCourt } from "@/lib/rpg/conspiracy";
 async function joined(page: Page) {
@@ -141,57 +146,59 @@ test("leaving during an in-flight poll cannot restore the old match", async ({
   await context.close();
 });
 
-test("two sessions reconnect to identical v3 public refusal and warning history", async ({
-  page,
-}) => {
-  const { id, context, guest } = await joined(page);
-  let s = v3Fixture([
-    ["K", [7, 7]],
-    ["k", [0, 7]],
-    ["Q", [4, 3]],
-    ["r", [0, 0]],
-  ]);
-  const refused = submitMove(
-    s,
-    { from: [4, 3], to: [4, 0], side: "white" },
-    { draw: () => 0 },
-  );
-  expect(refused.resolution).toBe("refused");
-  await fixture(id, refused.state);
-  await Promise.all([page.reload(), guest.reload()]);
-  for (const client of [page, guest])
-    await expect(
-      client.getByText(refused.message, { exact: true }).first(),
-    ).toBeVisible();
-  const whiteState = (
-    await (await page.request.get(`/api/matches/${id}`)).json()
-  ).state;
-  const blackState = (
-    await (await guest.request.get(`/api/matches/${id}`)).json()
-  ).state;
-  expect(whiteState).toEqual(blackState);
-  s = constructedV3Court();
-  for (let n = 0; n < 4; n++) {
-    s.ply += 2;
-    s.revision++;
-    s.simulation!.turnContext.ply = s.ply;
-    s.simulation!.kingdoms.white.ownTurnsCompleted++;
-    scheduleCourt(s, "white", () => 0, false);
-  }
-  expect(s.warning?.message).toContain("turning against");
-  await fixture(id, s);
-  await Promise.all([page.reload(), guest.reload()]);
-  for (const client of [page, guest])
-    await expect(
-      client.getByRole("status").filter({ hasText: "turning against" }),
-    ).toBeVisible();
-  const a = (await (await page.request.get(`/api/matches/${id}`)).json()).state;
-  const b = (await (await guest.request.get(`/api/matches/${id}`)).json())
-    .state;
-  expect(a.events).toEqual(b.events);
-  expect(a.events).toHaveLength(3);
-  expect(JSON.stringify(a)).not.toMatch(
-    /episodes|rngState|ringleader|accomplice|configVersion/,
-  );
-  await context.close();
-});
+for (const generation of [3, 4])
+  test(`two sessions reconnect to identical v${generation} public refusal and warning history`, async ({
+    page,
+  }) => {
+    const { id, context, guest } = await joined(page);
+    let s = (generation === 4 ? v4Fixture : v3Fixture)([
+      ["K", [7, 7]],
+      ["k", [0, 7]],
+      ["Q", [4, 3]],
+      ["r", [0, 0]],
+    ]);
+    const refused = submitMove(
+      s,
+      { from: [4, 3], to: [4, 0], side: "white" },
+      { draw: () => 0 },
+    );
+    expect(refused.resolution).toBe("refused");
+    await fixture(id, refused.state);
+    await Promise.all([page.reload(), guest.reload()]);
+    for (const client of [page, guest])
+      await expect(
+        client.getByText(refused.message, { exact: true }).first(),
+      ).toBeVisible();
+    const whiteState = (
+      await (await page.request.get(`/api/matches/${id}`)).json()
+    ).state;
+    const blackState = (
+      await (await guest.request.get(`/api/matches/${id}`)).json()
+    ).state;
+    expect(whiteState).toEqual(blackState);
+    s = generation === 4 ? constructedV4Court() : constructedV3Court();
+    for (let n = 0; n < 4; n++) {
+      s.ply += 2;
+      s.revision++;
+      s.simulation!.turnContext.ply = s.ply;
+      s.simulation!.kingdoms.white.ownTurnsCompleted++;
+      scheduleCourt(s, "white", () => 0, false);
+    }
+    expect(s.warning?.message).toContain("turning against");
+    await fixture(id, s);
+    await Promise.all([page.reload(), guest.reload()]);
+    for (const client of [page, guest])
+      await expect(
+        client.getByRole("status").filter({ hasText: "turning against" }),
+      ).toBeVisible();
+    const a = (await (await page.request.get(`/api/matches/${id}`)).json())
+      .state;
+    const b = (await (await guest.request.get(`/api/matches/${id}`)).json())
+      .state;
+    expect(a.events).toEqual(b.events);
+    expect(a.events).toHaveLength(3);
+    expect(JSON.stringify(a)).not.toMatch(
+      /episodes|rngState|ringleader|accomplice|configVersion/,
+    );
+    await context.close();
+  });

@@ -14,6 +14,16 @@ export type Personality =
 export type ResolutionKind = "executed" | "refused" | "autonomous" | "terminal";
 export type Intention = { from: Square; to: Square; promotion?: PromotionKind };
 export type MoveAttempt = Intention & { side: Side };
+export type ResolvedOrder = {
+  intended: MoveAttempt;
+  actual: MoveAttempt;
+  outcome: "obeyed" | "retreat" | "heroic";
+};
+export type AutonomousHazard = {
+  square: Square;
+  openedOwnTurn: number;
+  sourceActionRevision: number;
+};
 export type Action = MoveAttempt | { side: Side; type: "claim-draw" };
 export type SubjectMemory = {
   type: string;
@@ -115,6 +125,8 @@ export type PressureEpisode = {
 };
 export type SubjectPressure = {
   episodes: PressureEpisode[];
+  /** Required (nullable) only in schema 4; never part of player grievances. */
+  hazard?: AutonomousHazard | null;
   lastHarm: number;
   lastExposure: number;
   lastRepeated: number;
@@ -149,6 +161,11 @@ export type HiddenSimulation = {
   | {
       schemaVersion: 3;
       rulesetVersion: "hidden-kingdom-v3";
+      progression: ProgressionState;
+    }
+  | {
+      schemaVersion: 4;
+      rulesetVersion: "hidden-kingdom-v4";
       progression: ProgressionState;
     }
 );
@@ -206,6 +223,7 @@ export type GameState = {
   | { schemaVersion: 1; rulesetVersion: "legacy-v1" }
   | { schemaVersion: 2; rulesetVersion: "hidden-kingdom-v2" }
   | { schemaVersion: 3; rulesetVersion: "hidden-kingdom-v3" }
+  | { schemaVersion: 4; rulesetVersion: "hidden-kingdom-v4" }
 );
 export type MoveResult = ActionOutcome & {
   state: GameState;

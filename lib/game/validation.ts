@@ -70,7 +70,7 @@ export function validateState(value: unknown): asserts value is GameState {
   const fail = () => {
     throw new IncompatibleStateError();
   };
-  if (!record(value) || !integer(value.schemaVersion, 1, 3)) fail();
+  if (!record(value) || !integer(value.schemaVersion, 1, 4)) fail();
   const s = value as GameState;
   if (
     !["white", "black"].includes(s.sideToMove) ||
@@ -237,7 +237,7 @@ export function validateState(value: unknown): asserts value is GameState {
   )
     fail();
   if (!sim) return fail();
-  if (sim.schemaVersion === 3) {
+  if (sim.schemaVersion >= 3) {
     try {
       if (!validProgression(s)) fail();
     } catch {
@@ -366,7 +366,11 @@ export function validateState(value: unknown): asserts value is GameState {
         p.warningOwnTurns.length === p.warningEventIds.length &&
         p.warningOwnTurns.every((n) => integer(n)) &&
         integer(p.stageEnteredOwnTurn) &&
-        integer(p.deferredTurns, 0, 2) &&
+        integer(
+          p.deferredTurns,
+          0,
+          configFor(s.configVersion)?.responsibility?.armedDeferrals ?? 2,
+        ) &&
         integer(p.separatedTurns),
     )
   )

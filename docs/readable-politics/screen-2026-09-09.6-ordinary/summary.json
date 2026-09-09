@@ -1,0 +1,343 @@
+{
+  "configVersion": "2026-09-09.6",
+  "metricsVersion": 5,
+  "diagnosticVersion": 1,
+  "responsibilityRules": {
+    "rivalryWindow": 8,
+    "preferNearbyLeader": true,
+    "armedDeferrals": 4
+  },
+  "gateThresholds": {
+    "episodeLimit": 6,
+    "episodeCooldown": 3,
+    "harmWindow": 8,
+    "graveWindow": 32,
+    "repeatCooldown": 4,
+    "neglectCooldown": 3,
+    "neglectLimit": 2,
+    "exposureFear": 5,
+    "exposureResentment": 8,
+    "exposureLoyalty": -4,
+    "repeatedResentment": 4,
+    "repeatedLoyalty": -2,
+    "repeatedTyranny": 2,
+    "repeatedLegitimacy": -1,
+    "neglectFear": 3,
+    "neglectResentment": 10,
+    "neglectLoyalty": -5,
+    "neglectTyranny": 5,
+    "neglectLegitimacy": -3,
+    "coercionFear": 6,
+    "coercionResentment": 8,
+    "coercionLoyalty": -3,
+    "coercionTyranny": 5,
+    "coercionLegitimacy": -2,
+    "rescueFear": -6,
+    "rescueResentment": -3,
+    "rescueLoyalty": 3,
+    "protectionFear": -3,
+    "protectionResentment": -2,
+    "protectionLoyalty": 2,
+    "calmTurns": 4,
+    "ambientSideCooldown": 4,
+    "ambientSubjectCooldown": 6,
+    "disputeOpen": -20,
+    "disputeClose": -10,
+    "friction": -20,
+    "frictionResentment": 35,
+    "retreatFear": 60,
+    "retreatLoyalty": 60,
+    "retreatLimit": 2,
+    "plotTyranny": 30,
+    "plotLegitimacy": 50,
+    "leaderResentment": 20,
+    "leaderLoyalty": 65,
+    "leaderAmbition": 50,
+    "accompliceResentment": 10,
+    "accompliceLoyalty": 70,
+    "pairLimit": 8,
+    "recoveryLoyalty": 75,
+    "recoveryResentment": 8,
+    "recoveryLegitimacy": 65,
+    "recoveryTyranny": 20,
+    "calmCap": 0.006,
+    "fearWeight": 0.1,
+    "resentmentWeight": 0.07,
+    "fatigueWeight": 0.04,
+    "disputeWeight": 0.035,
+    "harmWeight": 0.025,
+    "loyaltyWeight": 0.035,
+    "courageWeight": 0.025,
+    "legitimacyWeight": 0.03,
+    "moraleWeight": 0.02,
+    "cohesionWeight": 0.02,
+    "prestigeWeight": 0.01,
+    "tyrannyFearWeight": 0.02,
+    "confidenceWeight": 0.005,
+    "restraintCp": 75
+  },
+  "suite": "ordinary",
+  "seedStart": 100000,
+  "policyNotes": "Original paired neutral/protective/coercive/promotion policies; deterministic depth-one top-three mix",
+  "games": 200,
+  "cap": 240,
+  "elapsedSeconds": 74.08925559999999,
+  "tacticalGames": 20,
+  "aggregate": {
+    "calmCommands": 14592,
+    "attempts": 29297,
+    "graceObserved": 1600,
+    "move": 29090,
+    "court-blocker:phase": 7725,
+    "court-blocker:tyranny": 26857,
+    "court-blocker:legitimacy": 26045,
+    "court-blocker:leader-resentment": 26354,
+    "court-blocker:grievance-history": 28445,
+    "court-blocker:check": 3558,
+    "eligibleCommands": 19318,
+    "favorableCaptures": 3235,
+    "harmEpisodes": 1699,
+    "exposures": 1610,
+    "repeatedRisk": 411,
+    "court-blocker:proximity": 241,
+    "protections": 902,
+    "ambient": 1193,
+    "neglect": 597,
+    "blamedLoss": 208,
+    "court-blocker:accomplice": 20808,
+    "court-blocker:ambition": 8757,
+    "calmRefusals": 65,
+    "aiRestraint": 126,
+    "refusal": 207,
+    "repeats": 81,
+    "court-blocker:leader-loyalty": 5673,
+    "alternativeOrders": 126,
+    "rescues": 147,
+    "court-blocker:streak": 21,
+    "court-blocker:pair": 143,
+    "eligibleKingdomTurns": 11,
+    "eligibleCourt:white": 9,
+    "aiCoercion": 5,
+    "extensions": 4,
+    "autonomousProtections": 1,
+    "eligibleCourt:black": 2,
+    "envy": 2
+  },
+  "terminalCounts": {
+    "checkmate": 62,
+    "insufficient-material": 20,
+    "truncated": 38,
+    "stalemate": 61,
+    "fivefold": 18,
+    "seventy-five-move": 1
+  },
+  "whiteWins": 28,
+  "blackWins": 34,
+  "colorDifference": {
+    "mean": -0.03,
+    "approx95": [
+      -0.10606367348637866,
+      0.04606367348637866
+    ],
+    "method": "paired normal approximation; draws/truncations contribute zero"
+  },
+  "rates": {
+    "calmRefusal": [
+      65,
+      14592
+    ],
+    "refusal": [
+      207,
+      19318
+    ],
+    "retreat": [
+      0,
+      19318
+    ],
+    "plots": [
+      0,
+      11
+    ],
+    "regicidePerMatch": [
+      0,
+      200
+    ],
+    "regicidePerAttempt": [
+      0,
+      0
+    ]
+  },
+  "resolverMs": {
+    "n": 29297,
+    "mean": 1.319969266477793,
+    "median": 1.2776000000012573,
+    "p90": 1.6508000000030734,
+    "p95": 1.997799999997369,
+    "p99": 2.6064000000042142
+  },
+  "aiDecisionMs": {
+    "n": 2886,
+    "mean": 4.5745683298683995,
+    "median": 2.0351000000009662,
+    "p90": 13.953100000006089,
+    "p95": 16.268699999999853,
+    "p99": 19.06720000000496
+  },
+  "leadershipProjectionMs": {
+    "n": 131,
+    "mean": 36.22031145038173,
+    "median": 28.891300000002957,
+    "p90": 74.22260000000097,
+    "p95": 83.77850000000035,
+    "p99": 105.10819999999512
+  },
+  "finalStateBytes": {
+    "n": 200,
+    "mean": 80791.175,
+    "median": 82162,
+    "p90": 106876,
+    "p95": 108977,
+    "p99": 110572
+  },
+  "finalApiBytes": {
+    "n": 200,
+    "mean": 33771.81,
+    "median": 32296,
+    "p90": 54515,
+    "p95": 54979,
+    "p99": 55874
+  },
+  "invalid": 0,
+  "stalls": 0,
+  "errors": 0,
+  "openingAnomalies": 0,
+  "privacyFailures": 0,
+  "terminalViolations": 0,
+  "duplicateMutations": 0,
+  "discovery": {
+    "wholeCohort": [
+      110,
+      200
+    ],
+    "reached40": [
+      108,
+      191
+    ],
+    "firstEventPly": {
+      "n": 110,
+      "mean": 59.29090909090909,
+      "median": 55,
+      "p90": 114,
+      "p95": 127,
+      "p99": 162
+    },
+    "checkpoints": [
+      {
+        "ply": 20,
+        "observedByCheckpoint": 17,
+        "wholeCohort": 200,
+        "reachedCheckpoint": 199,
+        "endedEarlierWithoutEvent": 1,
+        "truncated": 38
+      },
+      {
+        "ply": 40,
+        "observedByCheckpoint": 45,
+        "wholeCohort": 200,
+        "reachedCheckpoint": 191,
+        "endedEarlierWithoutEvent": 7,
+        "truncated": 38
+      },
+      {
+        "ply": 60,
+        "observedByCheckpoint": 60,
+        "wholeCohort": 200,
+        "reachedCheckpoint": 183,
+        "endedEarlierWithoutEvent": 13,
+        "truncated": 38
+      },
+      {
+        "ply": 80,
+        "observedByCheckpoint": 81,
+        "wholeCohort": 200,
+        "reachedCheckpoint": 163,
+        "endedEarlierWithoutEvent": 25,
+        "truncated": 38
+      }
+    ]
+  },
+  "naturalGates": {
+    "retreats": {
+      "seeds": [],
+      "requiredDistinctSeeds": 2
+    },
+    "disputeRelevantCommands": {
+      "seeds": [],
+      "requiredDistinctSeeds": 2
+    },
+    "armedAttempts": {
+      "seeds": [],
+      "requiredDistinctSeeds": 2
+    }
+  },
+  "diagnostics": {
+    "dangerousCommands": 3085,
+    "dangerFearBelow60": 3085,
+    "retreatLoyaltyBlocked": 2639,
+    "eligibleKingdomTurns": 11
+  },
+  "pressureGates": {
+    "gamesWithDisputes": [
+      0,
+      200
+    ],
+    "gamesWithEligibility": [
+      3,
+      200
+    ],
+    "gamesWithPlots": [
+      0,
+      200
+    ],
+    "distinctDisputeSeeds": 0,
+    "distinctPlotSeeds": 0
+  },
+  "nodes": {
+    "n": 2886,
+    "mean": 18.93069993069993,
+    "median": 20,
+    "p90": 35,
+    "p95": 42,
+    "p99": 51
+  },
+  "restraintTacticalCost": {
+    "n": 126,
+    "mean": -4063.690476190476,
+    "median": -155,
+    "p90": 0,
+    "p95": 10,
+    "p99": 35
+  },
+  "gateCrossings": {
+    "tyranny": [
+      59,
+      200
+    ],
+    "legitimacy": [
+      73,
+      200
+    ],
+    "leaderLoyalty": [
+      200,
+      200
+    ],
+    "leaderResentment": [
+      170,
+      200
+    ],
+    "ambition": [
+      200,
+      200
+    ]
+  }
+}

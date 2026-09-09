@@ -1,0 +1,38 @@
+{
+  "configuration": "2026-09-09.1",
+  "unitAndIntegration": {
+    "passed": 175,
+    "files": 23,
+    "skipped": 0
+  },
+  "productionBrowser": {
+    "passed": 13,
+    "skipped": 0,
+    "seconds": 31.5
+  },
+  "lint": "passed",
+  "typecheck": "passed",
+  "format": "passed",
+  "build": "passed",
+  "browserWorker": {
+    "workers": [
+      {
+        "elapsedMs": 1006.1000000238419,
+        "nodes": 10848,
+        "completedDepth": 3
+      }
+    ],
+    "longTasks": []
+  },
+  "humanPlaytest": "pending",
+  "commitPushMergeDeployment": "not performed",
+  "measurementAcceptance": "see acceptance.json; progression failures remain failures",
+  "additionalRegression": {
+    "name": "asymmetric capture clocks and expiry on both v3/v4",
+    "fullSuiteAfterAddition": {
+      "passed": 176,
+      "files": 23,
+      "skipped": 0
+    }
+  }
+}

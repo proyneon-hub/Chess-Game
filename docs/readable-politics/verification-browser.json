@@ -1,0 +1,14 @@
+{
+  "workers": [
+    {
+      "elapsedMs": 1005.1000000238419,
+      "nodes": 9280,
+      "completedDepth": 3
+    }
+  ],
+  "longTasks": [],
+  "build": "local production build",
+  "testsPassed": 13,
+  "deployed": false,
+  "humanPlaytest": "pending"
+}

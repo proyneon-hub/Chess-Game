@@ -25,7 +25,8 @@ export function riskFriction(s: GameState, side: SubjectState["side"]) {
     const episodes = progression(s).subjects[sub.id].episodes.filter(
       (e) =>
         e.cause === "avoidable_exposure" &&
-        own - e.openedOwnTurn < cfg.harmWindow &&
+        own - e.openedOwnTurn <
+          (rulesFor(s).responsibility?.rivalryWindow ?? cfg.harmWindow) &&
         e.defenderIds.length === 1,
     );
     const defenders = Array.from(

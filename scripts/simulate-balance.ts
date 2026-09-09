@@ -16,14 +16,21 @@ import { chooseAfterRefusal } from "../lib/ai/restraint";
 import { progression, harmfulEpisodes } from "../lib/rpg/pressure";
 import { assessOrder } from "../lib/rpg/facts";
 import { agencyForecast } from "../lib/rpg/agency";
+import { politicalDiagnostics } from "./political-diagnostics";
+import { boardChoice, type BoardPolicy } from "./board-policies";
 const flags: Record<string, string> = {};
 for (let i = 2; i < process.argv.length; i += 2) {
   const key = process.argv[i],
     value = process.argv[i + 1];
   if (
-    !["--config", "--games", "--seed-start", "--out", "--suite"].includes(
-      key,
-    ) ||
+    ![
+      "--config",
+      "--games",
+      "--seed-start",
+      "--out",
+      "--suite",
+      "--trace-seed",
+    ].includes(key) ||
     value === undefined ||
     flags[key] !== undefined
   )
@@ -35,8 +42,16 @@ const version = flags["--config"] ?? CONFIG.version,
   seedStart = Number(flags["--seed-start"] ?? 10000);
 if (
   !configFor(version) ||
-  (suite === "pressure" && configFor(version)?.generation !== 3) ||
-  !["ordinary", "pressure", "holdout", "development"].includes(suite) ||
+  (suite === "pressure" && (configFor(version)?.generation ?? 0) < 3) ||
+  ![
+    "ordinary",
+    "pressure",
+    "holdout",
+    "development",
+    "board-ordinary",
+    "board-protective",
+    "board-mistreatment",
+  ].includes(suite) ||
   !Number.isSafeInteger(seedStart) ||
   seedStart < 0 ||
   seedStart > 4294960000
@@ -113,6 +128,14 @@ const results: {
   gates: Record<string, boolean>;
   maxStorage: Record<string, number>;
   rareEvents: unknown[];
+  diagnostics: Record<string, number>;
+  plotTransitions: unknown[];
+  replay?: {
+    command: unknown;
+    resolution: unknown;
+    ply: number;
+    events: unknown[];
+  }[];
 }[] = [];
 const start = performance.now();
 let invalid = 0,
@@ -122,16 +145,36 @@ let invalid = 0,
 for (let index = 0; index < games; index++) {
   const pair = Math.floor(index / 2),
     seed = seedStart + pair,
-    policy = suite === "pressure" ? "pressure" : policies[pair % 4],
-    other = suite === "pressure" ? "tactical" : policies[(pair + 1) % 4];
+    policy = suite.startsWith("board-")
+      ? suite
+      : suite === "pressure"
+        ? "pressure"
+        : policies[pair % 4],
+    other = suite.startsWith("board-")
+      ? "board-ordinary"
+      : suite === "pressure"
+        ? "tactical"
+        : policies[(pair + 1) % 4];
   const white = index % 2 ? other : policy,
     black = index % 2 ? policy : other,
-    tactical = suite !== "pressure" && pair % 10 === 0,
+    tactical =
+      !suite.startsWith("board-") && suite !== "pressure" && pair % 10 === 0,
     policyRng = seedRng(seed);
   let s = createGameState(seed, version),
     attempts = 0;
   let firstEventPly: number | null = null;
   const rareEvents: unknown[] = [];
+  const replay =
+    Number(flags["--trace-seed"]) === seed
+      ? ([] as {
+          command: unknown;
+          resolution: unknown;
+          ply: number;
+          events: unknown[];
+        }[])
+      : undefined;
+  const diagnostics: Record<string, number> = {},
+    plotTransitions: unknown[] = [];
   const extrema = {
     maxTyranny: 10,
     minLegitimacy: 65,
@@ -155,7 +198,9 @@ for (let index = 0; index < games; index++) {
       }
       const policy = s.sideToMove === "white" ? white : black;
       let move = choices[Math.floor(draw(policyRng) * choices.length)];
-      if (policy === "pressure") move = pressureChoice(s, policyRng);
+      if (policy.startsWith("board-"))
+        move = boardChoice(s, policyRng, policy as BoardPolicy);
+      else if (policy === "pressure") move = pressureChoice(s, policyRng);
       else if (s.pendingRefusal && policy === "coercive")
         move = { ...s.pendingRefusal, side: s.sideToMove };
       else if (policy === "tactical") {
@@ -238,8 +283,12 @@ for (let index = 0; index < games; index++) {
           })
           .sort((a, b) => b.score - a.score)[0].m;
       }
-      if (s.pendingRefusal && !["coercive", "pressure"].includes(policy)) {
-        if (s.schemaVersion === 3) {
+      if (
+        s.pendingRefusal &&
+        !policy.startsWith("board-") &&
+        !["coercive", "pressure"].includes(policy)
+      ) {
+        if (s.schemaVersion >= 3) {
           const started = performance.now();
           const leadership = chooseAfterRefusal(s);
           leadershipTimes.push(performance.now() - started);
@@ -281,6 +330,16 @@ for (let index = 0; index < games; index++) {
         break;
       }
       s = r.state;
+      replay?.push({
+        command: move,
+        resolution: r.resolution,
+        ply: s.ply,
+        events: s.events.filter((e) => e.seq > before.eventSeq),
+      });
+      const diagnostic = politicalDiagnostics(before, move, r);
+      for (const [key, n] of Object.entries(diagnostic.counts))
+        diagnostics[key] = (diagnostics[key] ?? 0) + n;
+      plotTransitions.push(...diagnostic.plots);
       const subject =
         before.simulation!.subjects[
           before.pieceIds[move.from[0]][move.from[1]]!
@@ -299,7 +358,7 @@ for (let index = 0; index < games; index++) {
       counts[r.resolution!] = (counts[r.resolution!] ?? 0) + 1;
       if (
         before.pendingRefusal &&
-        before.schemaVersion === 3 &&
+        before.schemaVersion >= 3 &&
         !["coercive", "pressure"].includes(policy)
       ) {
         const same =
@@ -340,7 +399,7 @@ for (let index = 0; index < games; index++) {
         firstEventPly = before.ply + 1;
       for (const kind of ["disputes", "plots"]) {
         if (
-          s.schemaVersion === 3 &&
+          s.schemaVersion >= 3 &&
           (s.simulation!.counters[kind] ?? 0) >
             (before.simulation!.counters[kind] ?? 0)
         ) {
@@ -401,7 +460,7 @@ for (let index = 0; index < games; index++) {
             Object.keys(sub.relationships).length,
           );
         }
-        if (s.schemaVersion === 3)
+        if (s.schemaVersion >= 3)
           for (const q of Object.values(progression(s).subjects))
             maxStorage.episodes = Math.max(
               maxStorage.episodes,
@@ -423,9 +482,10 @@ for (let index = 0; index < games; index++) {
         duplicateMutations++;
       if (
         before.ply < 8 &&
-        (r.resolution !== "executed" ||
+        (!["executed", "terminal"].includes(r.resolution ?? "") ||
+          s.terminal?.reason === "regicide" ||
           r.special ||
-          (s.schemaVersion === 3 && (s.simulation!.counters.ambient ?? 0) > 0))
+          (s.schemaVersion >= 3 && (s.simulation!.counters.ambient ?? 0) > 0))
       )
         openingAnomalies++;
       try {
@@ -482,6 +542,9 @@ for (let index = 0; index < games; index++) {
     gates,
     maxStorage,
     rareEvents,
+    diagnostics,
+    plotTransitions,
+    ...(replay ? { replay } : {}),
   });
   if ((index + 1) % 50 === 0)
     console.log(
@@ -522,12 +585,15 @@ const mean = pairs.reduce((a, b) => a + b, 0) / (pairs.length || 1),
   error95 = 1.96 * Math.sqrt(variance / Math.max(1, pairs.length));
 const report = {
   configVersion: version,
-  metricsVersion: 4,
+  metricsVersion: 6,
+  diagnosticVersion: 1,
+  responsibilityRules: configFor(version)!.responsibility ?? null,
   gateThresholds: configFor(version)!.progression ?? null,
   suite,
   seedStart,
-  policyNotes:
-    suite === "pressure"
+  policyNotes: suite.startsWith("board-")
+    ? "Board-only policies: legal board, rights, public repetition/refusal and a separate policy RNG; no hidden politics or protected victims"
+    : suite === "pressure"
       ? "Pressure policy v3 (material weight .5; repeat dangerous dependence on an actual sole defender) vs seeded eight-candidate one-ply material/PST/risk opponent; no forced RNG or protected victims"
       : "Original paired neutral/protective/coercive/promotion policies; deterministic depth-one top-three mix",
   games,
@@ -594,6 +660,29 @@ const report = {
       truncated: results.filter((r) => r.terminal === "truncated").length,
     })),
   },
+  naturalGates: Object.fromEntries(
+    ["retreats", "disputeRelevantCommands", "armedAttempts"].map((key) => [
+      key,
+      {
+        seeds: [
+          ...new Set(
+            results
+              .filter((r) => (r.diagnostics[key] ?? 0) > 0)
+              .map((r) => r.seed),
+          ),
+        ],
+        requiredDistinctSeeds: 2,
+      },
+    ]),
+  ),
+  diagnostics: results.reduce(
+    (acc, r) => {
+      for (const [key, n] of Object.entries(r.diagnostics))
+        acc[key] = (acc[key] ?? 0) + n;
+      return acc;
+    },
+    {} as Record<string, number>,
+  ),
   pressureGates: {
     gamesWithDisputes: [
       results.filter((r) => (r.counters.disputes ?? 0) > 0).length,

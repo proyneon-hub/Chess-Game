@@ -2,7 +2,7 @@ import type { GameState } from "./types";
 import { validSquare } from "@/lib/chess";
 // Independent structural validation: no importing game constructors/defaults.
 export function validProgression(s: GameState): boolean {
-  if (s.simulation?.schemaVersion !== 3) return false;
+  if (!s.simulation || s.simulation.schemaVersion === 2) return false;
   const p = s.simulation.progression,
     sim = s.simulation;
   const object = (v: unknown): v is Record<string, unknown> =>
@@ -35,6 +35,27 @@ export function validProgression(s: GameState): boolean {
       Object.keys(q.ambient).length > 4
     )
       return false;
+    if (sim.schemaVersion === 4) {
+      const h = q.hazard;
+      if (
+        h !== null &&
+        (!object(h) ||
+          Object.keys(h).sort().join() !==
+            "openedOwnTurn,sourceActionRevision,square" ||
+          !validSquare(h.square) ||
+          !int(h.openedOwnTurn, 0, own) ||
+          !int(h.sourceActionRevision, 0, s.revision) ||
+          sub.status !== "active" ||
+          sub.currentKind === "k")
+      )
+        return false;
+      if (
+        Object.keys(q.ambient).some(
+          (k) => !["neglect", "dispute", "reconciliation", "trust"].includes(k),
+        )
+      )
+        return false;
+    } else if ("hazard" in q) return false;
     if (
       ![
         q.lastHarm,

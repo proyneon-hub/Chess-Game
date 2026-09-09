@@ -33,7 +33,7 @@ export function guardCount(
   );
 }
 function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
-  if (rulesFor(s).generation === 3) count(s, `thwart:${reason}`);
+  if (rulesFor(s).generation >= 3) count(s, `thwart:${reason}`);
   p.stage = "thwarted";
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
@@ -111,7 +111,10 @@ export function scheduleCourt(
     const king = findKing(s.board, side === "white")!;
     if (check || distance(pos[a.id], king) > 2) {
       active.deferredTurns++;
-      if (active.deferredTurns >= 2)
+      if (
+        active.deferredTurns >=
+        (rulesFor(s).responsibility?.armedDeferrals ?? 2)
+      )
         thwart(s, active, check ? "check" : "king-distance");
       return;
     }
@@ -184,6 +187,14 @@ export function scheduleCourt(
     count(s, "eligibleKingdomTurns");
     count(s, `eligibleCourt:${side}`);
     if (rng() >= rulesFor(s).plotChance) return;
+    if (rulesFor(s).responsibility?.preferNearbyLeader) {
+      const king = findKing(s.board, side === "white")!;
+      candidates.sort(
+        (x, y) =>
+          Number(distance(pos[y.a.id], king) <= 2) -
+          Number(distance(pos[x.a.id], king) <= 2),
+      );
+    }
     const { a, b } = candidates[0];
     k.plotAttemptUsed = true;
     const plot: CourtPlot = {

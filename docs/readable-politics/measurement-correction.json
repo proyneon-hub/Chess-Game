@@ -1,0 +1,79 @@
+{
+  "originalReport": "board-2026-09-09.1-board-mistreatment",
+  "replacementReport": "board-mistreatment-corrected",
+  "seed": 122036,
+  "actualOutcome": "ordinary checkmate at ply 6",
+  "commands": [
+    {
+      "from": [
+        6,
+        3
+      ],
+      "to": [
+        4,
+        3
+      ],
+      "side": "white"
+    },
+    {
+      "from": [
+        1,
+        4
+      ],
+      "to": [
+        2,
+        4
+      ],
+      "side": "black"
+    },
+    {
+      "from": [
+        7,
+        2
+      ],
+      "to": [
+        3,
+        6
+      ],
+      "side": "white"
+    },
+    {
+      "from": [
+        0,
+        3
+      ],
+      "to": [
+        3,
+        6
+      ],
+      "side": "black"
+    },
+    {
+      "from": [
+        7,
+        3
+      ],
+      "to": [
+        7,
+        2
+      ],
+      "side": "white"
+    },
+    {
+      "from": [
+        3,
+        6
+      ],
+      "to": [
+        7,
+        2
+      ],
+      "side": "black"
+    }
+  ],
+  "agencyEvents": 0,
+  "originalOpeningAnomalies": 1,
+  "correctedOpeningAnomalies": 0,
+  "all200GameOutcomesUnchanged": true,
+  "status": "original failure retained; classifier corrected and exact cohort rerun"
+}

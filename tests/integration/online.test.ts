@@ -15,7 +15,11 @@ import { parseAction, validateState } from "@/lib/game/validation";
 import { migrateState } from "@/lib/game/migrate";
 import { initializePieceIds, initializeRpgState } from "@/lib/rpgChess";
 import { subjectAt } from "../fixtures";
-import { v3Fixture, constructedV3Court } from "../progression-fixtures";
+import {
+  v3Fixture,
+  v4Fixture,
+  constructedV3Court,
+} from "../progression-fixtures";
 import { progression } from "@/lib/rpg/pressure";
 import { scheduleCourt } from "@/lib/rpg/conspiracy";
 import { remember } from "@/lib/rpg/subjects";
@@ -30,6 +34,7 @@ afterAll(async () => {
   await db?.stop();
 });
 const hidden = [
+  "hazard",
   "progression",
   "episodes",
   "attackerIds",
@@ -72,6 +77,62 @@ async function match() {
   return { white, black, m: joined.match! };
 }
 describe("actual MongoDB coordination", () => {
+  it("v4 hazards remain private across concurrent orders, duplicate retry and reconnect", async () => {
+    const { m, white } = await match();
+    let s = v4Fixture(
+      [
+        ["K", [7, 7]],
+        ["k", [0, 7]],
+        ["R", [5, 0]],
+        ["p", [2, 1]],
+      ],
+      40,
+    );
+    subjectAt(s, [5, 0]).morale = 80;
+    // Constructed branch setup only: no injected roll reaches the transport.
+    const { agencyForecast } = await import("@/lib/rpg/agency");
+    const move = {
+      from: [5, 0] as [number, number],
+      to: [4, 0] as [number, number],
+      side: "white" as const,
+    };
+    const f = agencyForecast(s, move);
+    s = submitMove(s, move, {
+      draw: () => f.refusal + f.retreat + f.heroism / 2,
+    }).state;
+    s = submitMove(
+      s,
+      { from: [0, 7], to: [0, 6], side: "black" },
+      { draw: () => 0.99 },
+    ).state;
+    validateState(s);
+    await GameMatch.updateOne({ inviteId: m.id }, { $set: { state: s } });
+    const action = {
+      actionId: randomUUID(),
+      expectedVersion: m.version,
+      from: [7, 7],
+      to: [7, 6],
+    };
+    const replies = await Promise.all([
+      submitServerMove(m.id, white, action),
+      submitServerMove(m.id, white, action),
+    ]);
+    expect(replies.every((r) => r.status === 200)).toBe(true);
+    expect(replies.filter((r) => r.duplicate)).toHaveLength(1);
+    const stored = (await GameMatch.findOne({ inviteId: m.id }).lean())!.state;
+    const loaded = migrateState(stored);
+    expect(loaded.schemaVersion).toBe(4);
+    expect(loaded.simulation!.counters.neglect).toBe(1);
+    expect(
+      Object.values(progression(loaded).subjects).filter((q) => q.hazard),
+    ).toHaveLength(1);
+    assertPrivate(replies);
+    assertPrivate(await getServerMatch(m.id, white));
+    await submitServerMove(m.id, white, action);
+    expect((await GameMatch.findOne({ inviteId: m.id }).lean())!.state).toEqual(
+      stored,
+    );
+  });
   it("duplicate v3 transitions cannot repeat dispute creation, warnings or RNG", async () => {
     const { m, white } = await match();
     const s = constructedV3Court();

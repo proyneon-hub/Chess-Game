@@ -34,6 +34,7 @@ import type {
   MoveAttempt,
   MoveResult,
   Terminal,
+  ResolvedOrder,
 } from "@/lib/game/types";
 import { initializeSimulation, roleStats } from "@/lib/rpg/initialize";
 import { CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
@@ -217,6 +218,7 @@ export function submitMove(
     special = false,
     message = "",
     autonomous = false;
+  let agencyOutcome: ResolvedOrder["outcome"] = "obeyed";
   const guaranteed =
     !!state.pendingRefusal ||
     piece.toLowerCase() === "k" ||
@@ -230,6 +232,7 @@ export function submitMove(
     special = result.special;
     message = result.message;
     autonomous = result.kind === "autonomous";
+    agencyOutcome = result.outcome;
     if (autonomous) count(s, "retreats");
     if (state.pendingRefusal)
       message = sameIntention(state.pendingRefusal, move)
@@ -314,12 +317,25 @@ export function submitMove(
   )
     s.positions = {};
   s.positions[key] = (s.positions[key] ?? 0) + 1;
-  if (s.simulation && !deps.classic) leadership(state, s, actual);
+  if (s.simulation && !deps.classic)
+    leadership(state, s, actual, {
+      intended: move,
+      actual,
+      outcome: agencyOutcome,
+    });
   ordinaryTerminal(s, next);
   const text = `${pieceName(piece)} ${squareName(move.from)} → ${squareName(destination)}${move.promotion ? ` = ${move.promotion.toUpperCase()}` : ""}`;
   message =
-    s.result ??
-    (isInCheck(board, next === "white") ? "Check!" : message || text);
+    s.schemaVersion === 4
+      ? [
+          message || text,
+          s.result ?? (isInCheck(board, next === "white") ? "Check!" : ""),
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : (s.result ??
+        (isInCheck(board, next === "white") ? "Check!" : message || text));
+  const actionMessage = message;
   event(s, "move", message, {
     square: destination,
     intended: move.to,
@@ -335,7 +351,12 @@ export function submitMove(
       isInCheck(state.board, move.side === "white"),
     );
   message = s.result ?? message;
-  s.moves.push({ number: s.ply, text: `${s.ply}. ${text}`, message, special });
+  s.moves.push({
+    number: s.ply,
+    text: `${s.ply}. ${text}`,
+    message: s.schemaVersion === 4 ? actionMessage : message,
+    special,
+  });
   s.sideToMove = next;
   s.pendingRefusal = null;
   if (s.simulation)

@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONFIG } from "../lib/rpg/config";
+import { V3_CONFIG as CONFIG } from "../lib/rpg/config";
 import type {
   CourtPlot,
   KingdomState,
