@@ -6,6 +6,20 @@ Chess for local pass-and-play, computer opponents, and private online invites. T
 
 The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
 
+V5 adds piece requests, protection and relief, disputes,
+petitions, supportive courts, and complaint-gated conspiracies. Requests appear
+below move status and are answered through ordinary moves. New matches use v5;
+older saved matches keep their recorded rules and responsibility behavior.
+Early encounters work in browser tests, but deeper pressure-progression
+acceptance remains unresolved. The verification reports record the pre-publication
+snapshot; production deployment of v5 has not been verified. See the
+[v5 checklist](docs/v5-encounters-checklist.md),
+[implementation notes](docs/v5-encounters/implementation.md), and
+[tuning ledger](docs/v5-encounters/tuning-ledger.md). The
+[frozen results](docs/v5-encounters/results.md) and
+[reviewer notes](docs/v5-encounters/reviewer-notes.md) distinguish passing technical
+checks from unresolved product acceptance and remaining implementation work.
+
 ## Run
 
 Use Node **22.13+ or 24** and npm. The framework remains Next.js 14.2.35 / React 18.

@@ -1,0 +1,78 @@
+{
+  "node": "v24.15.0",
+  "classification": "synthetic performance fixtures, not frequency evidence",
+  "results": [
+    {
+      "name": "quiet",
+      "depth": 2,
+      "elapsedMs": 141.5784,
+      "completedDepth": 2,
+      "nodes": 440,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "quiet",
+      "depth": 4,
+      "elapsedMs": 1014.8015,
+      "completedDepth": 2,
+      "nodes": 3456,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "two requests",
+      "depth": 2,
+      "elapsedMs": 125.82809999999995,
+      "completedDepth": 2,
+      "nodes": 440,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "two requests",
+      "depth": 4,
+      "elapsedMs": 1008.1941999999999,
+      "completedDepth": 2,
+      "nodes": 3584,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "dispute",
+      "depth": 2,
+      "elapsedMs": 148.96579999999994,
+      "completedDepth": 2,
+      "nodes": 440,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "dispute",
+      "depth": 4,
+      "elapsedMs": 1017.2838000000002,
+      "completedDepth": 2,
+      "nodes": 3520,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "warned court",
+      "depth": 2,
+      "elapsedMs": 49.210099999999784,
+      "completedDepth": 2,
+      "nodes": 493,
+      "legal": true,
+      "pure": true
+    },
+    {
+      "name": "warned court",
+      "depth": 4,
+      "elapsedMs": 673.2062000000001,
+      "completedDepth": 4,
+      "nodes": 8390,
+      "legal": true,
+      "pure": true
+    }
+  ]
+}

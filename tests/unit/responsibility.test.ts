@@ -49,8 +49,8 @@ for (const record of records)
     }
     expect(index).toBe(record.drawCount);
   });
-it("new games are v4, strict migration preserves older rules and hazards remain private", () => {
-  const s = createGameState(2);
+it("v4 saves retain strict migration preserves older rules and hazards remain private", () => {
+  const s = createGameState(2, "2026-09-09.1");
   expect(s.schemaVersion).toBe(4);
   validateState(s);
   for (let i = 1; i <= 6; i++) {

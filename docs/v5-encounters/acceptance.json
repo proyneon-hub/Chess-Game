@@ -1,0 +1,1370 @@
+{
+  "freeze": "freeze-7.json",
+  "classification": "normal-start cohorts; no cooperative or forced fixtures pooled",
+  "acceptancePassed": false,
+  "humanTesting": "pending",
+  "publication": "not authorized or performed",
+  "summaries": [
+    {
+      "name": "freeze7-development-aware",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "aware",
+      "games": 1000,
+      "seedStart": 320000,
+      "seedEnd": 320499,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 45,
+      "atRisk": {
+        "8": 1000,
+        "16": 1000,
+        "24": 995,
+        "40": 977,
+        "64": 936
+      },
+      "discovery16": 0.998,
+      "resolved24": 0.9728643216080402,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.8963675213675214,
+      "supportive64": 0.9145299145299145,
+      "conflict64": 0.0010683760683760685,
+      "medianInterval": 6,
+      "p90Interval": 10,
+      "refusalRate": 0.00556147883468288,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0,
+      "resolverP95": 6.318800000008196,
+      "independentPairedSeeds": 500,
+      "checkpoints": {
+        "16": {
+          "atRisk": 1000,
+          "endedBefore": 0
+        },
+        "24": {
+          "atRisk": 995,
+          "endedBefore": 5
+        },
+        "40": {
+          "atRisk": 977,
+          "endedBefore": 23
+        },
+        "64": {
+          "atRisk": 936,
+          "endedBefore": 64
+        }
+      },
+      "diagnostics": {
+        "court:phase": 39781,
+        "court:tyranny": 124614,
+        "court:legitimacy": 124458,
+        "court:leader-resentment": 124507,
+        "court:grievance-history": 124645,
+        "court:check": 9257,
+        "court:accomplice": 104752,
+        "court:leader-loyalty": 54287,
+        "court:ambition": 57544,
+        "complaint-legitimacy": 1590,
+        "fear40": 119,
+        "warned-survivor": 8,
+        "fear50": 8,
+        "warned-fear50": 4,
+        "two-harm-actions": 45,
+        "complaint-tyranny": 123,
+        "complaint-government": 123,
+        "two-harms-personality": 5,
+        "involved-partner-captured": 4,
+        "causal-pair": 2,
+        "court:proximity": 4
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 30834,
+        "encounterOffers": 12876,
+        "encounterFamily:initiative": 4235,
+        "encounterOffer": 12876,
+        "encounterInteractions": 11138,
+        "encounterEffects": 18223,
+        "encounter:fulfilled": 10208,
+        "encounterMechanicalResolutions": 10207,
+        "encounterOutcome": 12870,
+        "encounterBlocker:subject-cooldown": 6434,
+        "encounterFamily:protection": 1959,
+        "encounter:interrupted": 1796,
+        "encounterFamily:petition": 2282,
+        "encounterBlocker:no-supported-candidate": 31143,
+        "encounterBlocker:no-mobile-candidate": 20230,
+        "encounterFamily:confidence": 2555,
+        "modifierApplicable:steady": 3717,
+        "modifierApplied:steady": 2883,
+        "encounterFamily:solidarity": 1133,
+        "modifierApplicable:support": 296,
+        "modifierApplied:support": 211,
+        "encounterFamily:relief": 709,
+        "encounter:expired": 866,
+        "encounterBlocker:check": 3518,
+        "encounterFamily:strain": 2,
+        "encounterBlocker:response-window-conflict": 17,
+        "encounterFamily:dispute": 1
+      }
+    },
+    {
+      "name": "freeze7-development-pressure",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "sustained-pressure",
+      "games": 500,
+      "seedStart": 330000,
+      "seedEnd": 330249,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 17,
+      "atRisk": {
+        "8": 498,
+        "16": 495,
+        "24": 480,
+        "40": 466,
+        "64": 398
+      },
+      "discovery16": 1,
+      "resolved24": 0.37083333333333335,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.992462311557789,
+      "supportive64": 0.9974874371859297,
+      "conflict64": 0.005025125628140704,
+      "medianInterval": 7,
+      "p90Interval": 9,
+      "refusalRate": 0.005672149744753261,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0.6666666666666666,
+      "resolverP95": 23.90659999998752,
+      "independentPairedSeeds": 250,
+      "checkpoints": {
+        "16": {
+          "atRisk": 495,
+          "endedBefore": 5
+        },
+        "24": {
+          "atRisk": 480,
+          "endedBefore": 20
+        },
+        "40": {
+          "atRisk": 466,
+          "endedBefore": 34
+        },
+        "64": {
+          "atRisk": 398,
+          "endedBefore": 102
+        }
+      },
+      "diagnostics": {
+        "court:phase": 19382,
+        "court:tyranny": 50510,
+        "court:legitimacy": 45975,
+        "court:leader-resentment": 50862,
+        "court:grievance-history": 51797,
+        "court:check": 3165,
+        "court:accomplice": 38898,
+        "court:ambition": 18556,
+        "complaint-legitimacy": 14700,
+        "court:leader-loyalty": 16110,
+        "two-harm-actions": 1037,
+        "two-harms-personality": 374,
+        "involved-partner-captured": 277,
+        "court:proximity": 49,
+        "complaint-tyranny": 3160,
+        "complaint-government": 3160,
+        "fear40": 553,
+        "fear50": 120,
+        "warned-survivor": 88,
+        "warned-fear50": 40,
+        "causal-pair": 133,
+        "dependent-order": 15,
+        "court:streak": 2
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 9519,
+        "encounterOffers": 6550,
+        "encounterFamily:initiative": 1375,
+        "encounterOffer": 6550,
+        "encounterInteractions": 2916,
+        "encounter:interrupted": 1222,
+        "encounterOutcome": 6541,
+        "encounterFamily:protection": 803,
+        "encounter:expired": 2887,
+        "encounterBlocker:subject-cooldown": 4619,
+        "encounterFamily:relief": 314,
+        "encounterBlocker:no-mobile-candidate": 6660,
+        "encounterFamily:petition": 2242,
+        "encounterBlocker:response-window-conflict": 2617,
+        "encounterBlocker:no-supported-candidate": 3107,
+        "encounterEffects": 3559,
+        "encounter:fulfilled": 2432,
+        "encounterMechanicalResolutions": 2430,
+        "encounterBlocker:check": 790,
+        "encounterFamily:solidarity": 1696,
+        "modifierApplicable:support": 207,
+        "encounterFamily:confidence": 72,
+        "modifierApplicable:steady": 254,
+        "modifierApplied:steady": 150,
+        "modifierApplied:support": 64,
+        "encounterFamily:strain": 45,
+        "encounterFamily:dispute": 3
+      }
+    },
+    {
+      "name": "freeze7-holdout-aware",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "aware",
+      "games": 1000,
+      "seedStart": 400000,
+      "seedEnd": 400499,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 42,
+      "atRisk": {
+        "8": 1000,
+        "16": 999,
+        "24": 997,
+        "40": 972,
+        "64": 931
+      },
+      "discovery16": 1,
+      "resolved24": 0.9578736208625878,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.907626208378088,
+      "supportive64": 0.9065520945220193,
+      "conflict64": 0.0010741138560687433,
+      "medianInterval": 6,
+      "p90Interval": 10,
+      "refusalRate": 0.0053392916733166,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 1,
+      "resolverP95": 5.8140000000130385,
+      "independentPairedSeeds": 500,
+      "checkpoints": {
+        "16": {
+          "atRisk": 999,
+          "endedBefore": 1
+        },
+        "24": {
+          "atRisk": 997,
+          "endedBefore": 3
+        },
+        "40": {
+          "atRisk": 972,
+          "endedBefore": 28
+        },
+        "64": {
+          "atRisk": 931,
+          "endedBefore": 69
+        }
+      },
+      "diagnostics": {
+        "court:phase": 39764,
+        "court:tyranny": 124021,
+        "court:legitimacy": 123926,
+        "court:leader-resentment": 123865,
+        "court:grievance-history": 124014,
+        "court:check": 9293,
+        "court:accomplice": 104731,
+        "court:ambition": 58895,
+        "fear40": 259,
+        "court:leader-loyalty": 53634,
+        "complaint-legitimacy": 1463,
+        "two-harm-actions": 74,
+        "complaint-tyranny": 85,
+        "complaint-government": 79,
+        "fear50": 7,
+        "warned-survivor": 28,
+        "warned-fear50": 1,
+        "two-harms-personality": 15,
+        "involved-partner-captured": 9,
+        "causal-pair": 3,
+        "court:streak": 1,
+        "dependent-order": 1
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 29784,
+        "encounterOffers": 12898,
+        "encounterFamily:initiative": 4239,
+        "encounterOffer": 12898,
+        "encounterInteractions": 11144,
+        "encounterEffects": 18115,
+        "encounter:fulfilled": 10196,
+        "encounterMechanicalResolutions": 10195,
+        "encounterOutcome": 12894,
+        "modifierApplicable:steady": 3751,
+        "modifierApplied:steady": 2942,
+        "encounterFamily:petition": 2254,
+        "encounterBlocker:response-window-conflict": 15,
+        "encounterBlocker:no-supported-candidate": 29989,
+        "encounterBlocker:subject-cooldown": 6486,
+        "encounterFamily:protection": 1967,
+        "encounter:interrupted": 1790,
+        "encounterBlocker:no-mobile-candidate": 19650,
+        "encounterFamily:confidence": 2500,
+        "encounterBlocker:check": 3396,
+        "encounterFamily:solidarity": 1202,
+        "modifierApplicable:support": 271,
+        "modifierApplied:support": 188,
+        "encounterFamily:relief": 730,
+        "encounter:expired": 908,
+        "encounterFamily:strain": 5,
+        "encounterFamily:dispute": 1
+      }
+    },
+    {
+      "name": "freeze7-holdout-pressure",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "sustained-pressure",
+      "games": 500,
+      "seedStart": 410000,
+      "seedEnd": 410249,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 20,
+      "atRisk": {
+        "8": 499,
+        "16": 486,
+        "24": 474,
+        "40": 455,
+        "64": 383
+      },
+      "discovery16": 0.9979423868312757,
+      "resolved24": 0.31645569620253167,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.97911227154047,
+      "supportive64": 1,
+      "conflict64": 0.010443864229765013,
+      "medianInterval": 7,
+      "p90Interval": 8,
+      "refusalRate": 0.006793478260869565,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0,
+      "resolverP95": 22.887699999992037,
+      "independentPairedSeeds": 250,
+      "checkpoints": {
+        "16": {
+          "atRisk": 486,
+          "endedBefore": 14
+        },
+        "24": {
+          "atRisk": 474,
+          "endedBefore": 26
+        },
+        "40": {
+          "atRisk": 455,
+          "endedBefore": 45
+        },
+        "64": {
+          "atRisk": 383,
+          "endedBefore": 117
+        }
+      },
+      "diagnostics": {
+        "court:phase": 19180,
+        "court:tyranny": 48409,
+        "court:legitimacy": 43508,
+        "court:leader-resentment": 48619,
+        "court:grievance-history": 49804,
+        "court:check": 2973,
+        "court:accomplice": 36242,
+        "court:leader-loyalty": 15383,
+        "court:ambition": 17976,
+        "two-harm-actions": 1162,
+        "two-harms-personality": 296,
+        "causal-pair": 160,
+        "court:proximity": 72,
+        "complaint-legitimacy": 14432,
+        "fear40": 595,
+        "complaint-tyranny": 3534,
+        "complaint-government": 3534,
+        "involved-partner-captured": 212,
+        "fear50": 221,
+        "warned-survivor": 172,
+        "warned-fear50": 72,
+        "dependent-order": 13,
+        "court:streak": 7
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 9209,
+        "encounterOffers": 6292,
+        "encounterFamily:initiative": 1340,
+        "encounterOffer": 6292,
+        "encounterInteractions": 2765,
+        "encounterEffects": 3383,
+        "encounter:fulfilled": 2293,
+        "encounterMechanicalResolutions": 2293,
+        "encounterOutcome": 6277,
+        "encounterFamily:protection": 794,
+        "encounter:interrupted": 1217,
+        "encounterBlocker:check": 791,
+        "encounterFamily:relief": 295,
+        "encounter:expired": 2767,
+        "encounterBlocker:no-supported-candidate": 3003,
+        "encounterBlocker:subject-cooldown": 4379,
+        "encounterFamily:petition": 2155,
+        "encounterBlocker:no-mobile-candidate": 6364,
+        "encounterFamily:solidarity": 1581,
+        "encounterBlocker:response-window-conflict": 2515,
+        "encounterFamily:confidence": 64,
+        "encounterFamily:strain": 59,
+        "modifierApplicable:steady": 223,
+        "modifierApplied:steady": 133,
+        "modifierApplicable:support": 176,
+        "modifierApplied:support": 59,
+        "encounterFamily:dispute": 4
+      }
+    },
+    {
+      "name": "freeze7-board-ordinary",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "board-ordinary",
+      "games": 200,
+      "seedStart": 340000,
+      "seedEnd": 340099,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 33,
+      "atRisk": {
+        "8": 200,
+        "16": 199,
+        "24": 198,
+        "40": 194,
+        "64": 189
+      },
+      "discovery16": 1,
+      "resolved24": 0.494949494949495,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.9206349206349206,
+      "supportive64": 0.9153439153439153,
+      "conflict64": 0,
+      "medianInterval": 6,
+      "p90Interval": 12,
+      "refusalRate": 0.0053107789142407555,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0,
+      "resolverP95": 6.241000000001804,
+      "independentPairedSeeds": 100,
+      "checkpoints": {
+        "16": {
+          "atRisk": 199,
+          "endedBefore": 1
+        },
+        "24": {
+          "atRisk": 198,
+          "endedBefore": 2
+        },
+        "40": {
+          "atRisk": 194,
+          "endedBefore": 6
+        },
+        "64": {
+          "atRisk": 189,
+          "endedBefore": 11
+        }
+      },
+      "diagnostics": {
+        "court:phase": 7926,
+        "court:tyranny": 32140,
+        "court:legitimacy": 32140,
+        "court:leader-resentment": 32138,
+        "court:grievance-history": 32140,
+        "court:check": 2184,
+        "court:accomplice": 27801,
+        "court:ambition": 16712,
+        "court:leader-loyalty": 13278,
+        "complaint-legitimacy": 460,
+        "two-harm-actions": 14,
+        "fear40": 169,
+        "two-harms-personality": 1,
+        "causal-pair": 1,
+        "complaint-tyranny": 6,
+        "complaint-government": 6
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 9712,
+        "encounterOffers": 3221,
+        "encounterFamily:initiative": 1178,
+        "encounterOffer": 3221,
+        "encounterInteractions": 1356,
+        "encounterEffects": 1907,
+        "encounter:fulfilled": 1107,
+        "encounterMechanicalResolutions": 1107,
+        "encounterOutcome": 3219,
+        "encounter:interrupted": 723,
+        "encounter:expired": 1389,
+        "encounterBlocker:subject-cooldown": 2965,
+        "encounterFamily:petition": 557,
+        "encounterBlocker:no-supported-candidate": 10716,
+        "modifierApplicable:steady": 385,
+        "modifierApplied:steady": 315,
+        "encounterBlocker:check": 911,
+        "encounterFamily:confidence": 586,
+        "encounterFamily:protection": 474,
+        "encounterBlocker:no-mobile-candidate": 5762,
+        "encounterBlocker:response-window-conflict": 257,
+        "encounterFamily:solidarity": 259,
+        "encounterFamily:relief": 167,
+        "modifierApplicable:support": 43,
+        "modifierApplied:support": 29
+      }
+    },
+    {
+      "name": "freeze7-board-protective",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "board-protective",
+      "games": 200,
+      "seedStart": 341000,
+      "seedEnd": 341099,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 41,
+      "atRisk": {
+        "8": 200,
+        "16": 200,
+        "24": 198,
+        "40": 186,
+        "64": 159
+      },
+      "discovery16": 1,
+      "resolved24": 0.6666666666666666,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 9,
+      "threeFamilies64": 0.9811320754716981,
+      "supportive64": 0.9433962264150944,
+      "conflict64": 0,
+      "medianInterval": 6,
+      "p90Interval": 10,
+      "refusalRate": 0.0033224400871459695,
+      "retreatRate": 0,
+      "retreatSeeds": [],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0,
+      "resolverP95": 15.885500000003958,
+      "independentPairedSeeds": 100,
+      "checkpoints": {
+        "16": {
+          "atRisk": 200,
+          "endedBefore": 0
+        },
+        "24": {
+          "atRisk": 198,
+          "endedBefore": 2
+        },
+        "40": {
+          "atRisk": 186,
+          "endedBefore": 14
+        },
+        "64": {
+          "atRisk": 159,
+          "endedBefore": 41
+        }
+      },
+      "diagnostics": {
+        "court:phase": 7872,
+        "court:tyranny": 28024,
+        "court:legitimacy": 28024,
+        "court:leader-resentment": 28013,
+        "court:grievance-history": 28022,
+        "court:accomplice": 23783,
+        "court:check": 1824,
+        "court:ambition": 9459,
+        "court:leader-loyalty": 7905,
+        "fear40": 17,
+        "fear50": 1
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 5416,
+        "encounterOffers": 3387,
+        "encounterFamily:initiative": 1025,
+        "encounterOffer": 3387,
+        "encounterInteractions": 1457,
+        "encounterEffects": 1883,
+        "encounter:fulfilled": 1193,
+        "encounterMechanicalResolutions": 1188,
+        "encounterOutcome": 3379,
+        "encounterFamily:protection": 619,
+        "encounter:interrupted": 832,
+        "encounterBlocker:subject-cooldown": 2375,
+        "modifierApplicable:steady": 331,
+        "modifierApplied:steady": 279,
+        "encounterFamily:petition": 776,
+        "encounterFamily:solidarity": 383,
+        "encounter:expired": 1354,
+        "encounterBlocker:no-mobile-candidate": 2383,
+        "encounterBlocker:response-window-conflict": 418,
+        "encounterBlocker:no-supported-candidate": 4684,
+        "encounterBlocker:check": 554,
+        "encounterFamily:confidence": 223,
+        "modifierApplicable:support": 95,
+        "encounterFamily:relief": 361,
+        "modifierApplied:support": 56
+      }
+    },
+    {
+      "name": "freeze7-board-mistreatment",
+      "measurementVersion": 4,
+      "actorStreams": "A=2*seed+1; B=2*seed+2; swap colors on pair 1",
+      "config": "2026-09-10.1",
+      "policy": "board-mistreatment",
+      "games": 200,
+      "seedStart": 342000,
+      "seedEnd": 342099,
+      "pairedColors": true,
+      "cap": 240,
+      "failures": 0,
+      "truncated": 87,
+      "atRisk": {
+        "8": 200,
+        "16": 200,
+        "24": 200,
+        "40": 199,
+        "64": 197
+      },
+      "discovery16": 1,
+      "resolved24": 0.2,
+      "medianFirstOffer": 10,
+      "medianOffers40": 5,
+      "medianOffers64": 8,
+      "threeFamilies64": 0.9289340101522843,
+      "supportive64": 0.7208121827411168,
+      "conflict64": 0.15228426395939088,
+      "medianInterval": 6,
+      "p90Interval": 11,
+      "refusalRate": 0.025609379821042888,
+      "retreatRate": 0.001234186979327368,
+      "retreatSeeds": [
+        342002,
+        342029,
+        342030,
+        342036,
+        342041,
+        342046,
+        342049,
+        342066,
+        342072,
+        342074,
+        342085,
+        342086
+      ],
+      "attemptSeeds": [],
+      "regicideRate": 0,
+      "disputeRelevance": 0.3,
+      "resolverP95": 4.525399999998626,
+      "independentPairedSeeds": 100,
+      "checkpoints": {
+        "16": {
+          "atRisk": 200,
+          "endedBefore": 0
+        },
+        "24": {
+          "atRisk": 200,
+          "endedBefore": 0
+        },
+        "40": {
+          "atRisk": 199,
+          "endedBefore": 1
+        },
+        "64": {
+          "atRisk": 197,
+          "endedBefore": 3
+        }
+      },
+      "diagnostics": {
+        "court:phase": 7996,
+        "court:tyranny": 29189,
+        "court:legitimacy": 23887,
+        "court:leader-resentment": 33331,
+        "court:grievance-history": 35526,
+        "court:accomplice": 24839,
+        "court:check": 1700,
+        "two-harm-actions": 5210,
+        "two-harms-personality": 1948,
+        "causal-pair": 1316,
+        "complaint-tyranny": 10979,
+        "complaint-legitimacy": 22131,
+        "complaint-government": 10949,
+        "court:streak": 328,
+        "fear40": 4075,
+        "dependent-order": 141,
+        "fear50": 2635,
+        "court:ambition": 20346,
+        "court:proximity": 534,
+        "warned-survivor": 1191,
+        "warned-fear50": 1030,
+        "involved-partner-captured": 872,
+        "court:leader-loyalty": 9371,
+        "court:pair": 98,
+        "court:active-plot": 14,
+        "court:attempt-used": 113
+      },
+      "effects": {
+        "encounterBlocker:impossible-response": 33609,
+        "encounterOffers": 2601,
+        "encounterFamily:initiative": 747,
+        "encounterOffer": 2601,
+        "encounter:expired": 1025,
+        "encounterOutcome": 2598,
+        "encounterBlocker:subject-cooldown": 2051,
+        "encounterFamily:protection": 717,
+        "encounterInteractions": 1318,
+        "encounter:interrupted": 748,
+        "encounterFamily:dispute": 30,
+        "encounterBlocker:check": 483,
+        "encounterFamily:strain": 171,
+        "encounterBlocker:no-supported-candidate": 32204,
+        "encounterFamily:confidence": 440,
+        "encounterEffects": 1423,
+        "encounter:fulfilled": 823,
+        "encounterMechanicalResolutions": 823,
+        "modifierApplicable:steady": 406,
+        "modifierApplied:steady": 383,
+        "encounterFamily:petition": 429,
+        "encounterBlocker:response-window-conflict": 118,
+        "retreats": 16,
+        "encounterBlocker:no-mobile-candidate": 1345,
+        "encounterFamily:solidarity": 27,
+        "modifierApplicable:support": 8,
+        "modifierApplied:support": 8,
+        "encounterFamily:relief": 7,
+        "encounterFamily:complaint": 33,
+        "complaintWarning": 12,
+        "complaintStage2": 12,
+        "modifierApplicable:dispute": 1,
+        "modifierApplied:dispute": 1,
+        "encounter:escalated": 2,
+        "plots": 2,
+        "plotWarning": 5,
+        "court-blocker:active-plot": 14,
+        "plotThwarted": 2
+      }
+    }
+  ],
+  "gates": [
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "discovery by 16",
+      "actual": 0.998,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "three families by 64",
+      "actual": 0.8963675213675214,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "raw gap median",
+      "actual": 6,
+      "requirement": "4–6",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "raw gap p90",
+      "actual": 10,
+      "requirement": "<= 10",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "refusal rate",
+      "actual": 0.00556147883468288,
+      "requirement": "0.005–0.025",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "mechanically resolved by 24",
+      "actual": 0.9728643216080402,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-aware",
+      "metric": "ordinary regicide rate",
+      "actual": 0,
+      "requirement": "<= 0.01",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "discovery by 16",
+      "actual": 1,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "three families by 64",
+      "actual": 0.992462311557789,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "raw gap median",
+      "actual": 7,
+      "requirement": "4–6",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "raw gap p90",
+      "actual": 9,
+      "requirement": "<= 10",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "refusal rate",
+      "actual": 0.005672149744753261,
+      "requirement": "0.005–0.025",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "conflict by 64",
+      "actual": 0.005025125628140704,
+      "requirement": ">= 0.50",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "dispute relevance",
+      "actual": 0.6666666666666666,
+      "requirement": ">= 0.60",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "distinct warned retreat seeds",
+      "actual": 0,
+      "requirement": ">= 5",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-development-pressure",
+      "metric": "distinct warned attempt seeds",
+      "actual": 0,
+      "requirement": ">= 3",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "discovery by 16",
+      "actual": 1,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "three families by 64",
+      "actual": 0.907626208378088,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "raw gap median",
+      "actual": 6,
+      "requirement": "4–6",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "raw gap p90",
+      "actual": 10,
+      "requirement": "<= 10",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "refusal rate",
+      "actual": 0.0053392916733166,
+      "requirement": "0.005–0.025",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "mechanically resolved by 24",
+      "actual": 0.9578736208625878,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-aware",
+      "metric": "ordinary regicide rate",
+      "actual": 0,
+      "requirement": "<= 0.01",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "discovery by 16",
+      "actual": 0.9979423868312757,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "three families by 64",
+      "actual": 0.97911227154047,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "raw gap median",
+      "actual": 7,
+      "requirement": "4–6",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "raw gap p90",
+      "actual": 8,
+      "requirement": "<= 10",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "refusal rate",
+      "actual": 0.006793478260869565,
+      "requirement": "0.005–0.025",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "conflict by 64",
+      "actual": 0.010443864229765013,
+      "requirement": ">= 0.50",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "dispute relevance",
+      "actual": 0,
+      "requirement": ">= 0.60",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "distinct warned retreat seeds",
+      "actual": 0,
+      "requirement": ">= 5",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-holdout-pressure",
+      "metric": "distinct warned attempt seeds",
+      "actual": 0,
+      "requirement": ">= 3",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "discovery by 16",
+      "actual": 1,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "three families by 64",
+      "actual": 0.9206349206349206,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "raw gap median",
+      "actual": 6,
+      "requirement": "4–6",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "raw gap p90",
+      "actual": 12,
+      "requirement": "<= 10",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "refusal rate",
+      "actual": 0.0053107789142407555,
+      "requirement": "0.005–0.025",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-ordinary",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "discovery by 16",
+      "actual": 1,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "offers by 64",
+      "actual": 9,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "three families by 64",
+      "actual": 0.9811320754716981,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "raw gap median",
+      "actual": 6,
+      "requirement": "4–6",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "raw gap p90",
+      "actual": 10,
+      "requirement": "<= 10",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "refusal rate",
+      "actual": 0.0033224400871459695,
+      "requirement": "0.005–0.025",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "retreat rate",
+      "actual": 0,
+      "requirement": "<= 0.005",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-protective",
+      "metric": "supportive arc by 64",
+      "actual": 0.9433962264150944,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "invariant failures",
+      "actual": 0,
+      "requirement": "0",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "discovery by 16",
+      "actual": 1,
+      "requirement": ">= 0.90",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "first offer",
+      "actual": 10,
+      "requirement": "10–14",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "offers by 40",
+      "actual": 5,
+      "requirement": "4–7",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "offers by 64",
+      "actual": 8,
+      "requirement": "8–12",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "three families by 64",
+      "actual": 0.9289340101522843,
+      "requirement": ">= 0.75",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "raw gap median",
+      "actual": 6,
+      "requirement": "4–6",
+      "pass": true
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "raw gap p90",
+      "actual": 11,
+      "requirement": "<= 10",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "refusal rate",
+      "actual": 0.025609379821042888,
+      "requirement": "0.005–0.025",
+      "pass": false
+    },
+    {
+      "cohort": "freeze7-board-mistreatment",
+      "metric": "retreat rate",
+      "actual": 0.001234186979327368,
+      "requirement": "<= 0.005",
+      "pass": true
+    }
+  ]
+}

@@ -35,7 +35,7 @@ export function validProgression(s: GameState): boolean {
       Object.keys(q.ambient).length > 4
     )
       return false;
-    if (sim.schemaVersion === 4) {
+    if (sim.schemaVersion >= 4) {
       const h = q.hazard;
       if (
         h !== null &&

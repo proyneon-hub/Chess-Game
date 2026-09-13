@@ -1,3 +1,4 @@
+import { applicableModifiers } from "./encounters/effects";
 import {
   applyMove,
   findKing,
@@ -149,8 +150,15 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       sub.fear = clamp(sub.fear + 2);
       sub.resentment = clamp(sub.resentment + 2);
       count(s, `refused:${m.side}:${sub.personality}`);
-      const c = s.schemaVersion === 4 ? moveContext(s, m) : null;
-      const rival = c?.disputeRelevant ? sim.subjects[c.defenders[0]] : null;
+      const c = s.schemaVersion >= 4 ? moveContext(s, m) : null;
+      const rivalId =
+        s.schemaVersion !== 5 && c?.disputeRelevant
+          ? c.defenders[0]
+          : s.schemaVersion === 5
+            ? applicableModifiers(s, m).find((x) => x.kind === "dispute")
+                ?.helper
+            : null;
+      const rival = rivalId ? sim.subjects[rivalId] : null;
       return {
         ...normal,
         kind: "refused" as const,
@@ -163,13 +171,19 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       const p = progression(s);
       p.subjects[sub.id].lastRetreat = sim.kingdoms[m.side].ownTurnsCompleted;
       p.sides[m.side].retreats++;
+      if (sim.schemaVersion === 5)
+        sim.encounters.sides[m.side].lastWithdrawal =
+          sim.kingdoms[m.side].ownTurnsCompleted;
       return {
         ...normal,
         kind: "autonomous" as const,
         outcome: "retreat" as const,
         destination: f.retreatTo,
         special: true,
-        message: `The ${name} withdraws from the attack.`,
+        message:
+          s.schemaVersion === 5
+            ? `The ${name} withdraws ${exchangeLoss(applyMove(s.board, m.from, f.retreatTo, m.promotion, s.rights), f.retreatTo, m.side) < 100 ? "to safety" : "to reduce the danger"} after its earlier warning.`
+            : `The ${name} withdraws from the attack.`,
       };
     }
     if (roll < f.refusal + f.retreat + f.heroism && f.heroicTo) {

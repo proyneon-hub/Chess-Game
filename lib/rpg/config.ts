@@ -120,13 +120,16 @@ export type ProgressionConfig = {
 export type RuleConfig = {
   readonly [K in keyof typeof ORIGINAL]: K extends "version" ? string : number;
 } & {
-  readonly generation: 2 | 3 | 4;
+  readonly generation: 2 | 3 | 4 | 5;
   readonly responsibility?: {
     readonly rivalryWindow: number;
     readonly preferNearbyLeader: boolean;
     readonly armedDeferrals: number;
   };
   readonly progression?: ProgressionConfig;
+  readonly encounters?: {
+    readonly [K in keyof typeof ENCOUNTER_RULES]: number;
+  };
 };
 export const CANDIDATE_1: RuleConfig = Object.freeze({
   ...V2_CONFIG,
@@ -216,7 +219,7 @@ export const V3_CONFIG: RuleConfig = Object.freeze({
     recoveryResentment: 8,
   }),
 });
-export const CONFIG: RuleConfig = Object.freeze({
+export const V4_CONFIG: RuleConfig = Object.freeze({
   ...V3_CONFIG,
   version: "2026-09-09.1",
   generation: 4,
@@ -230,56 +233,87 @@ export const CONFIG: RuleConfig = Object.freeze({
 // tested entry. The default remains the corrected baseline until selection.
 export const READABLE_CANDIDATES: readonly RuleConfig[] = Object.freeze([
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.2",
-    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
   }),
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.3",
     responsibility: Object.freeze({
-      ...CONFIG.responsibility!,
+      ...V4_CONFIG.responsibility!,
       rivalryWindow: 12,
     }),
   }),
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.4",
     responsibility: Object.freeze({
-      ...CONFIG.responsibility!,
+      ...V4_CONFIG.responsibility!,
       preferNearbyLeader: true,
     }),
   }),
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.5",
     responsibility: Object.freeze({
-      ...CONFIG.responsibility!,
+      ...V4_CONFIG.responsibility!,
       armedDeferrals: 4,
     }),
   }),
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.6",
-    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
     responsibility: Object.freeze({
-      ...CONFIG.responsibility!,
+      ...V4_CONFIG.responsibility!,
       preferNearbyLeader: true,
       armedDeferrals: 4,
     }),
   }),
   Object.freeze({
-    ...CONFIG,
+    ...V4_CONFIG,
     version: "2026-09-09.7",
-    progression: Object.freeze({ ...CONFIG.progression!, retreatFear: 60 }),
+    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
     responsibility: Object.freeze({
-      ...CONFIG.responsibility!,
+      ...V4_CONFIG.responsibility!,
       rivalryWindow: 12,
       preferNearbyLeader: true,
       armedDeferrals: 4,
     }),
   }),
 ]);
+export const ENCOUNTER_RULES = Object.freeze({
+  firstPly: 10,
+  cadence: 6,
+  hardDue: 8,
+  minimumGap: 4,
+  sideGap: 3,
+  subjectGap: 6,
+  personalWindow: 3,
+  petitionWindow: 4,
+  steadyTurns: 2,
+  supportTurns: 6,
+  modifierCap: 0.06,
+  steady: -0.03,
+  support: -0.03,
+  dispute: 0.04,
+  physicalFear: 4,
+  strainFear: 40,
+  withdrawalFear: 50,
+  withdrawalBase: 0.03,
+  withdrawalHighFear: 0.02,
+  withdrawalLowLoyalty: 0.01,
+  withdrawalGap: 8,
+  withdrawalLimit: 2,
+  aiAccommodation: 75,
+});
+export const CONFIG: RuleConfig = Object.freeze({
+  ...V4_CONFIG,
+  version: "2026-09-10.1",
+  generation: 5,
+  encounters: ENCOUNTER_RULES,
+});
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -290,6 +324,7 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [CANDIDATE_4.version]: CANDIDATE_4,
   [CANDIDATE_5.version]: CANDIDATE_5,
   [V3_CONFIG.version]: V3_CONFIG,
+  [V4_CONFIG.version]: V4_CONFIG,
   [CONFIG.version]: CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
@@ -317,3 +352,9 @@ export function rulesFor(s: {
 }
 export const clamp = (n: number, min = 0, max = 100) =>
   Math.max(min, Math.min(max, n));
+
+export function encounterRulesFor(s: Parameters<typeof rulesFor>[0]) {
+  const config = rulesFor(s).encounters;
+  if (!config) throw new Error("Encounter configuration required.");
+  return config;
+}

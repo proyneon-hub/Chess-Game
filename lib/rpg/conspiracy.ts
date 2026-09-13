@@ -1,3 +1,5 @@
+import { encounters } from "./encounters/state";
+import { closeEncounter } from "./encounters/resolve";
 import { findKing, isInCheck, KIND_NAMES, type Side } from "@/lib/chess";
 import type { CourtPlot, GameState, SubjectState } from "@/lib/game/types";
 import { finish } from "@/lib/game";
@@ -100,6 +102,10 @@ export function scheduleCourt(
       thwart(s, active, "separation");
       return;
     }
+    if (s.schemaVersion === 5 && check) {
+      active.stageEnteredOwnTurn++;
+      return;
+    }
     if (own <= active.stageEnteredOwnTurn) return;
     if (active.stage === "gathering" || active.stage === "preparing") {
       active.stage = active.stage === "gathering" ? "preparing" : "armed";
@@ -180,14 +186,35 @@ export function scheduleCourt(
         const key = `${a.id}|${b.id}`;
         tracking.pairs[key] = (old[key] ?? 0) + 1;
       }
+    const complaint =
+      s.schemaVersion === 5
+        ? encounters(s).active.find(
+            (e) =>
+              e.side === side &&
+              e.family === "complaint" &&
+              e.stage === 2 &&
+              own > e.stageOwn &&
+              encounters(s).sides[side].harms.some(
+                (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
+              ),
+          )
+        : null;
+    if (s.schemaVersion === 5 && (s.ply <= 64 || !complaint)) return;
     const candidates = assessment.pairs.filter(
-      ({ a, b }) => (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2,
+      ({ a, b }) =>
+        (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&
+        (!complaint ||
+          (complaint.participants.includes(a.id) &&
+            complaint.participants.includes(b.id))),
     );
     if (!candidates.length) return;
     count(s, "eligibleKingdomTurns");
     count(s, `eligibleCourt:${side}`);
-    if (rng() >= rulesFor(s).plotChance) return;
-    if (rulesFor(s).responsibility?.preferNearbyLeader) {
+    if (s.schemaVersion < 5 && rng() >= rulesFor(s).plotChance) return;
+    if (
+      s.schemaVersion === 5 ||
+      rulesFor(s).responsibility?.preferNearbyLeader
+    ) {
       const king = findKing(s.board, side === "white")!;
       candidates.sort(
         (x, y) =>
@@ -208,6 +235,7 @@ export function scheduleCourt(
       separatedTurns: 0,
       deferredTurns: 0,
     };
+    if (complaint) closeEncounter(s, complaint, "escalated");
     sim.plots.push(plot);
     count(s, "plots");
     warning(s, plot);

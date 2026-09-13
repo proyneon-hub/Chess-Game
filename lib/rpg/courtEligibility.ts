@@ -11,6 +11,19 @@ export function courtEligibility(
   const cfg = rulesFor(s).progression!,
     k = s.simulation!.kingdoms[side],
     pos = locations(s);
+  const graveActions = (id: string) =>
+    s.simulation?.schemaVersion === 5
+      ? new Set(
+          s.simulation.encounters.sides[side].harms
+            .filter(
+              (h) =>
+                h.subject === id &&
+                h.grave &&
+                k.ownTurnsCompleted - h.own < cfg.graveWindow,
+            )
+            .map((h) => h.revision),
+        ).size
+      : harmfulEpisodes(s, id, cfg.graveWindow, true).length;
   const blockers: string[] = [];
   if (s.ply < rulesFor(s).crisis) blockers.push("phase");
   if (startedInCheck || isInCheck(s.board, true) || isInCheck(s.board, false))
@@ -43,11 +56,7 @@ export function courtEligibility(
       x.resentment >= cfg.accompliceResentment,
   );
   if (!accomplices.length) blockers.push("accomplice");
-  if (
-    !leaders.some(
-      (a) => harmfulEpisodes(s, a.id, cfg.graveWindow, true).length >= 2,
-    )
-  )
+  if (!leaders.some((a) => graveActions(a.id) >= 2))
     blockers.push("grievance-history");
   const social = leaders.flatMap((a) =>
     accomplices.filter((b) => a.id !== b.id).map((b) => ({ a, b })),
@@ -61,8 +70,8 @@ export function courtEligibility(
     .filter(
       ({ a, b }) =>
         distance(pos[a.id], pos[b.id]) <= 3 &&
-        harmfulEpisodes(s, a.id, cfg.graveWindow, true).length >= 2 &&
-        harmfulEpisodes(s, b.id, cfg.graveWindow, true).length >= 1,
+        graveActions(a.id) >= 2 &&
+        graveActions(b.id) >= 1,
     )
     .sort(
       (x, y) =>

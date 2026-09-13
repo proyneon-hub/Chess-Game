@@ -1,4 +1,9 @@
 import {
+  evaluateObjective,
+  projectBoard,
+} from "@/lib/rpg/encounters/objectives";
+import { materializeView } from "./leadershipView";
+import {
   type Board,
   type ChessRights,
   type Side,
@@ -134,6 +139,31 @@ export function searchMoves(input: SearchInput): SearchResult {
     if (performance.now() >= deadline) break;
   }
   let shortlist = ranked.slice(0, 8);
+  if (input.own?.view?.simulation.schemaVersion === 5) {
+    const view = materializeView(input.own.view);
+    if (view.simulation?.schemaVersion === 5) {
+      const objectives = view.simulation.encounters.active.filter(
+        (e) => e.side === input.side,
+      );
+      const responses = ranked
+        .filter((c) =>
+          objectives.some((e) => {
+            const response = evaluateObjective(
+              view,
+              projectBoard(view, c.move),
+              c.move,
+              e.objective,
+            );
+            return response.success || response.progress;
+          }),
+        )
+        .slice(0, 2);
+      shortlist = [
+        ...responses,
+        ...shortlist.filter((c) => !responses.some((r) => r.move === c.move)),
+      ].slice(0, 10);
+    }
+  }
   if (input.own?.plot) {
     // Include an actual court defense even when chess-only ranking omits it.
     const defensive = ranked

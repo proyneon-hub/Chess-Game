@@ -1,3 +1,4 @@
+import { initialEncounters } from "./encounters/state";
 import type { Board } from "@/lib/chess";
 import type { PieceIdBoard } from "@/lib/rpgChess";
 import type {
@@ -137,6 +138,9 @@ export function initializeSimulation(
     },
     privateEvents: [],
     counters: {},
+    ...(rules.generation === 5
+      ? { encounters: initialEncounters(subjects) }
+      : {}),
     ...(rules.generation >= 3
       ? {
           progression: {
@@ -145,7 +149,7 @@ export function initializeSimulation(
                 id,
                 {
                   episodes: [],
-                  ...(rules.generation === 4 ? { hazard: null } : {}),
+                  ...(rules.generation >= 4 ? { hazard: null } : {}),
                   lastHarm: -100,
                   lastExposure: -100,
                   lastRepeated: -100,

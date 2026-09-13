@@ -1,3 +1,4 @@
+import { refusalModifier } from "./encounters/effects";
 import {
   applyMove,
   findKing,
@@ -40,7 +41,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     heroicTo: null,
   };
   if (
-    s.ply < rules.grace ||
+    (s.schemaVersion === 5 ? s.ply <= rules.grace : s.ply < rules.grace) ||
     sub.currentKind === "k" ||
     s.pendingRefusal ||
     s.simulation!.turnContext.refusalUsed ||
@@ -57,7 +58,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     0.4 * risk +
       0.25 * Number(c.currentlyAttacked) +
       0.2 * Number(c.isolatedFromKing) +
-      0.15 * Number(c.disputeRelevant),
+      0.15 * Number(s.schemaVersion !== 5 && c.disputeRelevant),
     0,
     1,
   );
@@ -78,7 +79,8 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     fear: ((cfg.fearWeight * sub.fear) / 100) * pressure,
     resentment: (cfg.resentmentWeight * sub.resentment) / 100,
     fatigue: (cfg.fatigueWeight * sub.fatigue) / 100,
-    dispute: cfg.disputeWeight * Number(c.disputeRelevant),
+    dispute:
+      cfg.disputeWeight * Number(s.schemaVersion !== 5 && c.disputeRelevant),
     harm: cfg.harmWeight * Math.min(1, harm.length / 3),
     loyalty: -cfg.loyaltyWeight * (sub.loyalty / 100 - 0.65),
     courage: -cfg.courageWeight * (sub.courage / 100 - 0.5),
@@ -122,13 +124,29 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     assessment.residual < 100
   )
     result.refusal = Math.min(result.refusal, cfg.calmCap);
+  if (s.schemaVersion === 5) {
+    const modifier = refusalModifier(s, m);
+    result.contributions.encounter = modifier;
+    const without = result.refusal;
+    result.refusal = clamp(result.refusal + modifier, 0, rules.refusalMax);
+    result.contributions.encounterApplied = result.refusal - without;
+  }
   const p = progression(s),
     q = p.subjects[sub.id],
     own = k.ownTurnsCompleted;
+  const encounterState =
+    s.simulation?.schemaVersion === 5 ? s.simulation.encounters : null;
+  const warned = encounterState?.subjects[sub.id].warningOwn;
   if (
     s.ply >= rules.established &&
-    sub.fear >= cfg.retreatFear &&
-    sub.loyalty <= cfg.retreatLoyalty &&
+    (encounterState
+      ? sub.fear >= rules.encounters!.withdrawalFear &&
+        warned !== null &&
+        warned !== undefined &&
+        own > warned &&
+        own - encounterState.sides[m.side].lastWithdrawal >=
+          rules.encounters!.withdrawalGap
+      : sub.fear >= cfg.retreatFear && sub.loyalty <= cfg.retreatLoyalty) &&
     assessment.residual >= 100 &&
     own - q.lastRetreat >= rules.cooldown &&
     p.sides[m.side].retreats < cfg.retreatLimit
@@ -151,16 +169,28 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
           m.side,
         ),
       }))
-      .filter((x) => x.loss < c.afterLoss)
+      .filter(
+        (x) => x.loss < (encounterState ? assessment.residual : c.afterLoss),
+      )
       .sort(
         (a, b) =>
+          (encounterState
+            ? a.loss - b.loss
+            : distance(a.to, king) - distance(b.to, king)) ||
           distance(a.to, king) - distance(b.to, king) ||
           a.loss - b.loss ||
           a.to[0] - b.to[0] ||
           a.to[1] - b.to[1],
       );
     if (options.length) {
-      result.retreat = rules.retreatMax;
+      result.retreat = encounterState
+        ? Math.min(
+            0.06,
+            rules.encounters!.withdrawalBase +
+              Number(sub.fear >= 70) * rules.encounters!.withdrawalHighFear +
+              Number(sub.loyalty < 50) * rules.encounters!.withdrawalLowLoyalty,
+          )
+        : rules.retreatMax;
       result.retreatTo = options[0].to;
     }
   }

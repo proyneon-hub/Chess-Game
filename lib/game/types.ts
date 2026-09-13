@@ -1,3 +1,4 @@
+import type { EncounterState } from "@/lib/rpg/encounters/types";
 import type {
   Board,
   ChessRights,
@@ -168,6 +169,12 @@ export type HiddenSimulation = {
       rulesetVersion: "hidden-kingdom-v4";
       progression: ProgressionState;
     }
+  | {
+      schemaVersion: 5;
+      rulesetVersion: "hidden-kingdom-v5";
+      progression: ProgressionState;
+      encounters: EncounterState;
+    }
 );
 export type Terminal = {
   reason:
@@ -224,6 +231,7 @@ export type GameState = {
   | { schemaVersion: 2; rulesetVersion: "hidden-kingdom-v2" }
   | { schemaVersion: 3; rulesetVersion: "hidden-kingdom-v3" }
   | { schemaVersion: 4; rulesetVersion: "hidden-kingdom-v4" }
+  | { schemaVersion: 5; rulesetVersion: "hidden-kingdom-v5" }
 );
 export type MoveResult = ActionOutcome & {
   state: GameState;

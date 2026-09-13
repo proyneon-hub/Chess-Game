@@ -1,3 +1,4 @@
+import { initialEncounters } from "@/lib/rpg/encounters/state";
 import type {
   GameState,
   Side,
@@ -11,7 +12,7 @@ import { progression } from "@/lib/rpg/pressure";
 // hidden attributes, participant identities, pressure episodes or RNG streams.
 export type LeadershipView = Omit<GameState, "simulation"> & {
   simulation: Omit<
-    Extract<HiddenSimulation, { schemaVersion: 3 | 4 }>,
+    Extract<HiddenSimulation, { schemaVersion: 3 | 4 | 5 }>,
     "rngState"
   >;
 };
@@ -35,7 +36,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
     pieceIds = s.board.map((row) => row.map(() => null as string | null));
   const emptyPressure = () => ({
     episodes: [],
-    ...(s.schemaVersion === 4 ? { hazard: null } : {}),
+    ...(s.schemaVersion >= 4 ? { hazard: null } : {}),
     lastHarm: -100,
     lastExposure: -100,
     lastRepeated: -100,
@@ -96,6 +97,32 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
     extensionsUsed: 0,
   };
   const visible = publicState(s);
+  const projectedEncounters = initialEncounters(subjects);
+  if (sim.schemaVersion === 5) {
+    const source = sim.encounters;
+    projectedEncounters.serial = source.serial;
+    projectedEncounters.lastStartPly = source.lastStartPly;
+    projectedEncounters.duePly = source.duePly;
+    projectedEncounters.processedRevision = source.processedRevision;
+    projectedEncounters.sides[side] = structuredClone(source.sides[side]);
+    for (const id of Object.keys(subjects))
+      if (subjects[id].side === side)
+        projectedEncounters.subjects[id] = structuredClone(source.subjects[id]);
+    projectedEncounters.active = structuredClone(
+      source.active.filter((e) => e.side === side),
+    );
+    projectedEncounters.recent = structuredClone(
+      source.recent.filter((e) => e.side === side),
+    );
+    projectedEncounters.modifiers = structuredClone(
+      source.modifiers.filter((m) => subjects[m.subject]?.side === side),
+    );
+    projectedEncounters.pairRewards = Object.fromEntries(
+      Object.entries(source.pairRewards).filter(([key]) =>
+        key.split("|").every((id) => subjects[id]?.side === side),
+      ),
+    );
+  }
   return {
     ...visible,
     configVersion: s.configVersion,
@@ -120,6 +147,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
       turnContext: structuredClone(sim.turnContext),
       privateEvents: [],
       counters: {},
+      ...(sim.schemaVersion === 5 ? { encounters: projectedEncounters } : {}),
       progression: {
         subjects: pressure,
         sides: {

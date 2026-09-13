@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { CONFIG } from "@/lib/rpg/config";
+import { V4_CONFIG } from "@/lib/rpg/config";
 import fixture from "../goldens/natural-progression-v3.json";
 import { createGameState, submitMove, getAllLegalMoves } from "@/lib/game";
 import type { MoveAttempt } from "@/lib/game/types";
@@ -7,7 +7,7 @@ import { validateState } from "@/lib/game/validation";
 import { progression } from "@/lib/rpg/pressure";
 import { exchangeLoss, locations } from "@/lib/rpg/context";
 import { applyMove } from "@/lib/chess";
-it.each([fixture.configVersion, CONFIG.version])(
+it.each([fixture.configVersion, V4_CONFIG.version])(
   "scripted causal reachability %s from a normal board without political edits",
   (version) => {
     let s = createGameState(fixture.seed, version),

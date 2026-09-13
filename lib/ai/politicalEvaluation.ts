@@ -1,3 +1,7 @@
+import {
+  evaluateObjective,
+  projectBoard,
+} from "@/lib/rpg/encounters/objectives";
 import { type Board, type Square, findKing } from "@/lib/chess";
 import type {
   CourtPlot,
@@ -96,6 +100,32 @@ export function politicalScore(
       )
     )
       score += 10;
+  }
+  if (own.view?.simulation.schemaVersion === 5) {
+    const state = materializeView(own.view);
+    if (state.simulation?.schemaVersion === 5) {
+      const projected = projectBoard(state, move);
+      let accommodation = 0,
+        courtObligation = 0;
+      for (const encounter of state.simulation.encounters.active.filter(
+        (e) => e.side === own.side,
+      )) {
+        const response = evaluateObjective(
+          state,
+          projected,
+          move,
+          encounter.objective,
+        );
+        const remaining = encounter.deadline - own.kingdom.ownTurnsCompleted;
+        if (response.success)
+          accommodation = Math.max(accommodation, remaining <= 1 ? 75 : 50);
+        else if (response.progress && remaining >= 2)
+          accommodation = Math.max(accommodation, 25);
+        else if (encounter.family === "complaint" && encounter.stage === 2)
+          courtObligation = -40;
+      }
+      score += accommodation + courtObligation;
+    }
   }
   score = clamp(score, -100, 100);
   if (own.plot) {

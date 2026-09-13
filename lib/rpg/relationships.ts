@@ -48,7 +48,7 @@ export function riskFriction(s: GameState, side: SubjectState["side"]) {
       )
         continue;
       remember(s, sub, "rival_friction", id, 1, cfg.graveWindow);
-      relate(s, sub, other, cfg.friction);
+      if (s.schemaVersion < 5) relate(s, sub, other, cfg.friction);
       count(s, "rivalFriction");
     }
   }

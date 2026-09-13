@@ -1,4 +1,10 @@
 import {
+  resolveEncounters,
+  closeTerminalEncounters,
+} from "@/lib/rpg/encounters/resolve";
+import { scheduleEncounter } from "@/lib/rpg/encounters/director";
+import { capDeltas } from "@/lib/rpg/subjects";
+import {
   type Board,
   type ChessRights,
   type Side,
@@ -172,6 +178,7 @@ export function submitMove(
       return reject(state, "A draw cannot be claimed in this position.");
     const s = structuredClone(state);
     finish(s, repeated ? "threefold" : "fifty-move", null);
+    closeTerminalEncounters(s);
     event(s, "draw", s.result!);
     s.revision++;
     const outcome: ActionOutcome = {
@@ -323,10 +330,20 @@ export function submitMove(
       actual,
       outcome: agencyOutcome,
     });
+  if (s.schemaVersion === 5 && !deps.classic)
+    resolveEncounters(state, s, {
+      intended: move,
+      actual,
+      outcome: agencyOutcome,
+    });
+  // Court eligibility sees the committed, combined leadership/encounter
+  // deltas, never an intermediate value beyond an action's field cap.
+  if (s.schemaVersion === 5 && !deps.classic) capDeltas(state, s);
   ordinaryTerminal(s, next);
+  closeTerminalEncounters(s);
   const text = `${pieceName(piece)} ${squareName(move.from)} → ${squareName(destination)}${move.promotion ? ` = ${move.promotion.toUpperCase()}` : ""}`;
   message =
-    s.schemaVersion === 4
+    s.schemaVersion >= 4
       ? [
           message || text,
           s.result ?? (isInCheck(board, next === "white") ? "Check!" : ""),
@@ -350,11 +367,16 @@ export function submitMove(
       rng,
       isInCheck(state.board, move.side === "white"),
     );
+  if (s.schemaVersion === 5 && !deps.classic) {
+    closeTerminalEncounters(s);
+    scheduleEncounter(s, move.side);
+    capDeltas(state, s);
+  }
   message = s.result ?? message;
   s.moves.push({
     number: s.ply,
     text: `${s.ply}. ${text}`,
-    message: s.schemaVersion === 4 ? actionMessage : message,
+    message: s.schemaVersion >= 4 ? actionMessage : message,
     special,
   });
   s.sideToMove = next;

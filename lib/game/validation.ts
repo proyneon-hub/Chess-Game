@@ -1,3 +1,4 @@
+import { validEncounters } from "@/lib/rpg/encounters/validation";
 import { validSquare, type Square } from "@/lib/chess";
 import { kingsValid, sideOf } from "@/lib/chessRules";
 import { configFor } from "@/lib/rpg/config";
@@ -70,7 +71,7 @@ export function validateState(value: unknown): asserts value is GameState {
   const fail = () => {
     throw new IncompatibleStateError();
   };
-  if (!record(value) || !integer(value.schemaVersion, 1, 4)) fail();
+  if (!record(value) || !integer(value.schemaVersion, 1, 5)) fail();
   const s = value as GameState;
   if (
     !["white", "black"].includes(s.sideToMove) ||
@@ -245,6 +246,13 @@ export function validateState(value: unknown): asserts value is GameState {
     }
   }
   if (sim.schemaVersion === 2 && "progression" in sim) fail();
+  if (sim.schemaVersion === 5) {
+    try {
+      if (!validEncounters(s)) fail();
+    } catch {
+      fail();
+    }
+  } else if ("encounters" in sim) fail();
   if (
     !record(sim.rngState) ||
     sim.rngState.algorithm !== "mulberry32-v1" ||

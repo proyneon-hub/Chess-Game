@@ -1,0 +1,23 @@
+{
+    "sourceFreeze":  "freeze-7.json",
+    "unitIntegration":  {
+                            "pending":  0,
+                            "failed":  0,
+                            "passed":  216
+                        },
+    "browser":  {
+                    "earlierFailure":  "One previous worker exited before a test executed; subsequent full runs passed.",
+                    "productionBuild":  true,
+                    "database":  "isolated mongodb-memory-server",
+                    "failed":  0,
+                    "passed":  17
+                },
+    "typecheck":  "passed",
+    "lint":  "passed",
+    "formatting":  "passed",
+    "build":  "passed",
+    "ai":  "8 synthetic cases legal and pure; see ai-performance-freeze7.json",
+    "human":  "pending; no participants",
+    "publication":  "none",
+    "liveProductionVerification":  "not performed"
+}

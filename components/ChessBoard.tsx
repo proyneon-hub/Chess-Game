@@ -15,6 +15,7 @@ import { publicState } from "@/lib/game/publicState";
 import { useLocalGame } from "@/hooks/useLocalGame";
 import { useOnlineMatch } from "@/hooks/useOnlineMatch";
 import { useComputerTurn } from "@/hooks/useComputerTurn";
+import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
@@ -190,6 +191,9 @@ export default function ChessBoard({
     );
   const status =
     visible.result ??
+    (isInCheck(visible.board, visible.sideToMove === "white")
+      ? "Check!"
+      : null) ??
     visible.warning?.message ??
     (kind === "online"
       ? online.error ||
@@ -233,6 +237,7 @@ export default function ChessBoard({
           >
             {status}
           </div>
+          <EncounterArea encounters={visible.encounters ?? []} />
           {notice && (
             <p role="status" className="text-sm text-stone-300">
               {notice}
