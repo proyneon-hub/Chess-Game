@@ -31,8 +31,7 @@ jobs:
       - run: npm run build
 
   e2e:
-    # Browser tests download Chromium and a MongoDB binary; keep them off PRs.
-    if: github.event_name == 'push'
+    # Browser tests (including axe accessibility scans) run on every PR too.
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 30
