@@ -38,6 +38,7 @@ it("each generation's capabilities are fixed", () => {
   expect(on(6)).toEqual([
     "courtComplaints",
     "encounters",
+    "frightenedWithdrawal",
     "graceInclusive",
     "progression",
     "requestStakes",

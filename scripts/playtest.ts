@@ -53,10 +53,12 @@ if (
 )
   throw Error("Invalid style, games, seed, config or difficulty.");
 
-// Seeded stand-in for the worker's Math.random, so runs are reproducible.
-const aiRng = seedRng(seedStart * 13 + 5);
 /** The computer's move exactly as useComputerTurn asks the worker for it. */
-function computerMove(s: GameState, level = difficulty): MoveAttempt {
+function computerMove(
+  s: GameState,
+  aiRng: RngState,
+  level = difficulty,
+): MoveAttempt {
   const { depth, budgetMs, spreadCp } = DIFFICULTY[level];
   const result = computerChoice(
     {
@@ -80,7 +82,7 @@ function playerMove(s: GameState, style: Style, rng: RngState): MoveAttempt {
   if (s.pendingRefusal && draw(rng) < 0.5)
     return { ...s.pendingRefusal, side: s.sideToMove };
   // The engine style always plays at Normal strength, whatever the opponent.
-  if (style === "engine") return computerMove(s, "normal");
+  if (style === "engine") return computerMove(s, rng, "normal");
   if (style === "reckless") return boardChoice(s, rng, "board-mistreatment");
   return awareChoice(publicState(s), rng);
 }
@@ -100,7 +102,10 @@ type GameRecord = {
 };
 
 function play(seed: number, style: Style): GameRecord {
-  const rng = seedRng(seed * 7 + 3);
+  const rng = seedRng(seed * 7 + 3),
+    // Seeded stand-in for the worker's Math.random, per game, so a game
+    // never depends on which games ran before it.
+    aiRng = seedRng(seed * 13 + 5);
   let s = createGameState(seed, config);
   const seen = new Set<string>(),
     started = new Set<string>(),
@@ -127,7 +132,7 @@ function play(seed: number, style: Style): GameRecord {
     const side = s.sideToMove;
     let r = submitMove(
       s,
-      side === "white" ? playerMove(s, style, rng) : computerMove(s),
+      side === "white" ? playerMove(s, style, rng) : computerMove(s, aiRng),
     );
     if (!r.requestAccepted) {
       // Mirror submitWithFallback: a rejected choice falls back to a legal move.
@@ -218,6 +223,14 @@ for (const style of styles) {
     ),
     "autonomous/game": per(
       sum((r) => r.autonomous),
+      games,
+    ),
+    "games w/ withdrawal": pct(
+      records.filter((r) => r.autonomous > 0).length,
+      games,
+    ),
+    "shaken/game": per(
+      sum((r) => r.counters.shakenWarnings ?? 0),
       games,
     ),
     "requests/game W|B": `${per(

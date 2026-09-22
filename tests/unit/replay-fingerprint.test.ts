@@ -84,8 +84,8 @@ it("seeded play replays identically across rule generations", () => {
 // generation 6. Same rule: a change here needs a new config version.
 const LATER_PINS = {
   plies: 1600,
-  state: "edf18e82308ffaf6",
-  public: "d85ec2bfea8b9392",
+  state: "7e6ce9c4b64c92ea",
+  public: "78f537891841d9fe",
 };
 it("seeded play replays identically for later configs", () => {
   const state = createHash("sha256"),

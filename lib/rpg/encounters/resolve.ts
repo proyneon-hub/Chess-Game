@@ -1,6 +1,12 @@
 import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { forecastV3 } from "../forecast";
-import { isInCheck, type Side, type Square } from "@/lib/chess";
+import {
+  isInCheck,
+  KIND_NAMES,
+  squareName,
+  type Side,
+  type Square,
+} from "@/lib/chess";
 import type {
   GameState,
   ProgressionState,
@@ -219,6 +225,22 @@ function trackDanger({ before, s, sim, state, side, own, pos }: Resolution) {
         .filter((t, i, a) => a.indexOf(t) === i && own - t <= 6)
         .slice(-6);
     } else if (q.safeSince < 0) q.safeSince = own;
+    if (
+      capabilities(s).frightenedWithdrawal &&
+      sub.fear >= encounterRulesFor(s).withdrawalFear &&
+      (q.warningOwn === null ||
+        own - q.warningOwn >= encounterRulesFor(s).withdrawalGap)
+    ) {
+      // A visible warning always comes before a withdrawal can happen.
+      q.warningOwn = own;
+      count(s, "shakenWarnings");
+      event(
+        s,
+        "shaken",
+        `The ${KIND_NAMES[sub.currentKind]} at ${squareName(pos[sub.id])} is shaken; ordering it back into danger may make it withdraw.`,
+        { square: pos[sub.id] },
+      );
+    }
   }
 }
 

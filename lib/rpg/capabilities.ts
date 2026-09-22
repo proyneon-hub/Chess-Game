@@ -40,6 +40,10 @@ export type Capabilities = {
    * a renewed complaint can become a plot among its two pieces, instead of
    * requiring one pair harmed together twice and per-piece court gates. */
   courtComplaints: boolean;
+  /** Any piece whose fear reaches the withdrawal threshold is warned in
+   * public, not only one that raised a strain request, so ordering it back
+   * into danger may make it withdraw. */
+  frightenedWithdrawal: boolean;
 };
 
 const legacy: Capabilities = {
@@ -55,6 +59,7 @@ const legacy: Capabilities = {
   requestStakes: false,
   soundRequests: false,
   courtComplaints: false,
+  frightenedWithdrawal: false,
 };
 const v5: Capabilities = {
   ...legacy,
@@ -78,7 +83,13 @@ const BY_SCHEMA: Record<number, Capabilities> = {
     observationsAtLeadership: true,
   },
   5: v5,
-  6: { ...v5, requestStakes: true, soundRequests: true, courtComplaints: true },
+  6: {
+    ...v5,
+    requestStakes: true,
+    soundRequests: true,
+    courtComplaints: true,
+    frightenedWithdrawal: true,
+  },
 };
 
 export function capabilities(s: { schemaVersion: number }): Capabilities {

@@ -92,11 +92,12 @@ three capability flags (`lib/rpg/capabilities.ts`):
 |---|---|
 | `requestStakes` | An ignored personal request (initiative, confidence, protection, relief, strain) leaves its piece **restless**: +4% refusal for 4 own turns. The card says so ("…grows restless; its next orders may meet hesitation"). |
 | `soundRequests` | No initiative requests for rook pawns ("the pawn at a2 looks for room to act"). |
+| `frightenedWithdrawal` | Any piece whose fear reaches 18 is warned in public ("The knight at d4 is shaken; ordering it back into danger may make it withdraw."), at most once per 8 own turns, not only one that raised a strain request. After one free turn, ordering it into real danger gives it a 40–50% chance to withdraw to a safer square. |
 | `courtComplaints` | A complaint comes from a harsh court whose side took 3+ harms within 10 own turns (tyranny ≥ 12, legitimacy ≤ 62). The most-harmed living piece speaks, with its nearest ally. A captured speaker is replaced by the survivor's nearest free ally, and an unanswerable complaint stays open until its 7-turn deadline. Further harm renews it (stage 2, a public warning) after one own turn. If the player doesn't answer in the following turn, it becomes a plot between the two pieces, provided the court is still harsh (ply > 40, tyranny ≥ 15, legitimacy ≤ 62). The existing three plot warnings, counterplay (guards, separation, recovery, king distance) and armed attempt are unchanged. |
 
 Other v6 settings:
 - Strain can be requested after one dangerous turn at fear ≥ 18.
-- A warned withdrawal has a 25–35% chance.
+- A warned withdrawal has a 40–50% chance.
 - A plot breaks up when the court recovers (tyranny < 8, legitimacy > 66).
 
 v5 gates that were literals are now `ENCOUNTER_RULES` entries with unchanged v5 values: `strainDangerTurns`, `complaintDeadline`, `complaintStageTurns`, `withdrawalMax`.
@@ -134,3 +135,30 @@ The conspiracy is now a rare climax that play can bring about, where before it w
 npm run playtest -- --games 200 --json true
 npm run playtest -- --games 200 --difficulty easy --json true
 ```
+
+## Frightened withdrawals (`frightenedWithdrawal`)
+
+Added after the first v6 results showed warned withdrawals effectively absent:
+only a piece that raised a strain request was ever warned. v6 had not shipped,
+so its capability row was extended rather than creating generation 7. The pinned
+replay for later configs changed accordingly.
+
+The playtest harness now seeds the Easy computer's randomness per game. Earlier
+Easy runs shared one random stream across styles, so a style's results depended
+on which ran before it. The numbers below use the fixed harness.
+
+200 games per style, seeds 7000–7199:
+
+| Opponent | Style | Shaken warnings/game (both sides) | Games with a warned withdrawal | Complaints (games reaching 50) | Plots | Regicides |
+|---|---|---|---|---|---|---|
+| Normal | aware | 4.08 | 3% | 19% | 5 | 0 |
+| Normal | engine | 1.74 | 0% | 6% | 2 | 0 |
+| Normal | reckless | 5.05 | **15%** | 10% | 2 | 0 |
+| Easy | aware | 5.58 | 10% | 23% | 3 | 0 |
+| Easy | engine | 4.20 | 2% | 24% | 5 | 0 |
+| Easy | reckless | 6.73 | **11%** | 26% | 4 | 0 |
+
+Against the targets: warned withdrawals appear in 11–15% of reckless games, up
+from about 0, but short of the plan's 20%. Careful play stays at or below 2%
+(target ≤ 5%). The remaining limit is that a withdrawal needs the player to
+order the specific shaken piece into real danger after the warning.
