@@ -202,3 +202,20 @@ for (const generation of [3, 4])
     );
     await context.close();
   });
+
+test("unchanged polls answer 304 and a move still reaches the opponent", async ({
+  page,
+}) => {
+  const { id, context, guest } = await joined(page);
+  const unchanged = guest.waitForResponse(
+    (r) =>
+      r.url().endsWith(`/api/matches/${id}`) &&
+      r.request().method() === "GET" &&
+      r.status() === 304,
+  );
+  await unchanged;
+  await page.locator('[data-square="e2"]').click();
+  await page.locator('[data-square="e4"]').click();
+  await expect(guest.getByText(/Black to Move/)).toBeVisible();
+  await context.close();
+});

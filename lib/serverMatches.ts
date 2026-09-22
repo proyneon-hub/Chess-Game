@@ -33,6 +33,21 @@ type StoredMatch = {
   receipts?: Receipt[];
 };
 const stored = (v: unknown): StoredMatch => v as StoredMatch;
+// Inactive matches are deleted by a TTL index. Guest cookies last 30 days, so
+// an older match could not be resumed by its players anyway.
+const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+const expiry = () => new Date(Date.now() + RETENTION_MS);
+// A soft cap on unjoined invites per guest per day, against accidental floods.
+const OPEN_INVITE_LIMIT = 20;
+export async function tooManyOpenInvites(playerId: string) {
+  await connectToDatabase();
+  const open = await GameMatch.countDocuments({
+    whitePlayerId: playerId,
+    blackPlayerId: null,
+    createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  });
+  return open >= OPEN_INVITE_LIMIT;
+}
 const playerSide = (m: StoredMatch, id: string): Side | null =>
   m.whitePlayerId === id ? "white" : m.blackPlayerId === id ? "black" : null;
 export const publicMatch = (m: StoredMatch, id: string): PublicMatch => ({
@@ -54,8 +69,15 @@ export async function createServerMatch(playerId: string) {
     schemaVersion: state.schemaVersion,
     rulesetVersion: state.rulesetVersion,
     configVersion: state.configVersion,
+    expiresAt: expiry(),
   });
   return publicMatch(stored(match.toObject()), playerId);
+}
+/** Cheap poll check: the version bumps on every commit and on join. */
+export async function isCurrentVersion(inviteId: string, version: number) {
+  if (!UUID.test(inviteId) || !Number.isSafeInteger(version)) return false;
+  await connectToDatabase();
+  return !!(await GameMatch.exists({ inviteId, version }));
 }
 export async function getServerMatch(inviteId: string, playerId: string) {
   if (!UUID.test(inviteId)) return null;
@@ -80,7 +102,10 @@ export async function joinServerMatch(inviteId: string, playerId: string) {
     return response(200, null, publicMatch(m, playerId));
   const claimed = await GameMatch.findOneAndUpdate(
     { inviteId, blackPlayerId: null, version: m.version },
-    { $set: { blackPlayerId: playerId }, $inc: { version: 1 } },
+    {
+      $set: { blackPlayerId: playerId, expiresAt: expiry() },
+      $inc: { version: 1 },
+    },
     { new: true },
   ).lean();
   return claimed
@@ -180,6 +205,7 @@ export async function submitServerMove(
         schemaVersion: result.state.schemaVersion,
         rulesetVersion: result.state.rulesetVersion,
         configVersion: result.state.configVersion,
+        expiresAt: expiry(),
       },
       $inc: { version: 1 },
     },

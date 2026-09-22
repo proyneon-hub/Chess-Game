@@ -53,8 +53,6 @@ export const persistGuestSession = (
     value: `${session.playerId}.${signatureFor(session.playerId)}`,
     httpOnly: true,
     sameSite: "lax",
-    // Secure cookies are mandatory on deployed HTTPS requests, but local
-    // `next start` uses HTTP even though NODE_ENV is production.
     secure,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
