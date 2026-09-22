@@ -3,7 +3,7 @@ import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
 import { findKing, isInCheck, KIND_NAMES, type Side } from "@/lib/chess";
 import type { CourtPlot, GameState, SubjectState } from "@/lib/game/types";
-import { finish } from "@/lib/game";
+import { finish } from "@/lib/game/core";
 import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
 import { count, event } from "@/lib/rpg/events";

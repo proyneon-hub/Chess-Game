@@ -20,7 +20,7 @@ import {
   nextRights,
   positionKey,
 } from "@/lib/chessRules";
-import { evaluateBoard } from "@/lib/ai";
+import { evaluateBoard } from "./evaluate";
 import { politicalScore, type OwnPolitics } from "@/lib/ai/politicalEvaluation";
 export type SearchInput = {
   board: Board;

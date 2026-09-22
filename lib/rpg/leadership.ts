@@ -2,7 +2,7 @@ import { compareIds } from "./order";
 import { findKing, isInCheck, type Square } from "@/lib/chess";
 import { material, captureSquare, positionKey } from "@/lib/chessRules";
 import type { GameState, MoveAttempt, ResolvedOrder } from "@/lib/game/types";
-import { sameIntention } from "@/lib/game";
+import { sameIntention } from "@/lib/game/core";
 import {
   attackMap,
   attackers,

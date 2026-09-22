@@ -39,7 +39,6 @@ import type {
   Intention,
   MoveAttempt,
   MoveResult,
-  Terminal,
   ResolvedOrder,
 } from "@/lib/game/types";
 import { initializeSimulation, roleStats } from "@/lib/rpg/initialize";
@@ -49,6 +48,8 @@ import { count, event } from "@/lib/rpg/events";
 import { leadership } from "@/lib/rpg/leadership";
 import { agency } from "@/lib/rpg/agency";
 import { scheduleCourt } from "@/lib/rpg/conspiracy";
+import { finish, sameIntention } from "@/lib/game/core";
+export { finish, sameIntention } from "@/lib/game/core";
 export type {
   GameState,
   MoveAttempt,
@@ -104,27 +105,6 @@ export const normalizeIntention = (s: GameState, m: Intention): Intention => ({
     ? { promotion: m.promotion ?? "q" }
     : {}),
 });
-export const sameIntention = (a: Intention, b: Intention) =>
-  sameSquare(a.from, b.from) &&
-  sameSquare(a.to, b.to) &&
-  a.promotion === b.promotion;
-export function finish(
-  s: GameState,
-  reason: Terminal["reason"],
-  winner: Side | null,
-) {
-  s.terminal = { reason, winner, terminalPly: s.ply };
-  s.status = "finished";
-  s.warning = null;
-  s.result =
-    reason === "regicide"
-      ? `The king falls to his own court. ${winner === "white" ? "White" : "Black"} wins.`
-      : reason === "checkmate"
-        ? `Checkmate — ${winner === "white" ? "White" : "Black"} wins!`
-        : reason === "stalemate"
-          ? "Stalemate — draw."
-          : `Draw — ${reason.replaceAll("-", " ")}.`;
-}
 function ordinaryTerminal(s: GameState, next: Side) {
   if (!allMoves(s.board, next, s.rights).length)
     finish(
