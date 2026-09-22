@@ -19,6 +19,8 @@ type Marks = {
   checked: boolean;
   warning: boolean;
   intended: boolean;
+  requested: boolean;
+  hesitating: boolean;
 };
 const ARROWS: Record<string, Square> = {
   ArrowUp: [-1, 0],
@@ -36,6 +38,8 @@ const label = (sq: Square, p: string | null, m: Marks) =>
     m.special && "unexpected destination",
     m.warning && "warning",
     m.intended && "ordered destination",
+    m.requested && "requesting piece",
+    m.hesitating && "hesitated",
   ]
     .filter(Boolean)
     .join(", ");
@@ -86,7 +90,7 @@ const BoardSquare = memo(function BoardSquare({
       aria-pressed={m.chosen}
       onClick={() => onSquare(sq)}
       onKeyDown={(e) => onNavigate(e, r, c, flipped)}
-      className="chess-square relative flex aspect-square min-w-0 items-center justify-center focus-visible:z-40 focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-900 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white"
+      className={`chess-square${m.hesitating ? " hesitating" : ""} relative flex aspect-square min-w-0 items-center justify-center focus-visible:z-40 focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-900 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white`}
       style={{
         background: m.chosen
           ? "#7dd3fc"
@@ -111,6 +115,9 @@ const BoardSquare = memo(function BoardSquare({
       )}
       {(m.special || m.warning) && (
         <span className="actual-destination absolute inset-0 border-4 border-dashed border-amber-400" />
+      )}
+      {m.requested && (
+        <span className="absolute inset-1 rounded-full border-2 border-dotted border-amber-800 ring-1 ring-white/80" />
       )}
       {m.intended && (
         <span className="intended-destination absolute inset-1 border-2 border-dotted border-blue-800" />
@@ -146,12 +153,15 @@ export function Board({
   moves,
   flipped,
   onSquare,
+  requested = [],
 }: {
   game: PublicGame;
   selected: Square | null;
   moves: Square[];
   flipped: boolean;
   onSquare: (s: Square) => void;
+  /** Pieces making a request the viewer can answer. */
+  requested?: Square[];
 }) {
   const indices = Array.from({ length: 8 }, (_, i) => (flipped ? 7 - i : i)),
     check = isInCheck(game.board, game.sideToMove === "white")
@@ -242,6 +252,10 @@ export function Board({
                       !!game.warning?.square &&
                       sameSquare(game.warning.square, sq),
                     intended: !!deviated && sameSquare(lastEvent.intended!, sq),
+                    requested: requested.some((q) => sameSquare(q, sq)),
+                    hesitating:
+                      !!game.pendingRefusal &&
+                      sameSquare(game.pendingRefusal.from, sq),
                   }}
                 />
               );
