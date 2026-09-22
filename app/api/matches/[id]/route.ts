@@ -8,9 +8,10 @@ import { guestMutation, noStore, withGuest } from "@/lib/serverHttp";
 import { parseAction } from "@/lib/game/validation";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-type Context = { params: { id: string } };
+type Context = { params: Promise<{ id: string }> };
 const etag = (version: number) => `"${version}"`;
-export async function GET(request: NextRequest, { params }: Context) {
+export async function GET(request: NextRequest, context: Context) {
+  const params = await context.params;
   return withGuest(request, async (session) => {
     // Polls send the last version they saw; skip the full state if unchanged.
     const known = /^"(\d+)"$/.exec(request.headers.get("if-none-match") ?? "");
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest, { params }: Context) {
     return response;
   });
 }
-export async function POST(request: NextRequest, { params }: Context) {
+export async function POST(request: NextRequest, context: Context) {
+  const params = await context.params;
   return guestMutation(
     request,
     parseAction,

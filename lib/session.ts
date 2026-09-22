@@ -67,8 +67,8 @@ export function readGuestToken(
   };
 }
 
-export const getGuestSession = (): GuestSession => {
-  const token = cookies().get(COOKIE_NAME)?.value;
+export const getGuestSession = async (): Promise<GuestSession> => {
+  const token = (await cookies()).get(COOKIE_NAME)?.value;
   const verified = token ? readGuestToken(token) : null;
   return verified
     ? { playerId: verified.playerId, isNew: false, refresh: verified.refresh }

@@ -20,6 +20,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Block on critical advisories in production dependencies. Next 15's
+      # bundled build-time postcss has a high advisory fixed only in Next 16.
+      - run: npm audit --omit=dev --audit-level=critical
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run format:check
