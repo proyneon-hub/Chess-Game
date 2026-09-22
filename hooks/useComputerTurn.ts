@@ -4,6 +4,18 @@ import { type Difficulty, getAllLegalMoves } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
 import { refusalFallback } from "@/lib/ai/restraint";
+// A rejected search result leaves the game unchanged, so the turn effect would
+// never rerun. Try the legal fallback before giving up on this turn.
+export function submitWithFallback(
+  submit: (a: MoveAttempt) => MoveResult,
+  move: MoveAttempt,
+  fallback: MoveAttempt | undefined,
+): MoveResult {
+  const result = submit(move);
+  return !result.requestAccepted && fallback && fallback !== move
+    ? submit(fallback)
+    : result;
+}
 export function useComputerTurn(
   game: GameState,
   enabled: boolean,
@@ -16,14 +28,15 @@ export function useComputerTurn(
   const [failure, setFailure] = useState("");
   useEffect(() => {
     if (!thinking) return;
+    setFailure("");
     let cancelled = false,
       settled = false;
     const revision = game.revision;
     const fallback = refusalFallback(game);
     const commit = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
-      settled = true;
-      const result = submit(move);
+      const result = submitWithFallback(submit, move, fallback);
+      settled = result.requestAccepted;
       onMessage(result.message);
     };
     // After refusal, the same legal command completes with no search or roll.
@@ -45,6 +58,7 @@ export function useComputerTurn(
         if (e.data.error)
           setFailure("Computer search recovered with a legal move.");
         commit(e.data.result?.moves[0] ?? fallback);
+        worker?.terminate();
       };
       worker.onerror = () => {
         setFailure("Computer search recovered with a legal move.");

@@ -42,13 +42,14 @@ export default function ChessBoard({
         : kind === "local"
           ? visible.sideToMove
           : "white";
-  const { thinking: computerThinking } = useComputerTurn(
-    local.game,
-    kind === "computer",
-    difficulty,
-    local.submit,
-    setMessage,
-  );
+  const { thinking: computerThinking, failure: computerFailure } =
+    useComputerTurn(
+      local.game,
+      kind === "computer",
+      difficulty,
+      local.submit,
+      setMessage,
+    );
   const myTurn =
     !!side &&
     side === visible.sideToMove &&
@@ -241,6 +242,11 @@ export default function ChessBoard({
           {notice && (
             <p role="status" className="text-sm text-stone-300">
               {notice}
+            </p>
+          )}
+          {kind === "computer" && computerFailure && (
+            <p role="status" className="text-sm text-stone-400">
+              {computerFailure}
             </p>
           )}
           {kind === "online" && online.error && visible.warning && (

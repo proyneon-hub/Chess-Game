@@ -8,6 +8,7 @@ import {
   defensiveWards,
   lossOf,
   responseMoves,
+  storedLoss,
 } from "./objectives";
 import type { Family, Objective } from "./types";
 export type Candidate = {
@@ -99,7 +100,12 @@ export function candidates(
         add(
           strain ? "strain" : "protection",
           [sub.id],
-          { kind: "protect", subject: sub.id, initialLoss: loss, defenders },
+          {
+            kind: "protect",
+            subject: sub.id,
+            initialLoss: storedLoss(loss),
+            defenders,
+          },
           3,
           strain ? 200 + loss : loss,
         );
@@ -113,7 +119,7 @@ export function candidates(
           {
             kind: "relieve",
             subject: sub.id,
-            initialLoss: loss,
+            initialLoss: storedLoss(loss),
             defenders,
             wards,
           },
@@ -229,7 +235,7 @@ export function candidates(
                 Math.max(loss, lossOf(s, other.id)) >= 100
                   ? "safety"
                   : "initiative",
-              initialLoss: Math.max(loss, lossOf(s, other.id)),
+              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
             },
             previous && benevolent ? 2 : 4,
             20,
@@ -286,7 +292,7 @@ export function candidates(
             {
               kind: "recover",
               pair,
-              initialLoss: Math.max(loss, lossOf(s, other.id)),
+              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
               separated: 0,
             },
             2,
