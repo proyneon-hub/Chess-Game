@@ -22,7 +22,8 @@ type Receipt = {
   actionId: string;
   hash: string;
   version: number;
-  outcome: GameState["lastAction"];
+  /** Written by older releases; never read. */
+  outcome?: GameState["lastAction"];
 };
 type StoredMatch = {
   inviteId: string;
@@ -193,7 +194,6 @@ export async function submitServerMove(
       actionId: action.actionId,
       hash,
       version: m.version + 1,
-      outcome: result.state.lastAction,
     },
   ].slice(-rulesFor(state).receiptLimit);
   const updated = await GameMatch.findOneAndUpdate(

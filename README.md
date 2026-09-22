@@ -56,6 +56,8 @@ MongoDB stores the complete match in one document. Every submitted intent has a 
 
 The latest 64 `(player, actionId)` receipts are retained. An identical retry returns a duplicate acknowledgement and current public state. Reusing an id with changed payload returns 409. After a receipt ages out, its old expected revision still blocks replay; reusing that aged id with a new revision is a new intent. Polls are serialized and gated by match identity and revision; leaving aborts in-flight work.
 
+Unchanged polls answer `304` (`If-None-Match` carries the last version). Opening a match link does not create a guest identity; the first join or move does. Inactive matches expire after 30 days, as do unused guest identities. The app caps each guest at 20 unjoined invites per day, but a new cookie gets around that. For real abuse protection, add Vercel Firewall rate-limit rules on `POST /api/matches` and `POST /api/matches/*` (for example, per IP per minute). `GET /api/health` reports database reachability for uptime checks.
+
 Unversioned matches use an idempotent legacy adapter. Their D20 behavior continues with king-safety, promotion, bounded-refusal, and deterministic future-RNG fixes; they do not gain new subjects or conspiracies. The original prototype did not save its `Math.random` history, so past draws cannot be reconstructed. Unknown future schemas/configurations return a controlled incompatibility response without rewriting the match.
 
 ## Verify
