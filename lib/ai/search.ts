@@ -33,6 +33,8 @@ export type SearchInput = {
   own: OwnPolitics | null;
   /** Repetition counts from the game; omitted by offline measurement. */
   positions?: Record<string, number>;
+  /** Play a random move among those within this many centipawns of the best. */
+  spreadCp?: number;
 };
 export type SearchResult = {
   scores?: { move: ChessMove; score: number }[];
@@ -41,7 +43,10 @@ export type SearchResult = {
   nodes: number;
   elapsedMs: number;
 };
-export function searchMoves(input: SearchInput): SearchResult {
+export function searchMoves(
+  input: SearchInput,
+  random: () => number = Math.random,
+): SearchResult {
   const start = performance.now(),
     deadline = start + input.budgetMs;
   let nodes = 0,
@@ -220,6 +225,14 @@ export function searchMoves(input: SearchInput): SearchResult {
           : c.score + politicalScore(input.board, c.next, c.move, input.own),
     }))
     .sort((a, b) => b.score - a.score);
+  if (input.spreadCp && shortlist.length > 1) {
+    // Easier play: any near-best move. Mate scores are never within reach.
+    const pool = shortlist.filter(
+      (c) => c.score >= shortlist[0].score - input.spreadCp!,
+    );
+    const pick = pool[Math.floor(random() * pool.length)];
+    shortlist = [pick, ...shortlist.filter((c) => c !== pick)];
+  }
   return {
     ...(input.own?.view
       ? { scores: ranked.map((c) => ({ move: c.move, score: c.score })) }

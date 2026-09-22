@@ -93,6 +93,7 @@ export function useComputerTurn(
           side: "black",
           depth: DIFFICULTY[difficulty].depth,
           budgetMs: DIFFICULTY[difficulty].budgetMs,
+          spreadCp: DIFFICULTY[difficulty].spreadCp,
           own: engine.ownPolitics(game, "black"),
           positions: game.positions,
         },

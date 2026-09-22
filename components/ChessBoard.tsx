@@ -207,6 +207,7 @@ export default function ChessBoard({
                 onChange={(e) => setDifficulty(e.target.value as Difficulty)}
                 className="rounded bg-stone-900 p-2"
               >
+                <option value="easy">Easy</option>
                 <option value="normal">Normal</option>
                 <option value="advanced">Advanced</option>
               </select>

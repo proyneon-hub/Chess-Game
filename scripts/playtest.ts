@@ -51,18 +51,24 @@ if (
 )
   throw Error("Invalid style, games, seed, config or difficulty.");
 
+// Seeded stand-in for the worker's Math.random, so runs are reproducible.
+const aiRng = seedRng(seedStart * 13 + 5);
 /** The computer's move exactly as useComputerTurn asks the worker for it. */
-function computerMove(s: GameState): MoveAttempt {
-  const { depth, budgetMs } = DIFFICULTY[difficulty];
-  const result = computerChoice({
-    board: s.board,
-    rights: s.rights,
-    side: s.sideToMove,
-    depth,
-    budgetMs,
-    own: ownPolitics(s, s.sideToMove),
-    positions: s.positions,
-  });
+function computerMove(s: GameState, level = difficulty): MoveAttempt {
+  const { depth, budgetMs, spreadCp } = DIFFICULTY[level];
+  const result = computerChoice(
+    {
+      board: s.board,
+      rights: s.rights,
+      side: s.sideToMove,
+      depth,
+      budgetMs,
+      own: ownPolitics(s, s.sideToMove),
+      positions: s.positions,
+      spreadCp,
+    },
+    () => draw(aiRng),
+  );
   const move = result.moves[0] ?? refusalFallback(s)!;
   return { ...move, side: s.sideToMove };
 }
@@ -71,7 +77,8 @@ function playerMove(s: GameState, style: Style, rng: RngState): MoveAttempt {
   // After a hesitation, a person repeats the order about half the time.
   if (s.pendingRefusal && draw(rng) < 0.5)
     return { ...s.pendingRefusal, side: s.sideToMove };
-  if (style === "engine") return computerMove(s);
+  // The engine style always plays at Normal strength, whatever the opponent.
+  if (style === "engine") return computerMove(s, "normal");
   if (style === "reckless") return boardChoice(s, rng, "board-mistreatment");
   return awareChoice(publicState(s), rng);
 }
@@ -219,7 +226,14 @@ for (const style of styles) {
     ),
     plots: String(sum((r) => r.plots)),
     regicides: String(records.filter((r) => r.terminal === "regicide").length),
-    fivefold: String(records.filter((r) => r.terminal === "fivefold").length),
+    endings: Object.entries(
+      records.reduce<Record<string, number>>(
+        (n, r) => ((n[r.terminal] = (n[r.terminal] ?? 0) + 1), n),
+        {},
+      ),
+    )
+      .map(([k, v]) => `${k} ${v}`)
+      .join(", "),
   });
 }
 console.log(

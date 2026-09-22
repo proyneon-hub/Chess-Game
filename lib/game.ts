@@ -58,7 +58,7 @@ export type {
   Side,
 } from "@/lib/game/types";
 export type GameKind = "local" | "computer" | "online";
-export type Difficulty = "normal" | "advanced";
+export type Difficulty = "easy" | "normal" | "advanced";
 export const getAllLegalMoves = (
   board: Board,
   side: Side,

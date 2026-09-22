@@ -34,7 +34,7 @@ Open [localhost:3000](http://localhost:3000). Local and computer games need no d
 ## Play
 
 - **Play here:** two players, one board, with Undo for up to 20 completed turns.
-- **Play computer:** White against a worker-based opponent. Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
+- **Play computer:** White against a worker-based opponent. Easy searches depth 1 / 150 ms and plays any move within 0.8 pawns of its best; Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
 - **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity; it renews with activity and expires after 30 days without a visit, like inactive matches.
 - Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
 - After a piece hesitates, **Repeat order** executes that command; a different legal order also completes the turn. **Retry connection** resends the same network request.
