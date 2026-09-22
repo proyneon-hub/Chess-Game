@@ -1,17 +1,6 @@
 import { type Board, isWhite } from "@/lib/chess";
+import { material as MATERIAL } from "@/lib/chessRules";
 export { searchMoves, getBestMoves } from "@/lib/ai/search";
-
-// ---------------------------------------------------------------------------
-// Material values (centipawns)
-// ---------------------------------------------------------------------------
-const MATERIAL: Record<string, number> = {
-  p: 100,
-  n: 320,
-  b: 330,
-  r: 500,
-  q: 900,
-  k: 20000,
-};
 
 // ---------------------------------------------------------------------------
 // Piece-square tables for WHITE pieces (row 0 = rank 8, row 7 = rank 1).

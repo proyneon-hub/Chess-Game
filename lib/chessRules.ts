@@ -37,7 +37,15 @@ export function nextRights(
   rights: ChessRights,
   move: ChessMove,
 ): ChessRights {
-  const n = structuredClone(rights);
+  // Cheaper than structuredClone at every search node; spreads keep any keys.
+  const n: ChessRights = {
+    ...rights,
+    castling: {
+      white: { ...rights.castling.white },
+      black: { ...rights.castling.black },
+    },
+    enPassant: rights.enPassant ? [...rights.enPassant] : null,
+  };
   const p = board[move.from[0]][move.from[1]]!;
   if (p.toLowerCase() === "k")
     n.castling[move.side] = { king: false, queen: false };

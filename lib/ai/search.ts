@@ -9,6 +9,7 @@ import {
   type Side,
   applyMove,
   freshRights,
+  hasAnyLegalMoves,
   isInCheck,
 } from "@/lib/chess";
 import {
@@ -17,6 +18,7 @@ import {
   insufficientMaterial,
   material,
   nextRights,
+  positionKey,
 } from "@/lib/chessRules";
 import { evaluateBoard } from "@/lib/ai";
 import { politicalScore, type OwnPolitics } from "@/lib/ai/politicalEvaluation";
@@ -28,6 +30,8 @@ export type SearchInput = {
   budgetMs: number;
   maxNodes?: number;
   own: OwnPolitics | null;
+  /** Repetition counts from the game; omitted by offline measurement. */
+  positions?: Record<string, number>;
 };
 export type SearchResult = {
   scores?: { move: ChessMove; score: number }[];
@@ -81,12 +85,15 @@ export function searchMoves(input: SearchInput): SearchResult {
       (performance.now() >= deadline || nodes >= (input.maxNodes ?? Infinity))
     )
       throw timeout;
-    const legal = allMoves(board, side, rights);
-    // Terminal detection precedes static evaluation even at the horizon.
-    if (!legal.length)
+    // Terminal detection precedes static evaluation even at the horizon. A
+    // leaf only needs to know whether any legal move exists.
+    const legal = depth === 0 ? null : allMoves(board, side, rights);
+    if (
+      legal ? !legal.length : !hasAnyLegalMoves(board, side === "white", rights)
+    )
       return isInCheck(board, side === "white") ? -99000 + ply : 0;
     if (insufficientMaterial(board) || rights.halfmove >= 150) return 0;
-    if (depth === 0) return evaluateBoard(board) * (side === "white" ? 1 : -1);
+    if (!legal) return evaluateBoard(board) * (side === "white" ? 1 : -1);
     let best = -Infinity;
     for (const { move, next } of ordered(board, legal, rights)) {
       const score = -negamax(
@@ -137,6 +144,31 @@ export function searchMoves(input: SearchInput): SearchResult {
       break;
     }
     if (performance.now() >= deadline) break;
+  }
+  if (input.positions) {
+    // Mirror the game's repetition bookkeeping: irreversible moves reset it.
+    // A fifth occurrence is an automatic draw; a third lets the opponent
+    // claim one, so a winning side treats it as a draw.
+    const positions = input.positions;
+    ranked = ranked
+      .map((c) => {
+        const rights = nextRights(input.board, input.rights, c.move);
+        const reset =
+          !rights.halfmove ||
+          JSON.stringify(rights.castling) !==
+            JSON.stringify(input.rights.castling);
+        const seen = reset
+          ? 1
+          : (positions[
+              positionKey(
+                c.next,
+                input.side === "white" ? "black" : "white",
+                rights,
+              )
+            ] ?? 0) + 1;
+        return seen >= 5 || (seen >= 3 && c.score > 0) ? { ...c, score: 0 } : c;
+      })
+      .sort((a, b) => b.score - a.score);
   }
   let shortlist = ranked.slice(0, 8);
   if (input.own?.view?.simulation.schemaVersion === 5) {

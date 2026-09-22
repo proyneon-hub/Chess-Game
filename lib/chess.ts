@@ -247,22 +247,73 @@ export function findKing(board: Board, white: boolean): Square | null {
   return null;
 }
 
-// A side is in check when any opposing pseudo-move attacks that side's king.
-// Pseudo-moves are correct here because enemy pieces only need to show attacked
-// squares; their own king safety is irrelevant to detecting the current attack.
+const KNIGHT_STEPS = [
+  [-2, -1],
+  [-2, 1],
+  [-1, -2],
+  [-1, 2],
+  [1, -2],
+  [1, 2],
+  [2, -1],
+  [2, 1],
+] as const;
+const KING_STEPS = [
+  [-1, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, -1],
+  [0, 1],
+  [1, -1],
+  [1, 0],
+  [1, 1],
+] as const;
+const ORTHOGONAL = [
+  [0, 1],
+  [0, -1],
+  [1, 0],
+  [-1, 0],
+] as const;
+const DIAGONAL = [
+  [1, 1],
+  [1, -1],
+  [-1, 1],
+  [-1, -1],
+] as const;
+// A side is in check when any opposing piece attacks its king. This traces
+// outward from the king (pawns, knights, king, then the first piece on each
+// ray), which matches scanning every enemy piece's getAttacks without
+// allocating attack lists. It runs for every candidate move during search.
 export function isInCheck(board: Board, white: boolean): boolean {
   const kp = findKing(board, white);
   if (!kp) return true;
-  for (let r = 0; r < 8; r++)
-    for (let c = 0; c < 8; c++) {
-      const p = board[r][c];
-      if (!p || isWhite(p) === white) continue;
-      if (
-        getAttacks(board, r, c).some(([mr, mc]) => mr === kp[0] && mc === kp[1])
-      )
-        return true;
-    }
-  return false;
+  const [kr, kc] = kp;
+  const enemy = (kind: string) => (white ? kind : kind.toUpperCase());
+  const at = (r: number, c: number) => (inBounds(r, c) ? board[r][c] : null);
+  // Enemy pawns attack toward this king: black pawns from above white's king.
+  const pawnRow = white ? kr - 1 : kr + 1;
+  if (at(pawnRow, kc - 1) === enemy("p") || at(pawnRow, kc + 1) === enemy("p"))
+    return true;
+  for (const [dr, dc] of KNIGHT_STEPS)
+    if (at(kr + dr, kc + dc) === enemy("n")) return true;
+  for (const [dr, dc] of KING_STEPS)
+    if (at(kr + dr, kc + dc) === enemy("k")) return true;
+  const ray = (
+    steps: readonly (readonly [number, number])[],
+    sliders: string[],
+  ) => {
+    for (const [dr, dc] of steps)
+      for (let r = kr + dr, c = kc + dc; inBounds(r, c); r += dr, c += dc) {
+        const p = board[r][c];
+        if (!p) continue;
+        if (sliders.includes(p)) return true;
+        break;
+      }
+    return false;
+  };
+  return (
+    ray(ORTHOGONAL, [enemy("r"), enemy("q")]) ||
+    ray(DIAGONAL, [enemy("b"), enemy("q")])
+  );
 }
 
 // Legal moves start from pseudo-moves, then remove king captures and every move

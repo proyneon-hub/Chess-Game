@@ -73,6 +73,7 @@ export function useComputerTurn(
           depth: difficulty === "advanced" ? 4 : 2,
           budgetMs: difficulty === "advanced" ? 1000 : 250,
           own: ownPolitics(game, "black"),
+          positions: game.positions,
         },
       });
     } catch {

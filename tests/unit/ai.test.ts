@@ -85,3 +85,32 @@ it("budget expiry returns a legal fallback and own projection has no enemy or RN
   expect(submitMove(s, r.moves[0]).requestAccepted).toBe(true);
   expect(s).toEqual(before);
 });
+it("a winning computer avoids claimable and automatic repetitions", async () => {
+  const { searchMoves } = await import("@/lib/ai/search");
+  const { nextRights, positionKey } = await import("@/lib/chessRules");
+  const { freshRights } = await import("@/lib/chess");
+  const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+  board[0][0] = "k";
+  board[3][3] = "q";
+  board[7][7] = "K";
+  const rights = { ...freshRights(false), halfmove: 10 };
+  const input = {
+    board,
+    rights,
+    side: "black" as const,
+    depth: 1,
+    budgetMs: 1e6,
+    own: null,
+  };
+  const top = searchMoves(input).moves[0];
+  const after = nextRights(board, rights, top);
+  const { applyMove } = await import("@/lib/chess");
+  const key = positionKey(applyMove(board, top.from, top.to), "white", after);
+  for (const seen of [2, 4])
+    expect(
+      searchMoves({ ...input, positions: { [key]: seen } }).moves[0],
+    ).not.toEqual(top);
+  expect(searchMoves({ ...input, positions: { [key]: 1 } }).moves[0]).toEqual(
+    top,
+  );
+});

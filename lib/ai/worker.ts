@@ -1,6 +1,7 @@
 import { searchMoves, type SearchInput } from "@/lib/ai/search";
 import { chooseAfterRefusal } from "./restraint";
 import { materializeView } from "./leadershipView";
+import { sameSquare } from "@/lib/chess";
 self.onmessage = (
   event: MessageEvent<{ revision: number; input: SearchInput }>,
 ) => {
@@ -15,7 +16,10 @@ self.onmessage = (
       result.moves = [
         choice.move,
         ...result.moves.filter(
-          (m) => JSON.stringify(m) !== JSON.stringify(choice.move),
+          (m) =>
+            !sameSquare(m.from, choice.move.from) ||
+            !sameSquare(m.to, choice.move.to) ||
+            (m.promotion ?? "q") !== (choice.move.promotion ?? "q"),
         ),
       ];
     self.postMessage({ revision, result });
