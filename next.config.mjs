@@ -1,6 +1,6 @@
 const dev = process.env.NODE_ENV !== "production";
 
-// Next 14 injects inline bootstrap scripts, so script-src needs
+// Next injects inline bootstrap scripts, so script-src needs
 // 'unsafe-inline' without per-request nonces. React refresh (dev only) needs
 // eval and the HMR websocket. The computer opponent runs in a same-origin
 // module worker.
