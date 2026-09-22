@@ -22,7 +22,7 @@ checks from unresolved product acceptance and remaining implementation work.
 
 ## Run
 
-Use Node **22.13+ or 24** and npm. The framework remains Next.js 14.2.35 / React 18.
+Use Node **22.13+ or 24** and npm. The framework is Next.js 15.5 / React 19.
 
 ```sh
 npm ci
@@ -44,7 +44,7 @@ Castling, en passant, promotion choice, checkmate, stalemate, insufficient mater
 
 ## Developer rule notes
 
-New games use schema 4, `hidden-kingdom-v4` (configuration `2026-09-09.1`). Existing legacy, v2 and v3 saves retain their recorded rules and behavior. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
+New games use schema 5, `hidden-kingdom-v5` (configuration `2026-09-10.1`). Existing legacy, v2, v3 and v4 saves retain their recorded rules and behavior. What each generation does differently is named in `lib/rpg/capabilities.ts`; a row must never change once saves exist, so new behavior needs a new generation. `tests/unit/replay-fingerprint.test.ts` pins seeded replays across v2–v5, so refactors must leave its hashes unchanged. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
 
 A late-game conspiracy needs strict causal prerequisites, two eligible own turns, three persistent warning stages, and three response turns before an attempt. Guards, separation, leadership recovery, or king movement provide counterplay. Regicide retains the king on the board and creates an explicit terminal result. Ordinary chess results take precedence.
 
