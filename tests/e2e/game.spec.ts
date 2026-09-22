@@ -172,3 +172,29 @@ test("full computer search runs in a worker with no main-thread search task", as
   );
   expect(report.longTasks).toHaveLength(0);
 });
+
+test("security headers are sent and the CSP allows the computer worker", async ({
+  page,
+}) => {
+  const violations: string[] = [];
+  page.on("console", (m) => {
+    if (/Content Security Policy|Refused to/i.test(m.text()))
+      violations.push(m.text());
+  });
+  const response = await page.goto("/");
+  const headers = response!.headers();
+  expect(headers["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(headers["content-security-policy"]).not.toContain("unsafe-eval");
+  expect(headers["referrer-policy"]).toBe("same-origin");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-powered-by"]).toBeUndefined();
+  await page.getByRole("button", { name: /Play computer/ }).click();
+  await move(page, "e2", "e4");
+  await expect(page.getByText("White to Move", { exact: true })).toBeVisible({
+    timeout: 5000,
+  });
+  expect(violations).toEqual([]);
+});
