@@ -43,7 +43,7 @@ import type {
   ResolvedOrder,
 } from "@/lib/game/types";
 import { initializeSimulation, roleStats } from "@/lib/rpg/initialize";
-import { CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
+import { DEFAULT_CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
 import { type Draw, draw, freshSeed } from "@/lib/rpg/rng";
 import { count, event } from "@/lib/rpg/events";
 import { leadership } from "@/lib/rpg/leadership";
@@ -66,7 +66,7 @@ export const getAllLegalMoves = (
 ) => allMoves(board, side, rights);
 export const createGameState = (
   seed: number = freshSeed(),
-  configVersion: string = CONFIG.version,
+  configVersion: string = DEFAULT_CONFIG.version,
 ): GameState => {
   const board = INITIAL_BOARD.map((r) => [...r]),
     pieceIds = initializePieceIds(board),

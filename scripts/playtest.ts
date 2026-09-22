@@ -9,7 +9,7 @@ import { computerChoice } from "../lib/ai/computerChoice";
 import { DIFFICULTY } from "../lib/ai/difficulty";
 import { refusalFallback } from "../lib/ai/restraint";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
-import { configFor, CONFIG } from "../lib/rpg/config";
+import { configFor, DEFAULT_CONFIG } from "../lib/rpg/config";
 import { seedRng, draw, type RngState } from "../lib/rpg/rng";
 import type { Difficulty } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
@@ -29,6 +29,7 @@ for (let i = 2; i < process.argv.length; i += 2) {
       "--seed-start",
       "--config",
       "--difficulty",
+      "--json",
     ].includes(key) ||
     value === undefined
   )
@@ -38,7 +39,7 @@ for (let i = 2; i < process.argv.length; i += 2) {
 const styles = (flags["--style"] ?? STYLES.join(",")).split(",") as Style[],
   games = Number(flags["--games"] ?? 30),
   seedStart = Number(flags["--seed-start"] ?? 7000),
-  config = flags["--config"] ?? CONFIG.version,
+  config = flags["--config"] ?? DEFAULT_CONFIG.version,
   difficulty = (flags["--difficulty"] ?? "normal") as Difficulty,
   cap = 200;
 if (
@@ -199,10 +200,13 @@ for (const style of styles) {
       sum((r) => r.signalPlies),
       plies,
     ),
-    "hesitations/game (W+B)": per(
-      sum((r) => r.hesitations.white + r.hesitations.black),
+    "hesitations/game W|B": `${per(
+      sum((r) => r.hesitations.white),
       games,
-    ),
+    )}|${per(
+      sum((r) => r.hesitations.black),
+      games,
+    )}`,
     "games w/ hesitation": pct(
       records.filter((r) => r.hesitations.white + r.hesitations.black > 0)
         .length,
@@ -239,4 +243,6 @@ for (const style of styles) {
 console.log(
   `config ${config}; ${difficulty} computer as Black; ${games} games per style from seed ${seedStart}; ${cap}-ply cap`,
 );
-console.table(rows);
+if (flags["--json"] === "true")
+  for (const row of rows) console.log(JSON.stringify(row));
+else console.table(rows);

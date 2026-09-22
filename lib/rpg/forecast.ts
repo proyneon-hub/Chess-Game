@@ -191,7 +191,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     if (options.length) {
       result.retreat = encounterState
         ? Math.min(
-            0.06,
+            rules.encounters!.withdrawalMax,
             rules.encounters!.withdrawalBase +
               Number(sub.fear >= 70) * rules.encounters!.withdrawalHighFear +
               Number(sub.loyalty < 50) * rules.encounters!.withdrawalLowLoyalty,

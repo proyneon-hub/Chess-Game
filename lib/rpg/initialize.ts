@@ -8,7 +8,7 @@ import type {
   PieceKind,
   SubjectState,
 } from "@/lib/game/types";
-import { CONFIG, clamp, configFor } from "@/lib/rpg/config";
+import { DEFAULT_CONFIG, clamp, configFor } from "@/lib/rpg/config";
 import { draw, seedRng } from "@/lib/rpg/rng";
 export const roleStats: Record<
   PieceKind,
@@ -25,7 +25,7 @@ export function initializeSimulation(
   board: Board,
   ids: PieceIdBoard,
   seed: number,
-  configVersion: string = CONFIG.version,
+  configVersion: string = DEFAULT_CONFIG.version,
 ): HiddenSimulation {
   const rules = configFor(configVersion);
   if (!rules) throw new Error("Unsupported rules configuration.");

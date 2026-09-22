@@ -306,6 +306,7 @@ export const ENCOUNTER_RULES = Object.freeze({
   withdrawalLowLoyalty: 0.01,
   withdrawalGap: 8,
   withdrawalLimit: 2,
+  withdrawalMax: 0.06,
   aiAccommodation: 75,
   // A complaint needs this encounter phase, a court at least this harsh and
   // this illegitimate, and shared harms at least this many own turns apart.
@@ -322,6 +323,24 @@ export const CONFIG: RuleConfig = Object.freeze({
   generation: 5,
   encounters: ENCOUNTER_RULES,
 });
+// Playtest tuning (docs/v6-playtest): the v5 politics were nearly invisible
+// in real games. Hesitation, warned withdrawals and the complaint-to-plot arc
+// become reachable; the computer stops weakening itself for its own requests.
+export const PLAYTEST_CONFIG: RuleConfig = Object.freeze({
+  ...CONFIG,
+  version: "2026-09-22.1",
+  agencyBase: 0.035,
+  progression: Object.freeze({
+    ...CONFIG.progression!,
+    calmCap: 0.03,
+    fearWeight: 0.35,
+    resentmentWeight: 0.3,
+    harmWeight: 0.1,
+  }),
+  encounters: Object.freeze({ ...ENCOUNTER_RULES, aiAccommodation: 25 }),
+});
+/** What new games use. CONFIG stays the v5 baseline that reports refer to. */
+export const DEFAULT_CONFIG = PLAYTEST_CONFIG;
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -334,6 +353,7 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [V3_CONFIG.version]: V3_CONFIG,
   [V4_CONFIG.version]: V4_CONFIG,
   [CONFIG.version]: CONFIG,
+  [PLAYTEST_CONFIG.version]: PLAYTEST_CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
 export const configFor = (version: string) =>
