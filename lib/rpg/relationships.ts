@@ -1,3 +1,4 @@
+import { capabilities } from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import type { GameState, SubjectState } from "@/lib/game/types";
 import { rulesFor, clamp } from "@/lib/rpg/config";
@@ -49,7 +50,7 @@ export function riskFriction(s: GameState, side: SubjectState["side"]) {
       )
         continue;
       remember(s, sub, "rival_friction", id, 1, cfg.graveWindow);
-      if (s.schemaVersion < 5) relate(s, sub, other, cfg.friction);
+      if (capabilities(s).disputeRefusals) relate(s, sub, other, cfg.friction);
       count(s, "rivalFriction");
     }
   }

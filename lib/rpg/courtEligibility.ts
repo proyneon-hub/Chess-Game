@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import type { GameState, Side } from "@/lib/game/types";
 import { rulesFor } from "./config";
@@ -13,7 +14,7 @@ export function courtEligibility(
     k = s.simulation!.kingdoms[side],
     pos = locations(s);
   const graveActions = (id: string) =>
-    s.simulation?.schemaVersion === 5
+    hasEncounters(s.simulation)
       ? new Set(
           s.simulation.encounters.sides[side].harms
             .filter(

@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import { findKing, KIND_NAMES, squareName } from "@/lib/chess";
 import type {
@@ -37,6 +38,7 @@ export function leadershipV3(
   order?: ResolvedOrder,
 ) {
   const rules = rulesFor(s),
+    caps = capabilities(s),
     cfg = rules.progression!,
     sim = s.simulation!,
     p = progression(s),
@@ -52,12 +54,12 @@ export function leadershipV3(
   }
   const context = assessOrder(before, m, s.board),
     facts =
-      s.schemaVersion >= 4 && order
+      caps.responsibility && order
         ? deriveResolvedFacts(before, s, order)
         : derivePoliticalFacts(before, s, m, context);
   const observations: Observation[] = [];
   const trust = (f: PoliticalFact) => {
-    if (s.schemaVersion >= 4)
+    if (caps.responsibility)
       observations.push({
         kind: "trust",
         subjectId: f.subjectId,
@@ -100,7 +102,7 @@ export function leadershipV3(
     return ep;
   }
   function ambient(f: PoliticalFact, text: string) {
-    if (s.schemaVersion >= 4) {
+    if (caps.responsibility) {
       observations.push({
         kind: "neglect",
         subjectId: f.subjectId,
@@ -121,7 +123,7 @@ export function leadershipV3(
     event(s, "ambient", text, { square: f.square, subjectId: f.subjectId });
   }
   for (const f of facts) {
-    if (sim.schemaVersion === 5) {
+    if (hasEncounters(sim)) {
       const ledger = sim.encounters.ledger;
       const key = `${s.revision}|leadership:${f.episodeId ?? f.key ?? "order"}|${f.subjectId}|${f.kind}`;
       if (ledger.includes(key)) continue;
@@ -284,7 +286,7 @@ export function leadershipV3(
             count(s, "blamedLoss");
           }
         }
-        if (s.schemaVersion >= 4) p.subjects[victim.id].hazard = null;
+        if (caps.responsibility) p.subjects[victim.id].hazard = null;
         for (const ep of p.subjects[victim.id].episodes)
           if (ep.closedOwnTurn === null) ep.closedOwnTurn = victimOwn;
         if (context.capturedValue > context.risk) {
@@ -326,7 +328,7 @@ export function leadershipV3(
   }
   if (mover.currentKind !== "k") {
     if (
-      s.schemaVersion < 5 &&
+      caps.riskyMoveFear &&
       context.risk >= 100 &&
       !facts.some(
         (f) =>
@@ -356,11 +358,11 @@ export function leadershipV3(
       q.episodes.splice(i < 0 ? 0 : i, 1);
     }
     if (sub.status !== "active" || sub.currentKind === "k") {
-      if (s.schemaVersion >= 4) q.hazard = null;
+      if (caps.responsibility) q.hazard = null;
       continue;
     }
     const sq = pos[sub.id];
-    if (s.schemaVersion >= 4) {
+    if (caps.responsibility) {
       const danger = exchangeLoss(s.board, sq, m.side, map) >= 100;
       if (!danger) q.hazard = null;
       if (sub.id === moverId && order && order.outcome !== "obeyed") {
@@ -385,7 +387,7 @@ export function leadershipV3(
       !attackers(map, sq, opposite(m.side)).length &&
       attackers(map, sq, m.side).length > 0;
     const fullSafeInterval =
-      s.simulation?.schemaVersion !== 5 ||
+      !hasEncounters(s.simulation) ||
       (s.simulation.encounters.subjects[sub.id].safeSince >= 0 &&
         s.simulation.encounters.subjects[sub.id].safeSince < own &&
         !facts.some(
@@ -410,8 +412,8 @@ export function leadershipV3(
   if (own - lastHarm >= 6 && (own - lastHarm) % 6 === 0) k.tyranny--;
   riskFriction(s, m.side);
   tickRelationships(s, m.side);
-  if (s.schemaVersion < 5) capDeltas(before, s);
-  if (s.schemaVersion === 4)
+  if (!caps.turnLevelDeltaCap) capDeltas(before, s);
+  if (caps.observationsAtLeadership)
     emitObservation(s, m.side, [
       ...observations,
       ...relationshipObservations(before, s, m.side),

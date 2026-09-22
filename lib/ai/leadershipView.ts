@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { initialEncounters } from "@/lib/rpg/encounters/state";
 import type {
   GameState,
@@ -36,7 +37,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
     pieceIds = s.board.map((row) => row.map(() => null as string | null));
   const emptyPressure = () => ({
     episodes: [],
-    ...(s.schemaVersion >= 4 ? { hazard: null } : {}),
+    ...(capabilities(s).responsibility ? { hazard: null } : {}),
     lastHarm: -100,
     lastExposure: -100,
     lastRepeated: -100,
@@ -98,7 +99,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
   };
   const visible = publicState(s);
   const projectedEncounters = initialEncounters(subjects);
-  if (sim.schemaVersion === 5) {
+  if (hasEncounters(sim)) {
     const source = sim.encounters;
     projectedEncounters.serial = source.serial;
     projectedEncounters.lastStartPly = source.lastStartPly;
@@ -147,7 +148,7 @@ export function leadershipView(s: GameState, side: Side): LeadershipView {
       turnContext: structuredClone(sim.turnContext),
       privateEvents: [],
       counters: {},
-      ...(sim.schemaVersion === 5 ? { encounters: projectedEncounters } : {}),
+      ...(hasEncounters(sim) ? { encounters: projectedEncounters } : {}),
       progression: {
         subjects: pressure,
         sides: {

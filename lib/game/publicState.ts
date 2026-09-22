@@ -1,3 +1,4 @@
+import { capabilities } from "@/lib/rpg/capabilities";
 import { publicEncounters } from "@/lib/rpg/encounters/publicView";
 import type { GameState, Intention, PublicEvent, Side } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
@@ -14,7 +15,7 @@ const intention = (m: Intention | null): Intention | null =>
 export function publicState(s: GameState) {
   // Every nested record is allowlisted too. Future private fields stay private.
   return {
-    ...(s.schemaVersion === 5 ? { encounters: publicEncounters(s) } : {}),
+    ...(capabilities(s).encounters ? { encounters: publicEncounters(s) } : {}),
     board: s.board.map((r) => r.map((p) => p)),
     sideToMove: s.sideToMove,
     status: s.status,

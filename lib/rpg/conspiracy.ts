@@ -1,3 +1,4 @@
+import { capabilities } from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
@@ -36,7 +37,7 @@ export function guardCount(
   );
 }
 function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
-  if (rulesFor(s).generation >= 3) count(s, `thwart:${reason}`);
+  if (capabilities(s).progression) count(s, `thwart:${reason}`);
   p.stage = "thwarted";
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
@@ -103,7 +104,7 @@ export function scheduleCourt(
       thwart(s, active, "separation");
       return;
     }
-    if (s.schemaVersion === 5 && check) {
+    if (capabilities(s).encounters && check) {
       active.stageEnteredOwnTurn++;
       return;
     }
@@ -187,20 +188,20 @@ export function scheduleCourt(
         const key = `${a.id}|${b.id}`;
         tracking.pairs[key] = (old[key] ?? 0) + 1;
       }
-    const complaint =
-      s.schemaVersion === 5
-        ? encounters(s).active.find(
-            (e) =>
-              e.side === side &&
-              e.family === "complaint" &&
-              e.stage === 2 &&
-              own > e.stageOwn &&
-              encounters(s).sides[side].harms.some(
-                (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
-              ),
-          )
-        : null;
-    if (s.schemaVersion === 5 && (s.ply <= 64 || !complaint)) return;
+    const caps = capabilities(s);
+    const complaint = caps.encounters
+      ? encounters(s).active.find(
+          (e) =>
+            e.side === side &&
+            e.family === "complaint" &&
+            e.stage === 2 &&
+            own > e.stageOwn &&
+            encounters(s).sides[side].harms.some(
+              (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
+            ),
+        )
+      : null;
+    if (caps.encounters && (s.ply <= 64 || !complaint)) return;
     const candidates = assessment.pairs.filter(
       ({ a, b }) =>
         (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&
@@ -211,11 +212,8 @@ export function scheduleCourt(
     if (!candidates.length) return;
     count(s, "eligibleKingdomTurns");
     count(s, `eligibleCourt:${side}`);
-    if (s.schemaVersion < 5 && rng() >= rulesFor(s).plotChance) return;
-    if (
-      s.schemaVersion === 5 ||
-      rulesFor(s).responsibility?.preferNearbyLeader
-    ) {
+    if (caps.plotRoll && rng() >= rulesFor(s).plotChance) return;
+    if (caps.encounters || rulesFor(s).responsibility?.preferNearbyLeader) {
       const king = findKing(s.board, side === "white")!;
       candidates.sort(
         (x, y) =>

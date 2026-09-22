@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import { KIND_NAMES, squareName } from "@/lib/chess";
 import type { GameState } from "@/lib/game/types";
 import { locations } from "../context";
@@ -72,7 +73,7 @@ export function encounterCopy(s: GameState, e: Encounter) {
   return { message: request, response, outcome };
 }
 export function publicEncounters(s: GameState) {
-  if (s.simulation?.schemaVersion !== 5) return [];
+  if (!hasEncounters(s.simulation)) return [];
   const state = s.simulation.encounters;
   return [
     ...state.active,

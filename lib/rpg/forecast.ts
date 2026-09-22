@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { refusalModifier } from "./encounters/effects";
 import {
   applyMove,
@@ -41,7 +42,9 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     heroicTo: null,
   };
   if (
-    (s.schemaVersion === 5 ? s.ply <= rules.grace : s.ply < rules.grace) ||
+    (capabilities(s).graceInclusive
+      ? s.ply <= rules.grace
+      : s.ply < rules.grace) ||
     sub.currentKind === "k" ||
     s.pendingRefusal ||
     s.simulation!.turnContext.refusalUsed ||
@@ -58,7 +61,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     0.4 * risk +
       0.25 * Number(c.currentlyAttacked) +
       0.2 * Number(c.isolatedFromKing) +
-      0.15 * Number(s.schemaVersion !== 5 && c.disputeRelevant),
+      0.15 * Number(capabilities(s).disputeRefusals && c.disputeRelevant),
     0,
     1,
   );
@@ -80,7 +83,8 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     resentment: (cfg.resentmentWeight * sub.resentment) / 100,
     fatigue: (cfg.fatigueWeight * sub.fatigue) / 100,
     dispute:
-      cfg.disputeWeight * Number(s.schemaVersion !== 5 && c.disputeRelevant),
+      cfg.disputeWeight *
+      Number(capabilities(s).disputeRefusals && c.disputeRelevant),
     harm: cfg.harmWeight * Math.min(1, harm.length / 3),
     loyalty: -cfg.loyaltyWeight * (sub.loyalty / 100 - 0.65),
     courage: -cfg.courageWeight * (sub.courage / 100 - 0.5),
@@ -124,7 +128,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     assessment.residual < 100
   )
     result.refusal = Math.min(result.refusal, cfg.calmCap);
-  if (s.schemaVersion === 5) {
+  if (capabilities(s).encounters) {
     const modifier = refusalModifier(s, m);
     result.contributions.encounter = modifier;
     const without = result.refusal;
@@ -134,8 +138,9 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
   const p = progression(s),
     q = p.subjects[sub.id],
     own = k.ownTurnsCompleted;
-  const encounterState =
-    s.simulation?.schemaVersion === 5 ? s.simulation.encounters : null;
+  const encounterState = hasEncounters(s.simulation)
+    ? s.simulation.encounters
+    : null;
   const warned = encounterState?.subjects[sub.id].warningOwn;
   if (
     s.ply >= rules.established &&

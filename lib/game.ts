@@ -1,3 +1,4 @@
+import { capabilities } from "@/lib/rpg/capabilities";
 import {
   resolveEncounters,
   closeTerminalEncounters,
@@ -217,7 +218,7 @@ function recordPosition(s: GameState, state: GameState, next: Side) {
 /** v4+ keeps the action explanation beside check or the result. */
 function moveMessage(s: GameState, next: Side, message: string): string {
   const check = isInCheck(s.board, next === "white") ? "Check!" : "";
-  return s.schemaVersion >= 4
+  return capabilities(s).responsibility
     ? [message, s.result ?? check].filter(Boolean).join(" ")
     : (s.result ?? (check || message));
 }
@@ -335,7 +336,8 @@ export function submitMove(
       actual,
       outcome: agencyOutcome,
     });
-  if (s.schemaVersion === 5 && !deps.classic)
+  const caps = capabilities(s);
+  if (caps.encounters && !deps.classic)
     resolveEncounters(state, s, {
       intended: move,
       actual,
@@ -343,7 +345,7 @@ export function submitMove(
     });
   // Court eligibility sees the committed, combined leadership/encounter
   // deltas, never an intermediate value beyond an action's field cap.
-  if (s.schemaVersion === 5 && !deps.classic) capDeltas(state, s);
+  if (caps.turnLevelDeltaCap && !deps.classic) capDeltas(state, s);
   ordinaryTerminal(s, next);
   closeTerminalEncounters(s);
   const text = `${pieceName(piece)} ${squareName(move.from)} → ${squareName(destination)}${move.promotion ? ` = ${move.promotion.toUpperCase()}` : ""}`;
@@ -363,7 +365,7 @@ export function submitMove(
       rng,
       isInCheck(state.board, move.side === "white"),
     );
-  if (s.schemaVersion === 5 && !deps.classic) {
+  if (caps.encounters && !deps.classic) {
     closeTerminalEncounters(s);
     scheduleEncounter(s, move.side);
     capDeltas(state, s);
@@ -372,7 +374,7 @@ export function submitMove(
   s.moves.push({
     number: s.ply,
     text: `${s.ply}. ${text}`,
-    message: s.schemaVersion >= 4 ? actionMessage : message,
+    message: caps.responsibility ? actionMessage : message,
     special,
   });
   s.sideToMove = next;

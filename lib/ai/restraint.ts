@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { responseMoves } from "@/lib/rpg/encounters/objectives";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
 import { getAllLegalMoves, sameIntention, submitMove } from "@/lib/game";
@@ -8,7 +9,7 @@ import { applyMove } from "@/lib/chess";
 import { materializeView } from "./leadershipView";
 export function refusalFallback(s: GameState): MoveAttempt | undefined {
   const moves = getAllLegalMoves(s.board, s.sideToMove, s.rights);
-  if (s.schemaVersion >= 3 && s.pendingRefusal)
+  if (capabilities(s).progression && s.pendingRefusal)
     return moves.find((m) => !sameIntention(m, s.pendingRefusal!)) ?? moves[0];
   return s.pendingRefusal
     ? { ...s.pendingRefusal, side: s.sideToMove }
@@ -25,14 +26,14 @@ export function chooseAfterRefusal(
 ): LeadershipChoice | undefined {
   if (!s.pendingRefusal) return undefined;
   const repeat = { ...s.pendingRefusal, side: s.sideToMove };
-  if (s.schemaVersion < 3)
+  if (!capabilities(s).progression)
     return { move: repeat, restraint: false, tacticalCost: 0 };
   const own = ownPolitics(s, s.sideToMove)!;
   const view = materializeView(own.view!),
     sign = s.sideToMove === "white" ? 1 : -1;
   const legal = getAllLegalMoves(s.board, s.sideToMove, s.rights);
   let projectedMoves = legal;
-  if (s.simulation?.schemaVersion === 5) {
+  if (hasEncounters(s.simulation)) {
     const shortlist = (
       scores ??
       legal.map((move) => ({

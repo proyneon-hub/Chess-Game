@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import {
   evaluateObjective,
   projectBoard,
@@ -171,9 +172,9 @@ export function searchMoves(input: SearchInput): SearchResult {
       .sort((a, b) => b.score - a.score);
   }
   let shortlist = ranked.slice(0, 8);
-  if (input.own?.view?.simulation.schemaVersion === 5) {
+  if (hasEncounters(input.own?.view?.simulation)) {
     const view = materializeView(input.own.view);
-    if (view.simulation?.schemaVersion === 5) {
+    if (hasEncounters(view.simulation)) {
       const objectives = view.simulation.encounters.active.filter(
         (e) => e.side === input.side,
       );

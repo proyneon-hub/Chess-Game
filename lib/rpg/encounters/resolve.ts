@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import { forecastV3 } from "../forecast";
 import { isInCheck } from "@/lib/chess";
 import type { GameState, ResolvedOrder } from "@/lib/game/types";
@@ -50,7 +51,7 @@ export function resolveEncounters(
   s: GameState,
   order: ResolvedOrder,
 ) {
-  if (s.simulation?.schemaVersion !== 5) return;
+  if (!hasEncounters(s.simulation)) return;
   const state = encounters(s),
     side = order.intended.side,
     own = s.simulation.kingdoms[side].ownTurnsCompleted;
@@ -335,7 +336,7 @@ export function resolveEncounters(
     .slice(-64);
 }
 export function closeTerminalEncounters(s: GameState) {
-  if (s.simulation?.schemaVersion !== 5 || !s.terminal) return;
+  if (!hasEncounters(s.simulation) || !s.terminal) return;
   for (const e of [...encounters(s).active])
     closeEncounter(s, e, "interrupted");
 }
