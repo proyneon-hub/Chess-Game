@@ -1,9 +1,18 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { NextResponse } from "next/server";
-vi.mock("next/headers", () => ({ cookies: () => ({ get: () => undefined }) }));
+const cookie = vi.hoisted(() => ({ value: undefined as string | undefined }));
+vi.mock("next/headers", () => ({
+  cookies: () => ({
+    get: () => (cookie.value ? { value: cookie.value } : undefined),
+  }),
+}));
 import { withGuest } from "@/lib/serverHttp";
+import { issueGuestToken } from "@/lib/session";
 import { IncompatibleStateError } from "@/lib/game/validation";
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  cookie.value = undefined;
+});
 const request = () =>
   new Request("https://chess.test/api/matches/abc", { method: "POST" });
 
@@ -41,4 +50,21 @@ it("incompatible saves warn with 409; successes carry an id and no log", async (
   expect(ok.status).toBe(200);
   expect(ok.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
   expect(error).not.toHaveBeenCalled();
+});
+
+it("reads never create a guest identity but still renew an aging one", async () => {
+  const get = () => new Request("https://chess.test/api/matches/abc");
+  const ok = async () => NextResponse.json({});
+  const anonymous = await withGuest(get(), ok, { mint: false });
+  expect(anonymous.cookies.get("rpg_chess_guest")).toBeUndefined();
+  const mutation = await withGuest(request(), ok);
+  expect(mutation.cookies.get("rpg_chess_guest")).toBeDefined();
+  cookie.value = issueGuestToken(
+    "3b241101-e2bb-4255-8caf-4136c566a962",
+    Date.now() - 20 * 24 * 60 * 60 * 1000,
+  );
+  const renewed = await withGuest(get(), ok, { mint: false });
+  expect(renewed.cookies.get("rpg_chess_guest")?.value).toMatch(
+    /^3b241101-e2bb-4255-8caf-4136c566a962\./,
+  );
 });

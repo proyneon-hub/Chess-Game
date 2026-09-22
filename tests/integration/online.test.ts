@@ -231,6 +231,13 @@ describe("actual MongoDB coordination", () => {
     expect(results.filter((r) => r.duplicate)).toHaveLength(1);
     const stored = await GameMatch.findOne({ inviteId: m.id }).lean();
     expect(stored!.receipts).toHaveLength(1);
+    // Receipts keep only what duplicate detection reads.
+    expect(Object.keys(stored!.receipts[0] as object).sort()).toEqual([
+      "actionId",
+      "hash",
+      "playerId",
+      "version",
+    ]);
     expect(stored!.version).toBe(m.version + 1);
   });
   it("receipts are bounded at 64 and an aged retry remains stale", async () => {

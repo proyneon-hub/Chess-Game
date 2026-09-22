@@ -59,20 +59,24 @@ export const isSecureRequest = (request: Request) =>
 /**
  * Resolves the guest session, persists a new or renewed one, and maps
  * failures. Every response carries an x-request-id that server logs share.
+ * Reads pass `mint: false`: visitors without a cookie get an anonymous
+ * session for this request only; an identity is created by their first
+ * mutation (such as joining).
  */
 export async function withGuest(
   request: Request,
   handler: (session: GuestSession) => Promise<NextResponse>,
+  { mint = true }: { mint?: boolean } = {},
 ) {
   const requestId = randomUUID();
   let response: NextResponse;
   try {
     const session = await getGuestSession();
-    response = persistGuestSession(
-      await handler(session),
-      session,
-      isSecureRequest(request),
-    );
+    const result = await handler(session);
+    response =
+      session.isNew && !mint
+        ? result
+        : persistGuestSession(result, session, isSecureRequest(request));
   } catch (error) {
     response = genericError(error, { requestId, request });
   }
