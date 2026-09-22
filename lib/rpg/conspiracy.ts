@@ -2,8 +2,19 @@ import { capabilities } from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
-import { findKing, isInCheck, KIND_NAMES, type Side } from "@/lib/chess";
-import type { CourtPlot, GameState, SubjectState } from "@/lib/game/types";
+import {
+  findKing,
+  isInCheck,
+  KIND_NAMES,
+  type Side,
+  type Square,
+} from "@/lib/chess";
+import type {
+  CourtPlot,
+  GameState,
+  KingdomState,
+  SubjectState,
+} from "@/lib/game/types";
 import { finish } from "@/lib/game/core";
 import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
@@ -63,6 +74,24 @@ function warning(s: GameState, p: CourtPlot) {
   p.warningOwnTurns.push(sim.kingdoms[p.side].ownTurnsCompleted);
   s.warning = { message, square: pos[a.id] };
 }
+/** What one side's court step reads, computed once. */
+type Court = {
+  s: GameState;
+  sim: NonNullable<GameState["simulation"]>;
+  side: Side;
+  rng: Draw;
+  k: KingdomState;
+  own: number;
+  pos: Record<string, Square>;
+  check: boolean;
+  startedInCheck: boolean;
+};
+
+/**
+ * Runs one side's court after its move: an active plot advances, is
+ * thwarted, or makes its armed attempt; otherwise a new plot may start
+ * (v3+ from tracked eligible pairs, v2 from eligibility streaks).
+ */
 export function scheduleCourt(
   s: GameState,
   side: Side,
@@ -71,175 +100,194 @@ export function scheduleCourt(
 ) {
   if (s.terminal || !s.simulation) return;
   const sim = s.simulation,
-    k = sim.kingdoms[side],
-    own = k.ownTurnsCompleted,
-    pos = locations(s),
-    check =
-      startedInCheck || isInCheck(s.board, true) || isInCheck(s.board, false);
-  const cfg = rulesFor(s).progression;
+    k = sim.kingdoms[side];
+  const c: Court = {
+    s,
+    sim,
+    side,
+    rng,
+    k,
+    own: k.ownTurnsCompleted,
+    pos: locations(s),
+    check:
+      startedInCheck || isInCheck(s.board, true) || isInCheck(s.board, false),
+    startedInCheck,
+  };
   const active = activePlot(s);
   if (active) {
-    if (cfg) count(s, "court-blocker:active-plot");
-    if (active.side !== side) return;
-    const a = sim.subjects[active.ringleader],
-      b = sim.subjects[active.accomplice];
+    if (rulesFor(s).progression) count(s, "court-blocker:active-plot");
+    if (active.side === side) advancePlot(c, active);
+    return;
+  }
+  if (rulesFor(s).progression) startTrackedPlot(c);
+  else startStreakPlot(c);
+}
+
+function advancePlot(c: Court, active: CourtPlot) {
+  const { s, sim, k, own, pos, check, side } = c,
+    cfg = rulesFor(s).progression;
+  const a = sim.subjects[active.ringleader],
+    b = sim.subjects[active.accomplice];
+  if (
+    a.status !== "active" ||
+    b.status !== "active" ||
+    a.loyalty > (cfg?.recoveryLoyalty ?? 45) ||
+    a.resentment < (cfg?.recoveryResentment ?? 55) ||
+    k.legitimacy > (cfg?.recoveryLegitimacy ?? 50) ||
+    k.tyranny < (cfg?.recoveryTyranny ?? 45)
+  ) {
+    thwart(
+      s,
+      active,
+      a.status !== "active" || b.status !== "active" ? "capture" : "recovery",
+    );
+    return;
+  }
+  active.separatedTurns =
+    distance(pos[a.id], pos[b.id]) > 3 ? active.separatedTurns + 1 : 0;
+  if (active.separatedTurns >= 2) {
+    thwart(s, active, "separation");
+    return;
+  }
+  if (capabilities(s).encounters && check) {
+    active.stageEnteredOwnTurn++;
+    return;
+  }
+  if (own <= active.stageEnteredOwnTurn) return;
+  if (active.stage === "gathering" || active.stage === "preparing") {
+    active.stage = active.stage === "gathering" ? "preparing" : "armed";
+    active.stageEnteredOwnTurn = own;
+    warning(s, active);
+    return;
+  }
+  if (active.stage !== "armed") return;
+  const king = findKing(s.board, side === "white")!;
+  if (check || distance(pos[a.id], king) > 2) {
+    active.deferredTurns++;
     if (
-      a.status !== "active" ||
-      b.status !== "active" ||
-      a.loyalty > (cfg?.recoveryLoyalty ?? 45) ||
-      a.resentment < (cfg?.recoveryResentment ?? 55) ||
-      k.legitimacy > (cfg?.recoveryLegitimacy ?? 50) ||
-      k.tyranny < (cfg?.recoveryTyranny ?? 45)
-    ) {
-      thwart(
-        s,
-        active,
-        a.status !== "active" || b.status !== "active" ? "capture" : "recovery",
-      );
-      return;
+      active.deferredTurns >= (rulesFor(s).responsibility?.armedDeferrals ?? 2)
+    )
+      thwart(s, active, check ? "check" : "king-distance");
+    return;
+  }
+  const guards = guardCount(s, active);
+  if (guards >= 2) {
+    thwart(s, active, "guards");
+    return;
+  }
+  // These must be previously committed distinct stages, each followed by a
+  // response turn. Rehydration cannot fabricate an unwarned terminal result.
+  if (
+    active.warningEventIds.length !== 3 ||
+    active.warningOwnTurns.length !== 3 ||
+    !active.warningEventIds.every((id) => s.events.some((e) => e.seq === id)) ||
+    !(
+      active.warningOwnTurns[0] < active.warningOwnTurns[1] &&
+      active.warningOwnTurns[1] < active.warningOwnTurns[2] &&
+      active.warningOwnTurns[2] < own
+    )
+  ) {
+    thwart(s, active);
+    return;
+  }
+  attempt(c, active, a, b, king, guards);
+}
+
+/** The armed plot strikes: regicide ends the game, failure scatters it. */
+function attempt(
+  { s, rng, k, side }: Court,
+  active: CourtPlot,
+  a: SubjectState,
+  b: SubjectState,
+  king: Square,
+  guards: number,
+) {
+  const p = clamp(
+    0.04 +
+      (0.05 * a.ambition) / 100 +
+      (0.04 * k.tyranny) / 100 -
+      (0.03 * k.legitimacy) / 100 -
+      0.03 * guards,
+    rulesFor(s).plotMinChance,
+    rulesFor(s).plotMaxChance,
+  );
+  count(s, "armedAttempts");
+  active.stage = "resolved";
+  s.warning = null;
+  if (rng() < p) {
+    finish(s, "regicide", opposite(side));
+    s.specialSquare = king;
+    event(s, "regicides", s.result!, { square: king, special: true });
+    return;
+  }
+  for (const sub of [a, b]) {
+    sub.fear = clamp(sub.fear + 15);
+    sub.morale = clamp(sub.morale - 10);
+    sub.resentment = clamp(sub.resentment - 10);
+    remember(s, sub, "conspiracy_aftermath", a.id, 1, 6);
+  }
+  k.cohesion = clamp(k.cohesion - 5);
+  event(s, "plotFailed", "The king's guard breaks the conspiracy.");
+}
+
+/**
+ * v3+: pairs must stay eligible for two turns; v5 also needs a standing
+ * stage-2 complaint about them, which the new plot escalates.
+ */
+function startTrackedPlot(c: Court) {
+  const { s, side, own, pos, rng } = c;
+  const assessment = courtEligibility(s, side, c.startedInCheck),
+    tracking = progression(s).sides[side];
+  for (const blocker of assessment.blockers)
+    count(s, `court-blocker:${blocker}`);
+  const old = tracking.pairs;
+  tracking.pairs = {};
+  if (assessment.gate)
+    for (const { a, b } of assessment.pairs) {
+      const key = `${a.id}|${b.id}`;
+      tracking.pairs[key] = (old[key] ?? 0) + 1;
     }
-    active.separatedTurns =
-      distance(pos[a.id], pos[b.id]) > 3 ? active.separatedTurns + 1 : 0;
-    if (active.separatedTurns >= 2) {
-      thwart(s, active, "separation");
-      return;
-    }
-    if (capabilities(s).encounters && check) {
-      active.stageEnteredOwnTurn++;
-      return;
-    }
-    if (own <= active.stageEnteredOwnTurn) return;
-    if (active.stage === "gathering" || active.stage === "preparing") {
-      active.stage = active.stage === "gathering" ? "preparing" : "armed";
-      active.stageEnteredOwnTurn = own;
-      warning(s, active);
-      return;
-    }
-    if (active.stage !== "armed") return;
+  const caps = capabilities(s);
+  const complaint = caps.encounters
+    ? encounters(s).active.find(
+        (e) =>
+          e.side === side &&
+          e.family === "complaint" &&
+          e.stage === 2 &&
+          own > e.stageOwn &&
+          encounters(s).sides[side].harms.some(
+            (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
+          ),
+      )
+    : null;
+  if (caps.encounters && (s.ply <= 64 || !complaint)) return;
+  const candidates = assessment.pairs.filter(
+    ({ a, b }) =>
+      (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&
+      (!complaint ||
+        (complaint.participants.includes(a.id) &&
+          complaint.participants.includes(b.id))),
+  );
+  if (!candidates.length) return;
+  count(s, "eligibleKingdomTurns");
+  count(s, `eligibleCourt:${side}`);
+  if (caps.plotRoll && rng() >= rulesFor(s).plotChance) return;
+  if (caps.encounters || rulesFor(s).responsibility?.preferNearbyLeader) {
     const king = findKing(s.board, side === "white")!;
-    if (check || distance(pos[a.id], king) > 2) {
-      active.deferredTurns++;
-      if (
-        active.deferredTurns >=
-        (rulesFor(s).responsibility?.armedDeferrals ?? 2)
-      )
-        thwart(s, active, check ? "check" : "king-distance");
-      return;
-    }
-    const guards = guardCount(s, active);
-    if (guards >= 2) {
-      thwart(s, active, "guards");
-      return;
-    }
-    // These must be previously committed distinct stages, each followed by a
-    // response turn. Rehydration cannot fabricate an unwarned terminal result.
-    if (
-      active.warningEventIds.length !== 3 ||
-      active.warningOwnTurns.length !== 3 ||
-      !active.warningEventIds.every((id) =>
-        s.events.some((e) => e.seq === id),
-      ) ||
-      !(
-        active.warningOwnTurns[0] < active.warningOwnTurns[1] &&
-        active.warningOwnTurns[1] < active.warningOwnTurns[2] &&
-        active.warningOwnTurns[2] < own
-      )
-    ) {
-      thwart(s, active);
-      return;
-    }
-    const p = clamp(
-      0.04 +
-        (0.05 * a.ambition) / 100 +
-        (0.04 * k.tyranny) / 100 -
-        (0.03 * k.legitimacy) / 100 -
-        0.03 * guards,
-      rulesFor(s).plotMinChance,
-      rulesFor(s).plotMaxChance,
+    candidates.sort(
+      (x, y) =>
+        Number(distance(pos[y.a.id], king) <= 2) -
+        Number(distance(pos[x.a.id], king) <= 2),
     );
-    count(s, "armedAttempts");
-    active.stage = "resolved";
-    s.warning = null;
-    if (rng() < p) {
-      finish(s, "regicide", opposite(side));
-      s.specialSquare = king;
-      event(s, "regicides", s.result!, { square: king, special: true });
-    } else {
-      for (const sub of [a, b]) {
-        sub.fear = clamp(sub.fear + 15);
-        sub.morale = clamp(sub.morale - 10);
-        sub.resentment = clamp(sub.resentment - 10);
-        remember(s, sub, "conspiracy_aftermath", a.id, 1, 6);
-      }
-      k.cohesion = clamp(k.cohesion - 5);
-      event(s, "plotFailed", "The king's guard breaks the conspiracy.");
-    }
-    return;
   }
-  if (cfg) {
-    const assessment = courtEligibility(s, side, startedInCheck),
-      tracking = progression(s).sides[side];
-    for (const blocker of assessment.blockers)
-      count(s, `court-blocker:${blocker}`);
-    const old = tracking.pairs;
-    tracking.pairs = {};
-    if (assessment.gate)
-      for (const { a, b } of assessment.pairs) {
-        const key = `${a.id}|${b.id}`;
-        tracking.pairs[key] = (old[key] ?? 0) + 1;
-      }
-    const caps = capabilities(s);
-    const complaint = caps.encounters
-      ? encounters(s).active.find(
-          (e) =>
-            e.side === side &&
-            e.family === "complaint" &&
-            e.stage === 2 &&
-            own > e.stageOwn &&
-            encounters(s).sides[side].harms.some(
-              (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
-            ),
-        )
-      : null;
-    if (caps.encounters && (s.ply <= 64 || !complaint)) return;
-    const candidates = assessment.pairs.filter(
-      ({ a, b }) =>
-        (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&
-        (!complaint ||
-          (complaint.participants.includes(a.id) &&
-            complaint.participants.includes(b.id))),
-    );
-    if (!candidates.length) return;
-    count(s, "eligibleKingdomTurns");
-    count(s, `eligibleCourt:${side}`);
-    if (caps.plotRoll && rng() >= rulesFor(s).plotChance) return;
-    if (caps.encounters || rulesFor(s).responsibility?.preferNearbyLeader) {
-      const king = findKing(s.board, side === "white")!;
-      candidates.sort(
-        (x, y) =>
-          Number(distance(pos[y.a.id], king) <= 2) -
-          Number(distance(pos[x.a.id], king) <= 2),
-      );
-    }
-    const { a, b } = candidates[0];
-    k.plotAttemptUsed = true;
-    const plot: CourtPlot = {
-      side,
-      ringleader: a.id,
-      accomplice: b.id,
-      stage: "gathering",
-      stageEnteredOwnTurn: own,
-      warningEventIds: [],
-      warningOwnTurns: [],
-      separatedTurns: 0,
-      deferredTurns: 0,
-    };
-    if (complaint) closeEncounter(s, complaint, "escalated");
-    sim.plots.push(plot);
-    count(s, "plots");
-    warning(s, plot);
-    return;
-  }
+  const { a, b } = candidates[0];
+  if (complaint) closeEncounter(s, complaint, "escalated");
+  openPlot(c, a, b);
+}
+
+/** v2: a resentful, coerced leader and an accomplice, eligible two turns. */
+function startStreakPlot(c: Court) {
+  const { s, sim, side, k, own, pos, check, rng } = c;
   const gate =
     s.ply >= rulesFor(s).crisis &&
     !check &&
@@ -293,7 +341,14 @@ export function scheduleCourt(
   if (!candidates.length) return;
   count(s, "eligibleKingdomTurns");
   if (rng() >= rulesFor(s).plotChance) return;
-  const { a, b } = candidates[0];
+  openPlot(c, candidates[0].a, candidates[0].b);
+}
+
+function openPlot(
+  { s, sim, side, k, own }: Court,
+  a: SubjectState,
+  b: SubjectState,
+) {
   k.plotAttemptUsed = true;
   const plot: CourtPlot = {
     side,
