@@ -23,11 +23,7 @@ import { statusText } from "@/components/chess/statusText";
 const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
-export default function ChessBoard({
-  onlineSupported = true,
-}: {
-  onlineSupported?: boolean;
-}) {
+export default function ChessBoard() {
   const [kind, setKind] = useState<GameKind | null>(null),
     [difficulty, setDifficulty] = useState<Difficulty>("normal"),
     [selected, setSelected] = useState<Square | null>(null),
@@ -84,7 +80,7 @@ export default function ChessBoard({
   );
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("match");
-    if (id && onlineSupported) {
+    if (id) {
       setKind("online");
       void open(id);
       return;
@@ -97,7 +93,7 @@ export default function ChessBoard({
         setKind(saved.mode);
         setMessage("Your game has been restored.");
       });
-  }, [open, onlineSupported, restoreSaved]);
+  }, [open, restoreSaved]);
   // Keep local and computer games across reloads in this browser.
   useEffect(() => {
     if (kind === "local" || kind === "computer") save(kind, difficulty);
@@ -212,20 +208,18 @@ export default function ChessBoard({
               </select>
             </label>
           </div>
-          {onlineSupported && (
-            <button
-              className={button + " py-4 text-left"}
-              onClick={() => {
-                setKind("online");
-                void open();
-              }}
-            >
-              Play online
-              <span className="block text-xs text-stone-400">
-                Create a private invite game
-              </span>
-            </button>
-          )}
+          <button
+            className={button + " py-4 text-left"}
+            onClick={() => {
+              setKind("online");
+              void open();
+            }}
+          >
+            Play online
+            <span className="block text-xs text-stone-400">
+              Create a private invite game
+            </span>
+          </button>
         </div>
         <p role="status" className="mt-5 text-sm text-stone-300">
           {message}
