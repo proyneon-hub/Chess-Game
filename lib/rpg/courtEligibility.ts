@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import type { GameState, Side } from "@/lib/game/types";
 import { rulesFor } from "./config";
 import { harmfulEpisodes, progression } from "./pressure";
@@ -77,9 +78,9 @@ export function courtEligibility(
       (x, y) =>
         y.a.resentment - x.a.resentment ||
         y.a.ambition - x.a.ambition ||
-        x.a.id.localeCompare(y.a.id) ||
+        compareIds(x.a.id, y.a.id) ||
         y.b.resentment - x.b.resentment ||
-        x.b.id.localeCompare(y.b.id),
+        compareIds(x.b.id, y.b.id),
     )
     .slice(0, cfg.pairLimit);
   if (!pairs.length && !blockers.length) blockers.push("pair");

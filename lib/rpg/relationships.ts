@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import type { GameState, SubjectState } from "@/lib/game/types";
 import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations } from "@/lib/rpg/context";
@@ -14,7 +15,7 @@ export function riskFriction(s: GameState, side: SubjectState["side"]) {
         x.status === "active" &&
         ["proud", "ambitious"].includes(x.personality),
     )
-    .sort((a, b) => a.id.localeCompare(b.id))) {
+    .sort((a, b) => compareIds(a.id, b.id))) {
     // Ambition changes sensitivity by at most two resentment points.
     if (
       sub.resentment <
@@ -92,7 +93,7 @@ export function relate(
           .sort(
             (i, j) =>
               x.relationships[i].lastRelevant -
-                x.relationships[j].lastRelevant || i.localeCompare(j),
+                x.relationships[j].lastRelevant || compareIds(i, j),
           )[0];
         if (!evict) continue;
         delete x.relationships[evict];
@@ -126,7 +127,7 @@ export function refreshDisputes(s: GameState, side: SubjectState["side"]) {
       (a, b) =>
         Number(b.r.disputed) - Number(a.r.disputed) ||
         a.r.score - b.r.score ||
-        a.a.id.localeCompare(b.a.id),
+        compareIds(a.a.id, b.a.id),
     );
   let active = 0;
   for (const { a, b, r } of pairs) {

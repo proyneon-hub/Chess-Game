@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import { findKing, KIND_NAMES, squareName } from "@/lib/chess";
 import type {
   GameState,
@@ -264,7 +265,7 @@ export function leadershipV3(
               x.currentKind !== "k" &&
               distance(pos[x.id], f.square) <= 2,
           )
-          .sort((a, b) => a.id.localeCompare(b.id))) {
+          .sort((a, b) => compareIds(a.id, b.id))) {
           witness.fear +=
             4 -
             cohesionRecovery(before.simulation!.kingdoms[victim.side].cohesion);
@@ -314,9 +315,7 @@ export function leadershipV3(
               x.loyalty <= 55 &&
               distance(pos[x.id], m.to) <= 3,
           )
-          .sort(
-            (a, b) => b.ambition - a.ambition || a.id.localeCompare(b.id),
-          )[0];
+          .sort((a, b) => b.ambition - a.ambition || compareIds(a.id, b.id))[0];
         if (envious) {
           envious.resentment += 4;
           remember(s, envious, "promotion_envy", moverId, 1, cfg.graveWindow);

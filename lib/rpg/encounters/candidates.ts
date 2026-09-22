@@ -1,3 +1,4 @@
+import { compareIds } from "../order";
 import type { GameState, Side } from "@/lib/game/types";
 import { locations } from "../context";
 import { encounterRulesFor } from "../config";
@@ -46,7 +47,7 @@ export function candidates(
         x.currentKind !== "k" &&
         !occupied.has(x.id),
     )
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .sort((a, b) => compareIds(a.id, b.id));
   const add = (
     family: Family,
     participants: string[],
@@ -315,7 +316,7 @@ export function candidates(
       rank(a) - rank(b) ||
       Math.max(...a.participants.map((id) => e.subjects[id].lastStart)) -
         Math.max(...b.participants.map((id) => e.subjects[id].lastStart)) ||
-      a.participants.join().localeCompare(b.participants.join()),
+      compareIds(a.participants.join(), b.participants.join()),
   );
   return { candidates: out, blockers: [...new Set(blockers)] };
 }

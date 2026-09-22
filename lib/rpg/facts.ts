@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import {
   applyMove,
   getLegalMoves,
@@ -158,7 +159,7 @@ export function derivePoliticalFacts(
         x.status === "active" &&
         x.currentKind !== "k",
     )
-    .sort((a, b) => a.id.localeCompare(b.id))) {
+    .sort((a, b) => compareIds(a.id, b.id))) {
     const sq = pos[ally.id];
     if (!sq) continue;
     const memory = p.subjects[ally.id],

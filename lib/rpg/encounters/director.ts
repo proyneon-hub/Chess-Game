@@ -1,3 +1,4 @@
+import { compareIds } from "../order";
 import { isInCheck } from "@/lib/chess";
 import type { GameState, Side } from "@/lib/game/types";
 import { encounterRulesFor } from "../config";
@@ -42,7 +43,7 @@ export function scheduleEncounter(s: GameState, movedSide: Side) {
       state.sides[a.side].lastStart - state.sides[b.side].lastStart ||
       Math.max(...a.participants.map((id) => state.subjects[id].lastStart)) -
         Math.max(...b.participants.map((id) => state.subjects[id].lastStart)) ||
-      a.participants.join().localeCompare(b.participants.join()),
+      compareIds(a.participants.join(), b.participants.join()),
   );
   const candidate = available[0];
   if (candidate) {
