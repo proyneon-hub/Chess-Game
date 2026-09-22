@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readArchived } from "./archived";
 import { createHash } from "node:crypto";
 import { CONFIG } from "../lib/rpg/config";
 type Report = {
@@ -69,7 +70,7 @@ const measured = readdirSync(dir, { withFileTypes: true })
   .map((d) => d.name);
 let games = 0;
 for (const name of measured) {
-  const s: Report = JSON.parse(readFileSync(`${dir}/${name}/raw.json`, "utf8"));
+  const s: Report = JSON.parse(readArchived(`${dir}/${name}/raw.json`));
   games += s.games;
   const failures =
     s.invalid +
@@ -107,10 +108,10 @@ for (const name of measured) {
   );
 }
 const oldBoard = JSON.parse(
-  readFileSync(`${dir}/board-2026-09-09.1-board-mistreatment/raw.json`, "utf8"),
+  readArchived(`${dir}/board-2026-09-09.1-board-mistreatment/raw.json`),
 );
 const correctedBoard = JSON.parse(
-  readFileSync(`${dir}/board-mistreatment-corrected/raw.json`, "utf8"),
+  readArchived(`${dir}/board-mistreatment-corrected/raw.json`),
 );
 check(
   "opening classifier correction preserves every board-policy game outcome",
@@ -139,7 +140,7 @@ for (const name of [
   "holdout-ordinary",
   "holdout-pressure",
 ]) {
-  const s: Report = JSON.parse(readFileSync(`${dir}/${name}/raw.json`, "utf8"));
+  const s: Report = JSON.parse(readArchived(`${dir}/${name}/raw.json`));
   check(
     `${name}: selected rules and cohort`,
     s.configVersion === CONFIG.version && s.games === 1000,
