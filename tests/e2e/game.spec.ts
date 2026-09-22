@@ -45,6 +45,7 @@ test("AI completes and restart cancels worker", async ({ page }) => {
   await page.getByRole("button", { name: /Play computer/ }).click();
   await move(page, "e2", "e4");
   await page.getByRole("button", { name: "New Game", exact: true }).click();
+  await page.getByRole("button", { name: "Discard game" }).click();
   await page.waitForTimeout(1500);
   await expect(square(page, "e2")).toHaveAttribute("aria-label", /White pawn/);
   await expect(page.getByText("No moves yet.")).toBeVisible();
@@ -227,4 +228,45 @@ test("the board is one tab stop with arrow, Home and End navigation", async ({
     "aria-label",
     /White pawn, last move/,
   );
+});
+
+test("local games survive a reload and resets ask before discarding", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play here/ }).click();
+  await move(page, "e2", "e4");
+  await move(page, "e7", "e5");
+  await page.reload();
+  await expect(square(page, "e4")).toHaveAttribute("aria-label", /White pawn/);
+  await expect(square(page, "e5")).toHaveAttribute("aria-label", /Black pawn/);
+  await expect(page.getByText("White to Move", { exact: true })).toBeVisible();
+  // Undo history is restored too.
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(square(page, "e7")).toHaveAttribute("aria-label", /Black pawn/);
+  await page.getByRole("button", { name: "New Game", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Keep playing" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Keep playing" }).click();
+  await expect(square(page, "e4")).toHaveAttribute("aria-label", /White pawn/);
+  await page.getByRole("button", { name: "Choose opponent" }).click();
+  await page.getByRole("button", { name: "Discard game" }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: /Play here/ })).toBeVisible();
+});
+
+test("a corrupted saved game falls back to a fresh start", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "chess:local-game:v1",
+      JSON.stringify({ mode: "local", difficulty: "normal", game: { x: 1 } }),
+    ),
+  );
+  await page.reload();
+  await expect(page.getByRole("button", { name: /Play here/ })).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem("chess:local-game:v1")),
+  ).toBeNull();
 });

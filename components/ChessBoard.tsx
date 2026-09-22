@@ -18,6 +18,11 @@ import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
+import {
+  clearLocalGame,
+  loadLocalGame,
+  saveLocalGame,
+} from "@/hooks/localSave";
 import { statusText } from "@/components/chess/statusText";
 const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
@@ -32,10 +37,12 @@ export default function ChessBoard({
     [selected, setSelected] = useState<Square | null>(null),
     [promotion, setPromotion] = useState<Intention | null>(null),
     [message, setMessage] = useState("Choose how you would like to play."),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [confirming, setConfirming] = useState<(() => void) | null>(null);
   const local = useLocalGame(),
     online = useOnlineMatch(),
-    { open, leave } = online;
+    { open, leave } = online,
+    { restore, snapshot } = local;
   const localView = useMemo(() => publicState(local.game), [local.game]);
   const visible = online.remote?.state ?? localView,
     side =
@@ -81,8 +88,30 @@ export default function ChessBoard({
     if (id && onlineSupported) {
       setKind("online");
       void open(id);
+      return;
     }
-  }, [open, onlineSupported]);
+    const saved = loadLocalGame();
+    if (saved) {
+      restore(saved.game, saved.history);
+      setDifficulty(saved.difficulty);
+      setKind(saved.mode);
+      setMessage("Your game has been restored.");
+    }
+  }, [open, onlineSupported, restore]);
+  // Keep local and computer games across reloads in this browser.
+  useEffect(() => {
+    if (kind !== "local" && kind !== "computer") return;
+    if (!local.game.revision) clearLocalGame();
+    else saveLocalGame({ mode: kind, difficulty, ...snapshot() });
+  }, [kind, difficulty, local.game, snapshot]);
+  // Only local and computer games are lost on reset; online matches stay on
+  // the server.
+  const inProgress =
+    (kind === "local" || kind === "computer") &&
+    local.game.revision > 0 &&
+    local.game.status === "active";
+  const confirmDiscard = (action: () => void) => () =>
+    inProgress ? setConfirming(() => action) : action();
   useEffect(() => {
     setSelected(null);
     setPromotion(null);
@@ -128,6 +157,7 @@ export default function ChessBoard({
   });
   const onSquare = useCallback((sq: Square) => latestSquare.current(sq), []);
   const chooseOpponent = () => {
+    clearLocalGame();
     leave();
     clearUrl();
     local.reset();
@@ -316,7 +346,10 @@ export default function ChessBoard({
             )}
           <GameHistory game={visible} />
           <div className="flex gap-2">
-            <button className={button + " flex-1"} onClick={reset}>
+            <button
+              className={button + " flex-1"}
+              onClick={confirmDiscard(reset)}
+            >
               {kind === "online" ? "Leave" : "New Game"}
             </button>
             <button
@@ -331,15 +364,43 @@ export default function ChessBoard({
               Undo
             </button>
           </div>
-          <button className={button} onClick={chooseOpponent}>
+          <button className={button} onClick={confirmDiscard(chooseOpponent)}>
             Choose opponent
           </button>
+          {confirming && (
+            <div
+              role="group"
+              aria-label="Discard this game?"
+              className="rounded border border-amber-500/45 px-4 py-3 text-sm text-stone-200"
+            >
+              <p>Discard this game? It cannot be recovered.</p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  className={button + " flex-1"}
+                  onClick={() => {
+                    setConfirming(null);
+                    confirming();
+                  }}
+                >
+                  Discard game
+                </button>
+                <button
+                  autoFocus
+                  className={button + " flex-1"}
+                  onClick={() => setConfirming(null)}
+                >
+                  Keep playing
+                </button>
+              </div>
+            </div>
+          )}
           <details className="text-sm text-stone-300">
             <summary>Controls</summary>
             <p className="mt-2">
-              Select a piece, then a highlighted destination. Use Tab or arrow
-              keys to focus squares and Enter to select. Choose a piece when
-              promoting a pawn.
+              Select a piece, then a highlighted destination. Tab to the board,
+              then use the arrow keys (Home and End along a rank) and Enter to
+              select. Choose a piece when promoting a pawn. Games here are kept
+              in this browser if you reload.
             </p>
             {visible.events.some((e) => e.message.includes("hesitates")) && (
               <p className="mt-2">

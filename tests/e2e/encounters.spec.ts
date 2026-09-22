@@ -81,6 +81,7 @@ test("a player can continue another plan and let a request expire neutrally on m
     ),
   ).toBe(true);
   await page.getByRole("button", { name: "New Game", exact: true }).click();
+  await page.getByRole("button", { name: "Discard game" }).click();
   await expect(
     page.getByRole("region", { name: "Piece requests" }),
   ).toHaveCount(0);

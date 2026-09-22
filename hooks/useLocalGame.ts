@@ -29,6 +29,16 @@ export function useLocalGame() {
     setGame(restored.game);
     return restored.message;
   }, []);
+  // Restores a validated saved game (see hooks/localSave.ts).
+  const restore = useCallback((next: GameState, saved: LocalHistory) => {
+    current.current = next;
+    history.current = saved;
+    setGame(next);
+  }, []);
+  const snapshot = useCallback(
+    () => ({ game: current.current, history: history.current }),
+    [],
+  );
   const replace = useCallback((next: GameState, expected: number) => {
     if (current.current.revision !== expected) return false;
     current.current = next;
@@ -41,6 +51,8 @@ export function useLocalGame() {
     reset,
     undo,
     replace,
+    restore,
+    snapshot,
     canUndo: !!game.pendingRefusal || history.current.completed.length > 0,
   };
 }

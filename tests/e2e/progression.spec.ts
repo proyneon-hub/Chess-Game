@@ -9,6 +9,7 @@ test("Choose opponent clears old messages and cancels an outstanding computer tu
   await page
     .getByRole("button", { name: "Choose opponent", exact: true })
     .click();
+  await page.getByRole("button", { name: "Discard game" }).click();
   await expect(
     page.getByText("Choose how you would like to play.", { exact: true }),
   ).toBeVisible();
