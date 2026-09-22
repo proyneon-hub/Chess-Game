@@ -1,10 +1,11 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readArchived } from "./archived";
 import { createHash } from "node:crypto";
 import { CONFIG, READABLE_CANDIDATES } from "../lib/rpg/config";
 const dir = "docs/readable-politics";
 const screens = READABLE_CANDIDATES.map((c) => {
   const s = JSON.parse(
-    readFileSync(`${dir}/screen-${c.version}-pressure/raw.json`, "utf8"),
+    readArchived(`${dir}/screen-${c.version}-pressure/raw.json`),
   );
   return {
     version: c.version,

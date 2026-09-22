@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { readArchived } from "./archived";
 import { join } from "node:path";
 
 const root = "docs/v5-encounters";
@@ -20,9 +21,7 @@ const gates: {
   pass: boolean;
 }[] = [];
 const summaries = names.map((name) => {
-  const report = JSON.parse(
-    readFileSync(join(root, name, "report.json"), "utf8"),
-  );
+  const report = JSON.parse(readArchived(join(root, name, "report.json")));
   const metadata = JSON.parse(
     readFileSync(join(root, name, "metadata.json"), "utf8"),
   );
