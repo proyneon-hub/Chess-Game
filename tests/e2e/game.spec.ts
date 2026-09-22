@@ -319,3 +319,25 @@ test("the computer reuses one worker across turns", async ({ page }) => {
     ),
   ).toBe(1);
 });
+
+test("the rules engine loads only for local and computer play", async ({
+  page,
+}) => {
+  // A string literal from the rules engine survives minification.
+  let engineLoaded = false;
+  page.on("response", async (r) => {
+    if (r.request().resourceType() === "script" && r.ok())
+      if ((await r.text()).includes("V3 pressure state required."))
+        engineLoaded = true;
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play online/ }).click();
+  await expect(
+    page.getByRole("button", { name: "Copy invite link" }),
+  ).toBeVisible();
+  expect(engineLoaded).toBe(false);
+  await page.getByRole("button", { name: "Leave", exact: true }).click();
+  await page.getByRole("button", { name: /Play here/ }).click();
+  await expect(square(page, "e2")).toHaveAttribute("aria-label", /White pawn/);
+  await expect.poll(() => engineLoaded).toBe(true);
+});

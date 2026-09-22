@@ -1,58 +1,93 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
-import { createGameState, submitMove } from "@/lib/game";
-import type { Action, GameState } from "@/lib/game/types";
-import { recordTurn, undoTurn, type LocalHistory } from "@/lib/game/undo";
+import { useCallback, useMemo, useRef, useState } from "react";
+import type { Difficulty } from "@/lib/game";
+import type { Action, GameState, MoveResult } from "@/lib/game/types";
+import type { LocalHistory } from "@/lib/game/undo";
+import type { LocalSave } from "@/hooks/localSave";
+import { clearLocalGame, saveLocalGame } from "@/hooks/localSave";
+
+export type LocalEngine = typeof import("@/lib/localEngine");
+
+/**
+ * A local or computer game. The rules engine loads on first use (starting
+ * or restoring a game), so `game` and `view` are null until then.
+ */
 export function useLocalGame() {
-  const [game, setGame] = useState(() => createGameState(0));
-  const current = useRef(game);
-  const history = useRef<LocalHistory>({ start: game, completed: [] });
-  const reset = useCallback(() => {
-    const next = createGameState();
-    current.current = next;
-    history.current = { start: next, completed: [] };
-    setGame(next);
+  const engine = useRef<LocalEngine | null>(null),
+    [loaded, setLoaded] = useState<LocalEngine | null>(null);
+  const [game, setGame] = useState<GameState | null>(null);
+  const current = useRef<GameState | null>(null),
+    history = useRef<LocalHistory | null>(null);
+  const load = useCallback(async () => {
+    if (!engine.current) {
+      engine.current = await import("@/lib/localEngine");
+      setLoaded(engine.current);
+    }
+    return engine.current;
   }, []);
-  const submit = useCallback((action: Action) => {
-    const result = submitMove(current.current, action);
+  const set = (next: GameState, saved: LocalHistory) => {
+    current.current = next;
+    history.current = saved;
+    setGame(next);
+  };
+  const reset = useCallback(async () => {
+    const next = (await load()).createGameState();
+    set(next, { start: next, completed: [] });
+  }, [load]);
+  /** Restores a validated saved game, if one exists. */
+  const restoreSaved = useCallback(async (): Promise<LocalSave | null> => {
+    const saved = (await load()).loadLocalGame();
+    if (saved) set(saved.game, saved.history);
+    return saved;
+  }, [load]);
+  const submit = useCallback((action: Action): MoveResult => {
+    const e = engine.current!,
+      result = e.submitMove(current.current!, action);
     if (result.requestAccepted) {
-      history.current = recordTurn(history.current, result);
+      history.current = e.recordTurn(history.current!, result);
       current.current = result.state;
       setGame(result.state);
     }
     return result;
   }, []);
   const undo = useCallback(() => {
-    const restored = undoTurn(history.current, current.current);
-    history.current = restored.history;
-    current.current = restored.game;
-    setGame(restored.game);
+    const restored = engine.current!.undoTurn(
+      history.current!,
+      current.current!,
+    );
+    set(restored.game, restored.history);
     return restored.message;
   }, []);
-  // Restores a validated saved game (see hooks/localSave.ts).
-  const restore = useCallback((next: GameState, saved: LocalHistory) => {
-    current.current = next;
-    history.current = saved;
-    setGame(next);
-  }, []);
-  const snapshot = useCallback(
-    () => ({ game: current.current, history: history.current }),
+  /** Keeps the game across reloads once a move has been made. */
+  const save = useCallback(
+    (mode: LocalSave["mode"], difficulty: Difficulty) => {
+      if (!current.current || !history.current) return;
+      if (!current.current.revision) clearLocalGame();
+      else
+        saveLocalGame({
+          mode,
+          difficulty,
+          game: current.current,
+          history: history.current,
+        });
+    },
     [],
   );
-  const replace = useCallback((next: GameState, expected: number) => {
-    if (current.current.revision !== expected) return false;
-    current.current = next;
-    setGame(next);
-    return true;
-  }, []);
+  const view = useMemo(
+    () => (game && loaded ? loaded.publicState(game) : null),
+    [game, loaded],
+  );
   return {
     game,
+    view,
+    engine: loaded,
     submit,
     reset,
     undo,
-    replace,
-    restore,
-    snapshot,
-    canUndo: !!game.pendingRefusal || history.current.completed.length > 0,
+    restoreSaved,
+    save,
+    canUndo:
+      !!game &&
+      (!!game.pendingRefusal || (history.current?.completed.length ?? 0) > 0),
   };
 }
