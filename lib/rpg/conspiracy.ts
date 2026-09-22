@@ -16,7 +16,7 @@ import type {
   SubjectState,
 } from "@/lib/game/types";
 import { finish } from "@/lib/game/core";
-import { rulesFor, clamp } from "@/lib/rpg/config";
+import { rulesFor, clamp, encounterRulesFor } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
 import { count, event } from "@/lib/rpg/events";
 import { remember } from "@/lib/rpg/subjects";
@@ -260,7 +260,8 @@ function startTrackedPlot(c: Court) {
           ),
       )
     : null;
-  if (caps.encounters && (s.ply <= 64 || !complaint)) return;
+  if (caps.encounters && (s.ply <= encounterRulesFor(s).plotPly || !complaint))
+    return;
   const candidates = assessment.pairs.filter(
     ({ a, b }) =>
       (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&

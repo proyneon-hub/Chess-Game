@@ -307,6 +307,14 @@ export const ENCOUNTER_RULES = Object.freeze({
   withdrawalGap: 8,
   withdrawalLimit: 2,
   aiAccommodation: 75,
+  // A complaint needs this encounter phase, a court at least this harsh and
+  // this illegitimate, and shared harms at least this many own turns apart.
+  complaintPhase: 4,
+  complaintTyranny: 25,
+  complaintLegitimacy: 55,
+  complaintHarmGap: 3,
+  // A plot may start only after this ply, from a standing stage-2 complaint.
+  plotPly: 64,
 });
 export const CONFIG: RuleConfig = Object.freeze({
   ...V4_CONFIG,

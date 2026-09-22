@@ -328,14 +328,16 @@ function complaintCandidate(
   const distinct = shared.filter(
     (h, i) => shared.findIndex((x) => x.revision === h.revision) === i,
   );
+  const rules = encounterRulesFor(s);
   const last = distinct.at(-1),
-    earlier = last && distinct.find((h) => last.own - h.own >= 3);
+    earlier =
+      last && distinct.find((h) => last.own - h.own >= rules.complaintHarmGap);
   if (!(
-    phase >= 4 &&
+    phase >= rules.complaintPhase &&
     last &&
     earlier &&
-    sim.kingdoms[side].tyranny >= 25 &&
-    sim.kingdoms[side].legitimacy <= 55 &&
+    sim.kingdoms[side].tyranny >= rules.complaintTyranny &&
+    sim.kingdoms[side].legitimacy <= rules.complaintLegitimacy &&
     !e.active.some((x) => x.family === "complaint") &&
     !sim.plots.some((x) => !["resolved", "thwarted"].includes(x.stage))
   ))
