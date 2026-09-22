@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import type { GameState, SubjectState } from "@/lib/game/types";
 import type { EncounterState } from "./types";
 import { ENCOUNTER_RULES } from "../config";
@@ -34,8 +35,7 @@ export function initialEncounters(
   };
 }
 export function encounters(s: GameState): EncounterState {
-  if (s.simulation?.schemaVersion !== 5)
-    throw new Error("V5 encounters required.");
+  if (!hasEncounters(s.simulation)) throw new Error("V5 encounters required.");
   return s.simulation.encounters;
 }
 export const encounterPhase = (ply: number) =>

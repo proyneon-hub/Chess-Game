@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import { compareIds } from "../order";
 import { isInCheck } from "@/lib/chess";
 import type { GameState, Side } from "@/lib/game/types";
@@ -9,7 +10,7 @@ import { encounterCopy } from "./publicView";
 import type { Encounter } from "./types";
 export function scheduleEncounter(s: GameState, movedSide: Side) {
   if (
-    s.simulation?.schemaVersion !== 5 ||
+    !hasEncounters(s.simulation) ||
     s.terminal ||
     s.ply < encounterRulesFor(s).firstPly
   )

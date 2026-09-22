@@ -1,3 +1,4 @@
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
 import { clamp, encounterRulesFor } from "../config";
 import { count } from "../events";
@@ -64,7 +65,7 @@ export function grantModifier(
   });
 }
 export function applicableModifiers(s: GameState, m: MoveAttempt): Modifier[] {
-  if (s.simulation?.schemaVersion !== 5) return [];
+  if (!hasEncounters(s.simulation)) return [];
   const id = s.pieceIds[m.from[0]][m.from[1]]!,
     own = s.simulation.kingdoms[m.side].ownTurnsCompleted;
   const defenders = effectiveDefenders(projectBoard(s, m), id);

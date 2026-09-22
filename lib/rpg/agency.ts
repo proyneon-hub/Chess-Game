@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { applicableModifiers } from "./encounters/effects";
 import {
   applyMove,
@@ -24,7 +25,7 @@ import { count } from "@/lib/rpg/events";
 import { forecastV3 } from "./forecast";
 import { progression } from "./pressure";
 export const agencyForecast = (s: GameState, m: MoveAttempt) => {
-  if (rulesFor(s).generation >= 3) return forecastV3(s, m);
+  if (capabilities(s).progression) return forecastV3(s, m);
   const guaranteed =
     s.ply < rulesFor(s).grace ||
     s.board[m.from[0]][m.from[1]]?.toLowerCase() === "k" ||
@@ -43,7 +44,7 @@ export const agencyForecast = (s: GameState, m: MoveAttempt) => {
   };
 };
 export function refusalProbability(s: GameState, m: MoveAttempt) {
-  if (rulesFor(s).generation >= 3)
+  if (capabilities(s).progression)
     return {
       probability: forecastV3(s, m).refusal,
       context: moveContext(s, m),
@@ -131,7 +132,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     special: false,
     message: "",
   };
-  if (rulesFor(s).generation >= 3) {
+  if (capabilities(s).progression) {
     const f = forecastV3(s, m);
     if (f.guaranteed) return normal;
     count(s, "eligibleCommands");
@@ -153,11 +154,12 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       sub.fear = clamp(sub.fear + 2);
       sub.resentment = clamp(sub.resentment + 2);
       count(s, `refused:${m.side}:${sub.personality}`);
-      const c = s.schemaVersion >= 4 ? moveContext(s, m) : null;
+      const caps = capabilities(s),
+        c = caps.responsibility ? moveContext(s, m) : null;
       const rivalId =
-        s.schemaVersion !== 5 && c?.disputeRelevant
+        caps.disputeRefusals && c?.disputeRelevant
           ? c.defenders[0]
-          : s.schemaVersion === 5
+          : caps.encounters
             ? applicableModifiers(s, m).find((x) => x.kind === "dispute")
                 ?.helper
             : null;
@@ -174,7 +176,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       const p = progression(s);
       p.subjects[sub.id].lastRetreat = sim.kingdoms[m.side].ownTurnsCompleted;
       p.sides[m.side].retreats++;
-      if (sim.schemaVersion === 5)
+      if (hasEncounters(sim))
         sim.encounters.sides[m.side].lastWithdrawal =
           sim.kingdoms[m.side].ownTurnsCompleted;
       return {
@@ -183,10 +185,9 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
         outcome: "retreat" as const,
         destination: f.retreatTo,
         special: true,
-        message:
-          s.schemaVersion === 5
-            ? `The ${name} withdraws ${exchangeLoss(applyMove(s.board, m.from, f.retreatTo, m.promotion, s.rights), f.retreatTo, m.side) < 100 ? "to safety" : "to reduce the danger"} after its earlier warning.`
-            : `The ${name} withdraws from the attack.`,
+        message: capabilities(s).encounters
+          ? `The ${name} withdraws ${exchangeLoss(applyMove(s.board, m.from, f.retreatTo, m.promotion, s.rights), f.retreatTo, m.side) < 100 ? "to safety" : "to reduce the danger"} after its earlier warning.`
+          : `The ${name} withdraws from the attack.`,
       };
     }
     if (roll < f.refusal + f.retreat + f.heroism && f.heroicTo) {

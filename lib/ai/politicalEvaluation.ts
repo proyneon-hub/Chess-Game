@@ -1,3 +1,4 @@
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import {
   evaluateObjective,
   projectBoard,
@@ -45,7 +46,7 @@ export function ownPolitics(s: GameState, side: Side): OwnPolitics | null {
     ownPositions[sub.id] = positions[sub.id];
   }
   return {
-    ...(s.schemaVersion >= 3 ? { view: leadershipView(s, side) } : {}),
+    ...(capabilities(s).progression ? { view: leadershipView(s, side) } : {}),
     side,
     kingdom: structuredClone(s.simulation.kingdoms[side]),
     subjects,
@@ -101,9 +102,9 @@ export function politicalScore(
     )
       score += 10;
   }
-  if (own.view?.simulation.schemaVersion === 5) {
+  if (hasEncounters(own.view?.simulation)) {
     const state = materializeView(own.view);
-    if (state.simulation?.schemaVersion === 5) {
+    if (hasEncounters(state.simulation)) {
       const projected = projectBoard(state, move);
       let accommodation = 0,
         courtObligation = 0;
