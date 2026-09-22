@@ -162,3 +162,92 @@ Against the targets: warned withdrawals appear in 11–15% of reckless games, up
 from about 0, but short of the plan's 20%. Careful play stays at or below 2%
 (target ≤ 5%). The remaining limit is that a withdrawal needs the player to
 order the specific shaken piece into real danger after the warning.
+
+---
+
+# Presence baseline: what a player actually sees
+
+Every earlier table in this document counts *new* things: a fresh hesitation,
+a card offered for the first time, a changed warning message. That undercounts
+what's on screen, because a request card stays visible for 3–7 own turns once
+offered, and a standing warning persists until it's resolved. A player looking
+at the board mid-game sees whichever of these are still open, not just the
+turn each one started.
+
+`lib/rpg/presence.ts` measures this directly: a ply "has presence" if, right
+after it, any of a request card, a standing warning, a pending or
+just-resolved hesitation, an unexpected move (a withdrawal or a heroic
+overrun), or a fresh RPG event-log line is showing. `npm run playtest` now
+reports this as `presence` alongside the old metric, renamed `event plies`
+(a ply where something new happened, not just persisted). Fixing a
+ply-counting bug (a refusal doesn't advance `ply`, so the old code could count
+one ply twice) and folding in event codes the old code never tracked
+(`encounterOutcome`, `shaken`) means `event plies` doesn't read as a corrected
+version of the old `signal plies` number: it reads noticeably higher, because
+it now covers more of what actually happens, not less.
+
+## Results (200 games per style, seeds 7000–7199)
+
+`npm run playtest -- --games 200 --config <version> [--difficulty easy] --json true`.
+`presence >10` excludes the opening (grace(8) plus the first request at ply
+10, where nothing can show yet). `presence W-turn` is presence measured right
+as White is about to move, which is what a human player actually looks at.
+`games ≥60%` is the share of individual games whose own presence, not the
+pooled average, reaches the target.
+
+### Against Normal
+
+| Config | Style | Presence | Presence >10 | Presence W-turn | Cards W\|B | Hesitation | Event plies | Median game presence | Games ≥60% |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-09-10.1 | aware | 51% | 61% | 56% | 17%\|35% | 0% | 23% | 50% | 12% |
+| 2026-09-10.1 | reckless | 57% | 70% | 60% | 19%\|40% | 0% | 23% | 57% | 40% |
+| 2026-09-22.1 | aware | 52% | 62% | 57% | 17%\|36% | 2% | 25% | 52% | 14% |
+| 2026-09-22.1 | reckless | 58% | 71% | 61% | 19%\|41% | 3% | 25% | 58% | 42% |
+| **2026-09-23.1** | **aware** | **55%** | 65% | 57% | 19%\|34% | 2% | 30% | 54% | 23% |
+| **2026-09-23.1** | **reckless** | **60%** | 74% | 61% | 19%\|41% | 3% | 32% | 61% | 55% |
+| 2026-09-23.1 | engine | 54% | 58% | 59% | 25%\|31% | 2% | 27% | 56% | 32% |
+
+### Against Easy
+
+| Config | Style | Presence | Presence >10 | Presence W-turn | Cards W\|B | Hesitation | Event plies | Median game presence | Games ≥60% |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-09-10.1 | aware | 44% | 48% | 49% | 21%\|25% | 0% | 20% | 46% | 12% |
+| 2026-09-10.1 | reckless | 66% | 75% | 68% | 13%\|54% | 0% | 22% | 64% | 60% |
+| 2026-09-22.1 | aware | 47% | 51% | 52% | 19%\|29% | 2% | 22% | 50% | 16% |
+| 2026-09-22.1 | reckless | 67% | 76% | 69% | 13%\|55% | 3% | 24% | 64% | 63% |
+| **2026-09-23.1** | **aware** | **50%** | 54% | 54% | 19%\|30% | 2% | 25% | 50% | 23% |
+| **2026-09-23.1** | **reckless** | **69%** | 79% | 69% | 15%\|53% | 3% | 31% | 66% | 69% |
+| 2026-09-23.1 | engine | 50% | 60% | 58% | 21%\|27% | 2% | 28% | 49% | 16% |
+
+`warning`, `unexpected` and `ambient` are all near 0% across every row (the
+ambient channel doesn't exist yet; see the next section) and are left out of
+these tables for space; they're in the full `--json true` output.
+
+## Which rows the target applies to, and where the honest baseline lands
+
+The target is `aware` and `reckless` against both opponents: `aware` because
+it's closest to an attentive human, `reckless` because harsh play is meant to
+surface more, not less. `engine` is reported for context but isn't held to
+it, since it mirrors the computer's own search rather than a human style, and
+its long, evenly-matched games against Normal skew the number.
+
+**On the current default (`2026-09-23.1`), `reckless` already clears 60%
+against both opponents (60%/69%). `aware` is close but under (55% Normal,
+50% Easy).** That's a materially smaller gap than the project expected: the
+event-based numbers this document opened with (13–17%) measured something a
+player barely registers, not how often the board actually shows something.
+Most of the honest number was already earned by cards simply staying open
+once offered: `2026-09-10.1`, the current production config, already reads
+44–66% under this metric, before any of this document's tuning.
+
+## Reproduce
+
+```sh
+npm run playtest -- --games 200 --config 2026-09-10.1 --json true
+npm run playtest -- --games 200 --config 2026-09-22.1 --json true
+npm run playtest -- --games 200 --config 2026-09-23.1 --json true
+npm run playtest -- --games 200 --config <version> --difficulty easy --json true
+```
+
+Add `--trace <seed>` to print `ply mover channels event-lines` for one game
+in the run, to check the metric by eye against what the board would show.
