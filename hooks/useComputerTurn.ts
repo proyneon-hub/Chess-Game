@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import type { LocalEngine } from "@/hooks/useLocalGame";
+import { DIFFICULTY } from "@/lib/ai/difficulty";
 // A rejected search result leaves the game unchanged, so the turn effect would
 // never rerun. Try the legal fallback before giving up on this turn.
 export function submitWithFallback(
@@ -90,8 +91,8 @@ export function useComputerTurn(
           board: game.board,
           rights: game.rights,
           side: "black",
-          depth: difficulty === "advanced" ? 4 : 2,
-          budgetMs: difficulty === "advanced" ? 1000 : 250,
+          depth: DIFFICULTY[difficulty].depth,
+          budgetMs: DIFFICULTY[difficulty].budgetMs,
           own: engine.ownPolitics(game, "black"),
           positions: game.positions,
         },
@@ -99,14 +100,11 @@ export function useComputerTurn(
     } catch {
       commit(fallback);
     }
-    const watchdog = setTimeout(
-      () => {
-        if (searching) discard();
-        searching = false;
-        commit(fallback);
-      },
-      difficulty === "advanced" ? 4000 : 2000,
-    );
+    const watchdog = setTimeout(() => {
+      if (searching) discard();
+      searching = false;
+      commit(fallback);
+    }, DIFFICULTY[difficulty].watchdogMs);
     return () => {
       cancelled = true;
       clearTimeout(watchdog);

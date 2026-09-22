@@ -1,4 +1,5 @@
-import { applyMove } from "../lib/chess";
+import { applyMove, sameSquare } from "../lib/chess";
+import type { PublicGame } from "../lib/game/publicState";
 import { getAllLegalMoves } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
 import { evaluateBoard } from "../lib/ai";
@@ -34,4 +35,38 @@ export function boardChoice(
       return { m, score };
     })
     .sort((a, b) => b.score - a.score)[0].m;
+}
+/**
+ * Plays like an attentive player who reads only public request cards: the
+ * best-looking move, preferring safe moves that answer the side's requests.
+ */
+export function awareChoice(s: PublicGame, rng: RngState): MoveAttempt {
+  const requests = (s.encounters ?? []).filter(
+    (e) => e.side === s.sideToMove && !e.outcome,
+  );
+  const ranked = getAllLegalMoves(s.board, s.sideToMove, s.rights).map((m) => {
+    const b = applyMove(s.board, m.from, m.to, m.promotion, s.rights),
+      safe = exchangeLoss(b, m.to, m.side) < 100;
+    let response = 0;
+    for (const e of requests)
+      for (const p of e.participants) {
+        if (sameSquare(p.square, m.from) && safe)
+          response = Math.max(response, 75);
+        else if (
+          s.board[p.square[0]][p.square[1]] &&
+          exchangeLoss(s.board, p.square, m.side) -
+            exchangeLoss(b, p.square, m.side) >=
+            100
+        )
+          response = Math.max(response, 75);
+      }
+    return {
+      m,
+      score:
+        evaluateBoard(b) * (m.side === "white" ? 1 : -1) +
+        response +
+        draw(rng) * 50,
+    };
+  });
+  return ranked.sort((a, b) => b.score - a.score)[0].m;
 }

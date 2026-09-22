@@ -11,23 +11,21 @@ import {
 import { createHash } from "node:crypto";
 import { join, resolve, relative } from "node:path";
 import { performance } from "node:perf_hooks";
-import { createGameState, getAllLegalMoves, submitMove } from "../lib/game";
+import { createGameState, submitMove } from "../lib/game";
 import { publicState } from "../lib/game/publicState";
 import { validateState } from "../lib/game/validation";
-import { boardChoice, type BoardPolicy } from "./board-policies";
+import { awareChoice, boardChoice, type BoardPolicy } from "./board-policies";
 import { pressureChoice } from "./progression-policies";
-import { seedRng, draw } from "../lib/rpg/rng";
-import { applyMove, sameSquare, findKing } from "../lib/chess";
-import { evaluateBoard } from "../lib/ai";
+import { seedRng } from "../lib/rpg/rng";
+import { findKing } from "../lib/chess";
 import { guardCount } from "../lib/rpg/conspiracy";
-import { exchangeLoss, locations, distance } from "../lib/rpg/context";
+import { locations, distance } from "../lib/rpg/context";
 import {
   responseMoves,
   isDependentOrder,
 } from "../lib/rpg/encounters/objectives";
 import { agencyForecast } from "../lib/rpg/agency";
 import { CONFIG } from "../lib/rpg/config";
-import type { MoveAttempt } from "../lib/game/types";
 import type { Encounter } from "../lib/rpg/encounters/types";
 const flags = Object.fromEntries(
   process.argv
@@ -113,39 +111,6 @@ const quantile = (xs: number[], q: number) =>
 const records: Record<string, unknown>[] = [],
   times: number[] = [];
 let failures = 0;
-function awareChoice(
-  s: ReturnType<typeof publicState>,
-  rng: ReturnType<typeof seedRng>,
-): MoveAttempt {
-  const requests = (s.encounters ?? []).filter(
-    (e) => e.side === s.sideToMove && !e.outcome,
-  );
-  const ranked = getAllLegalMoves(s.board, s.sideToMove, s.rights).map((m) => {
-    const b = applyMove(s.board, m.from, m.to, m.promotion, s.rights),
-      safe = exchangeLoss(b, m.to, m.side) < 100;
-    let response = 0;
-    for (const e of requests)
-      for (const p of e.participants) {
-        if (sameSquare(p.square, m.from) && safe)
-          response = Math.max(response, 75);
-        else if (
-          s.board[p.square[0]][p.square[1]] &&
-          exchangeLoss(s.board, p.square, m.side) -
-            exchangeLoss(b, p.square, m.side) >=
-            100
-        )
-          response = Math.max(response, 75);
-      }
-    return {
-      m,
-      score:
-        evaluateBoard(b) * (m.side === "white" ? 1 : -1) +
-        response +
-        draw(rng) * 50,
-    };
-  });
-  return ranked.sort((a, b) => b.score - a.score)[0].m;
-}
 for (let i = 0; i < games; i++) {
   const seed = start + Math.floor(i / 2),
     pair = i % 2,

@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "simulate": "tsx scripts/simulate-balance.ts",
     "measure:ai": "tsx scripts/measure-ai.ts",
+    "playtest": "tsx scripts/playtest.ts",
     "format:check": "prettier --check \"app/**/*.{ts,tsx}\" \"models/**/*.ts\" \"lib/**/*.ts\" \"hooks/**/*.ts\" \"components/**/*.tsx\" \"tests/**/*.ts\" \"scripts/**/*.ts\""
   },
   "engines": {
