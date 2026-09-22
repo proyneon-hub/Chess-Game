@@ -67,12 +67,31 @@ export class IncompatibleStateError extends Error {
     super("This saved game is incompatible with this version.");
   }
 }
+const fail = (): never => {
+  throw new IncompatibleStateError();
+};
+type Simulation = NonNullable<GameState["simulation"]>;
+
+/**
+ * Fails closed on any saved state this code cannot faithfully continue.
+ * Sections run in order; later checks rely on the shapes earlier ones
+ * established, so the order is part of the contract.
+ */
 export function validateState(value: unknown): asserts value is GameState {
-  const fail = () => {
-    throw new IncompatibleStateError();
-  };
   if (!record(value) || !integer(value.schemaVersion, 1, 5)) fail();
   const s = value as GameState;
+  const ids = checkBoard(s);
+  checkRightsAndHistory(s);
+  if (s.schemaVersion === 1) return checkLegacy(s, ids);
+  const sim = checkSimulationHeader(s);
+  checkKingdoms(sim);
+  checkSubjects(s, sim, ids);
+  checkPlots(s, sim);
+  checkLogs(sim);
+}
+
+/** Board, piece ids, and their agreement; returns the ids on the board. */
+function checkBoard(s: GameState): Set<string> {
   if (
     !["white", "black"].includes(s.sideToMove) ||
     !["waiting", "active", "finished"].includes(s.status) ||
@@ -110,6 +129,11 @@ export function validateState(value: unknown): asserts value is GameState {
       if (!!id !== !!s.board[r][c] || (id && seen.has(id))) fail();
       if (id) seen.add(id);
     }
+  return seen;
+}
+
+/** Chess rights, counters, repetition, move and event logs, and the result. */
+function checkRightsAndHistory(s: GameState) {
   if (
     !record(s.rights) ||
     !record(s.rights.castling) ||
@@ -178,55 +202,61 @@ export function validateState(value: unknown): asserts value is GameState {
     (!validSquare(s.pendingRefusal.from) || !validSquare(s.pendingRefusal.to))
   )
     fail();
-  if (s.schemaVersion === 1) {
+}
+
+/** Legacy (schema 1) saves: D20 piece state and the legacy RNG, no simulation. */
+function checkLegacy(s: GameState, ids: Set<string>) {
+  if (
+    s.rulesetVersion !== "legacy-v1" ||
+    s.configVersion !== "legacy-safety-1" ||
+    s.simulation !== null ||
+    !record(s.rpgState) ||
+    !record(s.rpgState.pieces) ||
+    !record(s.rpgState.kings) ||
+    !s.legacyRng
+  )
+    fail();
+  if (!s.rpgState || !s.legacyRng) return fail();
+  if (
+    s.legacyRng.algorithm !== "mulberry32-v1" ||
+    ![
+      s.legacyRng.initialization,
+      s.legacyRng.gameplay,
+      s.legacyRng.narrative,
+    ].every((n) => integer(n, 0, 4294967295))
+  )
+    fail();
+  for (const side of ["white", "black"] as const) {
+    const k = s.rpgState.kings[side];
     if (
-      s.rulesetVersion !== "legacy-v1" ||
-      s.configVersion !== "legacy-safety-1" ||
-      s.simulation !== null ||
-      !record(s.rpgState) ||
-      !record(s.rpgState.pieces) ||
-      !record(s.rpgState.kings) ||
-      !s.legacyRng
+      !record(k) ||
+      !integer(k.baseStrength, 1, 20) ||
+      !integer(k.auraRadius, 0, 8) ||
+      !integer(k.auraBonus, -1, 3)
     )
       fail();
-    if (!s.rpgState || !s.legacyRng) return fail();
-    if (
-      s.legacyRng.algorithm !== "mulberry32-v1" ||
-      ![
-        s.legacyRng.initialization,
-        s.legacyRng.gameplay,
-        s.legacyRng.narrative,
-      ].every((n) => integer(n, 0, 4294967295))
-    )
-      fail();
-    for (const side of ["white", "black"] as const) {
-      const k = s.rpgState.kings[side];
-      if (
-        !record(k) ||
-        !integer(k.baseStrength, 1, 20) ||
-        !integer(k.auraRadius, 0, 8) ||
-        !integer(k.auraBonus, -1, 3)
-      )
-        fail();
-    }
-    for (const id of Array.from(seen)) {
-      const p = s.rpgState.pieces[id];
-      if (
-        !record(p) ||
-        p.id !== id ||
-        !["white", "black"].includes(p.side) ||
-        !["king", "queen", "rook", "bishop", "knight", "pawn"].includes(
-          p.kind,
-        ) ||
-        !record(p.stats) ||
-        !Object.values(p.stats).every((n) => integer(n, 0, 5)) ||
-        !integer(p.morale, 0, 6) ||
-        !integer(p.fatigue, 0, 4)
-      )
-        fail();
-    }
-    return;
   }
+  for (const id of Array.from(ids)) {
+    const p = s.rpgState.pieces[id];
+    if (
+      !record(p) ||
+      p.id !== id ||
+      !["white", "black"].includes(p.side) ||
+      !["king", "queen", "rook", "bishop", "knight", "pawn"].includes(p.kind) ||
+      !record(p.stats) ||
+      !Object.values(p.stats).every((n) => integer(n, 0, 5)) ||
+      !integer(p.morale, 0, 6) ||
+      !integer(p.fatigue, 0, 4)
+    )
+      fail();
+  }
+}
+
+/**
+ * Version agreement, the generation's extra state (progression, encounters),
+ * the RNG, and the containers later sections walk.
+ */
+function checkSimulationHeader(s: GameState): Simulation {
   const sim = s.simulation;
   if (
     s.rulesetVersion !== `hidden-kingdom-v${s.schemaVersion}` ||
@@ -273,6 +303,10 @@ export function validateState(value: unknown): asserts value is GameState {
     sim.turnContext.refusalUsed !== !!s.pendingRefusal
   )
     fail();
+  return sim;
+}
+
+function checkKingdoms(sim: Simulation) {
   for (const side of ["white", "black"] as const) {
     const k = sim.kingdoms[side];
     if (
@@ -287,6 +321,10 @@ export function validateState(value: unknown): asserts value is GameState {
     )
       fail();
   }
+}
+
+/** Every subject's fields, memories, and relationships, and the board. */
+function checkSubjects(s: GameState, sim: Simulation, ids: Set<string>) {
   for (const [id, sub] of Object.entries(sim.subjects)) {
     if (
       !record(sub) ||
@@ -333,7 +371,7 @@ export function validateState(value: unknown): asserts value is GameState {
       )
     )
       fail();
-    if ((sub.status === "active") !== seen.has(id)) fail();
+    if ((sub.status === "active") !== ids.has(id)) fail();
   }
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++) {
@@ -349,6 +387,10 @@ export function validateState(value: unknown): asserts value is GameState {
           fail();
       }
     }
+}
+
+/** At most one live plot; stages, members, and warning history agree. */
+function checkPlots(s: GameState, sim: Simulation) {
   if (
     !Array.isArray(sim.plots) ||
     sim.plots.length > 2 ||
@@ -383,6 +425,9 @@ export function validateState(value: unknown): asserts value is GameState {
     )
   )
     fail();
+}
+
+function checkLogs(sim: Simulation) {
   if (
     !Array.isArray(sim.privateEvents) ||
     sim.privateEvents.length > 256 ||
