@@ -70,9 +70,9 @@ export const INITIAL_BOARD: Board = [
   ["R", "N", "B", "Q", "K", "B", "N", "R"],
 ];
 
-// Color is encoded by case so piece checks stay lightweight throughout the
-// move-generation code.
-export const isWhite = (p: Piece): boolean => !!p && p === p.toUpperCase();
+// Color is encoded by case: pieces are validated letters (KQRBNP / kqrbnp)
+// and uppercase is White. A char-code test keeps this cheap in search.
+export const isWhite = (p: Piece): boolean => !!p && p.charCodeAt(0) < 97;
 
 // Shared board helpers keep every piece rule from repeating the same boundary
 // and friendly-piece checks.
@@ -130,70 +130,31 @@ export function getPseudoMoves(
     }
   } else if (t === "r") {
     // Rooks slide horizontally and vertically.
-    [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ].forEach(([dr, dc]) => slide(dr, dc));
+    for (const [dr, dc] of ORTHOGONAL) slide(dr, dc);
   } else if (t === "b") {
     // Bishops slide diagonally.
-    [
-      [1, 1],
-      [1, -1],
-      [-1, 1],
-      [-1, -1],
-    ].forEach(([dr, dc]) => slide(dr, dc));
+    for (const [dr, dc] of DIAGONAL) slide(dr, dc);
   } else if (t === "q") {
     // Queens combine rook and bishop directions.
-    [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-      [1, 1],
-      [1, -1],
-      [-1, 1],
-      [-1, -1],
-    ].forEach(([dr, dc]) => slide(dr, dc));
+    for (const [dr, dc] of ORTHOGONAL) slide(dr, dc);
+    for (const [dr, dc] of DIAGONAL) slide(dr, dc);
   } else if (t === "n") {
     // Knights jump directly to their L-shaped destinations, so blockers do
     // not matter. They only need bounds and same-color checks.
-    [
-      [-2, -1],
-      [-2, 1],
-      [-1, -2],
-      [-1, 2],
-      [1, -2],
-      [1, 2],
-      [2, -1],
-      [2, 1],
-    ].forEach(([dr, dc]) => {
+    for (const [dr, dc] of KNIGHT_STEPS)
       if (
         inBounds(row + dr, col + dc) &&
         !sameColor(p, board[row + dr][col + dc])
       )
         moves.push([row + dr, col + dc]);
-    });
   } else if (t === "k") {
-    // Kings can step to any adjacent square. Castling is intentionally not
-    // represented in this simplified move set.
-    [
-      [-1, -1],
-      [-1, 0],
-      [-1, 1],
-      [0, -1],
-      [0, 1],
-      [1, -1],
-      [1, 0],
-      [1, 1],
-    ].forEach(([dr, dc]) => {
+    // Kings step to any adjacent square; getLegalMoves adds castling.
+    for (const [dr, dc] of KING_STEPS)
       if (
         inBounds(row + dr, col + dc) &&
         !sameColor(p, board[row + dr][col + dc])
       )
         moves.push([row + dr, col + dc]);
-    });
   }
 
   return moves;
@@ -279,6 +240,11 @@ const DIAGONAL = [
   [-1, 1],
   [-1, -1],
 ] as const;
+// Enemy piece letters for a king of each color, indexed by attacker kind.
+const ATTACKERS = {
+  white: { p: "p", n: "n", k: "k", r: "r", b: "b", q: "q" },
+  black: { p: "P", n: "N", k: "K", r: "R", b: "B", q: "Q" },
+} as const;
 // A side is in check when any opposing piece attacks its king. This traces
 // outward from the king (pawns, knights, king, then the first piece on each
 // ray), which matches scanning every enemy piece's getAttacks without
@@ -287,43 +253,57 @@ export function isInCheck(board: Board, white: boolean): boolean {
   const kp = findKing(board, white);
   if (!kp) return true;
   const [kr, kc] = kp;
-  const enemy = (kind: string) => (white ? kind : kind.toUpperCase());
-  const at = (r: number, c: number) => (inBounds(r, c) ? board[r][c] : null);
+  const e = white ? ATTACKERS.white : ATTACKERS.black;
   // Enemy pawns attack toward this king: black pawns from above white's king.
-  const pawnRow = white ? kr - 1 : kr + 1;
-  if (at(pawnRow, kc - 1) === enemy("p") || at(pawnRow, kc + 1) === enemy("p"))
-    return true;
-  for (const [dr, dc] of KNIGHT_STEPS)
-    if (at(kr + dr, kc + dc) === enemy("n")) return true;
-  for (const [dr, dc] of KING_STEPS)
-    if (at(kr + dr, kc + dc) === enemy("k")) return true;
-  const ray = (
-    steps: readonly (readonly [number, number])[],
-    sliders: string[],
-  ) => {
-    for (const [dr, dc] of steps)
-      for (let r = kr + dr, c = kc + dc; inBounds(r, c); r += dr, c += dc) {
-        const p = board[r][c];
-        if (!p) continue;
-        if (sliders.includes(p)) return true;
-        break;
-      }
-    return false;
-  };
-  return (
-    ray(ORTHOGONAL, [enemy("r"), enemy("q")]) ||
-    ray(DIAGONAL, [enemy("b"), enemy("q")])
-  );
+  const pr = white ? kr - 1 : kr + 1;
+  if (pr >= 0 && pr < 8)
+    if (
+      (kc > 0 && board[pr][kc - 1] === e.p) ||
+      (kc < 7 && board[pr][kc + 1] === e.p)
+    )
+      return true;
+  for (const [dr, dc] of KNIGHT_STEPS) {
+    const r = kr + dr,
+      c = kc + dc;
+    if (inBounds(r, c) && board[r][c] === e.n) return true;
+  }
+  for (const [dr, dc] of KING_STEPS) {
+    const r = kr + dr,
+      c = kc + dc;
+    if (inBounds(r, c) && board[r][c] === e.k) return true;
+  }
+  for (const [dr, dc] of ORTHOGONAL)
+    for (let r = kr + dr, c = kc + dc; inBounds(r, c); r += dr, c += dc) {
+      const p = board[r][c];
+      if (!p) continue;
+      if (p === e.r || p === e.q) return true;
+      break;
+    }
+  for (const [dr, dc] of DIAGONAL)
+    for (let r = kr + dr, c = kc + dc; inBounds(r, c); r += dr, c += dc) {
+      const p = board[r][c];
+      if (!p) continue;
+      if (p === e.b || p === e.q) return true;
+      break;
+    }
+  return false;
 }
 
 // Legal moves start from pseudo-moves, then remove king captures and every move
 // that would leave the moving side's king in check after the board changes.
+/** Per-position facts shared across every piece's legal-move scan. */
+export type KingContext = { king: Square | null; inCheck: boolean };
+export const kingContext = (board: Board, white: boolean): KingContext => ({
+  king: findKing(board, white),
+  inCheck: isInCheck(board, white),
+});
 export function getLegalMoves(
   board: Board,
   row: number,
   col: number,
   whiteTurn: boolean,
   rights?: ChessRights,
+  context?: KingContext,
 ): Square[] {
   const p = board[row][col];
   if (!p || isWhite(p) !== whiteTurn) return [];
@@ -362,13 +342,27 @@ export function getLegalMoves(
         candidates.push([row, dest]);
     }
   }
+  // A non-king piece off every line through its king cannot be pinned, so
+  // when the side is not in check its moves cannot expose the king. En
+  // passant also removes a second pawn, so it always takes the full test.
+  const ctx =
+    p.toLowerCase() === "k" ? null : (context ?? kingContext(board, whiteTurn));
+  const king = ctx?.king;
+  const unpinned =
+    !!king &&
+    !ctx.inCheck &&
+    king[0] !== row &&
+    king[1] !== col &&
+    Math.abs(king[0] - row) !== Math.abs(king[1] - col);
   return candidates.filter(
     ([tr, tc]) =>
       board[tr][tc]?.toLowerCase() !== "k" &&
-      !isInCheck(
-        applyMove(board, [row, col], [tr, tc], "q", rights),
-        whiteTurn,
-      ),
+      ((unpinned &&
+        !(p.toLowerCase() === "p" && tc !== col && !board[tr][tc])) ||
+        !isInCheck(
+          applyMove(board, [row, col], [tr, tc], "q", rights),
+          whiteTurn,
+        )),
   );
 }
 
@@ -379,13 +373,14 @@ export function hasAnyLegalMoves(
   whiteTurn: boolean,
   rights?: ChessRights,
 ): boolean {
+  const context = kingContext(board, whiteTurn);
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++) {
       const p = board[r][c];
       if (
         p &&
         isWhite(p) === whiteTurn &&
-        getLegalMoves(board, r, c, whiteTurn, rights).length > 0
+        getLegalMoves(board, r, c, whiteTurn, rights, context).length > 0
       )
         return true;
     }

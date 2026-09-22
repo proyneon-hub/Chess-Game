@@ -291,3 +291,31 @@ test("unknown pages show a way home and pages carry metadata", async ({
     "#0c0a09",
   );
 });
+
+test("the computer reuses one worker across turns", async ({ page }) => {
+  await page.addInitScript(() => {
+    const Native = window.Worker;
+    (window as typeof window & { workers: number }).workers = 0;
+    window.Worker = class extends Native {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        (window as typeof window & { workers: number }).workers++;
+      }
+    };
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play computer/ }).click();
+  const whiteToMove = page.getByText("White to Move", { exact: true });
+  await move(page, "e2", "e4");
+  await expect(whiteToMove).toBeVisible({ timeout: 5000 });
+  await move(page, "d2", "d4");
+  await expect(page.getByText("Move History").locator("..")).toContainText(
+    "4.",
+    { timeout: 5000 },
+  );
+  expect(
+    await page.evaluate(
+      () => (window as typeof window & { workers: number }).workers,
+    ),
+  ).toBe(1);
+});

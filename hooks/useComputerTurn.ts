@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
@@ -26,6 +26,11 @@ export function useComputerTurn(
   const thinking =
     enabled && game.status === "active" && game.sideToMove === "black";
   const [failure, setFailure] = useState("");
+  // One worker is reused across turns so the search runs JIT-warm and the
+  // chunk loads once. A worker still searching when its turn is cancelled is
+  // terminated (the search is synchronous), and the next turn starts a new one.
+  const idleWorker = useRef<Worker | null>(null);
+  useEffect(() => () => idleWorker.current?.terminate(), []);
   useEffect(() => {
     if (!thinking) return;
     setFailure("");
@@ -50,20 +55,31 @@ export function useComputerTurn(
         clearTimeout(timer);
       };
     }
-    let worker: Worker | undefined;
+    let worker: Worker | undefined,
+      searching = false;
+    const discard = () => {
+      worker?.terminate();
+      if (idleWorker.current === worker) idleWorker.current = null;
+    };
     try {
-      worker = new Worker(new URL("../lib/ai/worker.ts", import.meta.url));
+      worker =
+        idleWorker.current ??
+        new Worker(new URL("../lib/ai/worker.ts", import.meta.url));
+      idleWorker.current = worker;
       worker.onmessage = (e) => {
         if (e.data.revision !== revision) return;
+        searching = false;
         if (e.data.error)
           setFailure("Computer search recovered with a legal move.");
         commit(e.data.result?.moves[0] ?? fallback);
-        worker?.terminate();
       };
       worker.onerror = () => {
+        searching = false;
+        discard();
         setFailure("Computer search recovered with a legal move.");
         commit(fallback);
       };
+      searching = true;
       worker.postMessage({
         revision,
         input: {
@@ -81,7 +97,8 @@ export function useComputerTurn(
     }
     const watchdog = setTimeout(
       () => {
-        worker?.terminate();
+        if (searching) discard();
+        searching = false;
         commit(fallback);
       },
       difficulty === "advanced" ? 4000 : 2000,
@@ -89,7 +106,7 @@ export function useComputerTurn(
     return () => {
       cancelled = true;
       clearTimeout(watchdog);
-      worker?.terminate();
+      if (searching) discard();
     };
   }, [thinking, game, difficulty, submit, onMessage]);
   return { thinking, failure };

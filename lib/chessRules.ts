@@ -8,6 +8,7 @@ import {
   getLegalMoves,
   isInCheck,
   isWhite,
+  kingContext,
 } from "@/lib/chess";
 
 export type ChessMove = {
@@ -21,10 +22,12 @@ export const allMoves = (
   side: Side,
   rights?: ChessRights,
 ): ChessMove[] => {
-  const out: ChessMove[] = [];
+  const out: ChessMove[] = [],
+    white = side === "white",
+    context = kingContext(board, white);
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++)
-      for (const to of getLegalMoves(board, r, c, side === "white", rights)) {
+      for (const to of getLegalMoves(board, r, c, white, rights, context)) {
         if (board[r][c]?.toLowerCase() === "p" && (to[0] === 0 || to[0] === 7))
           for (const promotion of ["q", "r", "b", "n"] as const)
             out.push({ from: [r, c], to, side, promotion });
