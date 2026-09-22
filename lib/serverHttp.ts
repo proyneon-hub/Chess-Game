@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { IncompatibleStateError, record } from "@/lib/game/validation";
 import { isDatabaseConnectivityError } from "@/lib/db";
@@ -55,21 +56,28 @@ export const noStore = (body: unknown, status = 200) =>
 export const isSecureRequest = (request: Request) =>
   new URL(request.url).protocol === "https:" ||
   request.headers.get("x-forwarded-proto") === "https";
-/** Resolves the guest session, persists a new one, and maps failures. */
+/**
+ * Resolves the guest session, persists a new or renewed one, and maps
+ * failures. Every response carries an x-request-id that server logs share.
+ */
 export async function withGuest(
   request: Request,
   handler: (session: GuestSession) => Promise<NextResponse>,
 ) {
+  const requestId = randomUUID();
+  let response: NextResponse;
   try {
     const session = getGuestSession();
-    return persistGuestSession(
+    response = persistGuestSession(
       await handler(session),
       session,
       isSecureRequest(request),
     );
   } catch (error) {
-    return genericError(error);
+    response = genericError(error, { requestId, request });
   }
+  response.headers.set("x-request-id", requestId);
+  return response;
 }
 /**
  * Mutations: same-origin check and a bounded, parsed JSON body, both rejected
@@ -97,23 +105,37 @@ export async function guestMutation<T>(
 /** Accepts only an empty JSON object. */
 export const emptyBody = (body: unknown) =>
   record(body) && !Object.keys(body).length ? body : null;
-export const genericError = (error: unknown) =>
-  NextResponse.json(
-    {
-      error:
-        error instanceof IncompatibleStateError
-          ? error.message
-          : isDatabaseConnectivityError(error)
-            ? "The match service is temporarily unavailable."
-            : "Unable to process this match.",
-    },
-    {
-      status:
-        error instanceof IncompatibleStateError
-          ? 409
-          : isDatabaseConnectivityError(error)
-            ? 503
-            : 500,
-      headers: { "Cache-Control": "no-store" },
-    },
-  );
+const failure = (error: unknown) =>
+  error instanceof IncompatibleStateError
+    ? { status: 409, message: error.message }
+    : isDatabaseConnectivityError(error)
+      ? {
+          status: 503,
+          message: "The match service is temporarily unavailable.",
+        }
+      : { status: 500, message: "Unable to process this match." };
+/**
+ * Maps a failure to its public response and logs one structured line. Only
+ * request metadata and the error are logged: never cookies, bodies or state.
+ */
+export function genericError(
+  error: unknown,
+  context?: { requestId: string; request: Request },
+) {
+  const { status, message } = failure(error);
+  if (context) {
+    const url = new URL(context.request.url);
+    const entry = {
+      level: status === 409 ? "warn" : "error",
+      requestId: context.requestId,
+      method: context.request.method,
+      path: url.pathname,
+      status,
+      error: error instanceof Error ? error.name : typeof error,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    };
+    (status === 409 ? console.warn : console.error)(JSON.stringify(entry));
+  }
+  return noStore({ error: message }, status);
+}

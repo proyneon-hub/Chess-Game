@@ -531,3 +531,11 @@ describe("match lifecycle", () => {
     expect(await tooManyOpenInvites(randomUUID())).toBe(false);
   });
 });
+describe("health", () => {
+  it("reports database reachability", async () => {
+    const { GET } = await import("@/app/api/health/route");
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+  });
+});
