@@ -3,8 +3,9 @@ import { emptyBody, guestMutation, noStore } from "@/lib/serverHttp";
 export const runtime = "nodejs";
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
+  const params = await context.params;
   return guestMutation(
     request,
     emptyBody,

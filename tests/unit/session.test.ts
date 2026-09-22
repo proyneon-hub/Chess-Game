@@ -18,12 +18,12 @@ beforeEach(() => {
   vi.stubEnv("CHESS_AUTH_SECRET", "isolated-session-test");
 });
 afterEach(() => vi.unstubAllEnvs());
-it("signed guests persist identity and cookie protections", () => {
-  const session = getGuestSession(),
+it("signed guests persist identity and cookie protections", async () => {
+  const session = await getGuestSession(),
     response = persistGuestSession(NextResponse.json({}), session, true),
     c = response.cookies.get("rpg_chess_guest")!;
   cookie.value = c.value;
-  expect(getGuestSession()).toEqual({
+  expect(await getGuestSession()).toEqual({
     playerId: session.playerId,
     isNew: false,
     refresh: false,
@@ -35,13 +35,13 @@ it("signed guests persist identity and cookie protections", () => {
   expect(
     persistGuestSession(
       NextResponse.json({}),
-      getGuestSession(),
+      await getGuestSession(),
       true,
     ).cookies.get("rpg_chess_guest"),
   ).toBeUndefined();
 });
-it("tampered, malformed and multibyte signatures produce fresh guests", () => {
-  const original = getGuestSession();
+it("tampered, malformed and multibyte signatures produce fresh guests", async () => {
+  const original = await getGuestSession();
   const c = persistGuestSession(
     NextResponse.json({}),
     original,
@@ -53,7 +53,7 @@ it("tampered, malformed and multibyte signatures produce fresh guests", () => {
     original.playerId + "." + "é".repeat(43),
   ]) {
     cookie.value = token;
-    const next = getGuestSession();
+    const next = await getGuestSession();
     expect(next.isNew).toBe(true);
     expect(next.playerId).not.toBe(original.playerId);
   }
@@ -72,9 +72,9 @@ it("fresh tokens verify without refresh; aging tokens refresh", () => {
   });
   expect(readGuestToken(token, now + 16 * DAY)?.refresh).toBe(true);
 });
-it("legacy two-part tokens are accepted, refreshed, and re-issued", () => {
+it("legacy two-part tokens are accepted, refreshed, and re-issued", async () => {
   cookie.value = legacy("isolated-session-test");
-  const session = getGuestSession();
+  const session = await getGuestSession();
   expect(session).toEqual({ playerId: id, isNew: false, refresh: true });
   const upgraded = persistGuestSession(
     NextResponse.json({}),

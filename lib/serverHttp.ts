@@ -67,7 +67,7 @@ export async function withGuest(
   const requestId = randomUUID();
   let response: NextResponse;
   try {
-    const session = getGuestSession();
+    const session = await getGuestSession();
     response = persistGuestSession(
       await handler(session),
       session,
