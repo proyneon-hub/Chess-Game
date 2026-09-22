@@ -43,7 +43,8 @@ test("normal-start request is visible, fulfilled through a legal move, and resto
   await expect(region).toContainText(`bishop at ${origin}`);
   await expect(region).toContainText("3 response turns remaining");
   await page.screenshot({
-    path: "docs/v5-encounters/visible-request.png",
+    // The committed docs image is a release record; runs write test-results.
+    path: "test-results/visible-request.png",
     fullPage: true,
   });
   if (blackRequest) await move(page, "a2", "a3");
