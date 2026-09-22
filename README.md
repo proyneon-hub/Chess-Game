@@ -22,7 +22,7 @@ checks from unresolved product acceptance and remaining implementation work.
 
 ## Run
 
-Use Node **22.13+ or 24** and npm. The framework is Next.js 15.5 / React 19.
+Use Node **22.13+ or 24** and npm. The framework is Next.js 16 / React 19.
 
 ```sh
 npm ci
@@ -97,7 +97,7 @@ Read the historical [implementation checklist and verification report](docs/hidd
 | `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                            |
 | `tests/`, `scripts/`                | Behavioral, database and browser tests; reproducible measurements   |
 
-The repository root is the supported full application/deployment root. `chess-nextjs/` is retained for compatibility with historical URLs/build configuration; it imports the root UI but has no online route tree, so it offers local/computer play only. It is not a supported full online deployment.
+The repository root is the application and deployment root.
 
 ## Previously deployed release
 

@@ -15,7 +15,9 @@ export type LocalEngine = typeof import("@/lib/localEngine");
 export function useLocalGame() {
   const engine = useRef<LocalEngine | null>(null),
     [loaded, setLoaded] = useState<LocalEngine | null>(null);
-  const [game, setGame] = useState<GameState | null>(null);
+  const [game, setGame] = useState<GameState | null>(null),
+    // Mirrors history.current so render never reads the ref.
+    [undoDepth, setUndoDepth] = useState(0);
   const current = useRef<GameState | null>(null),
     history = useRef<LocalHistory | null>(null);
   const load = useCallback(async () => {
@@ -28,6 +30,7 @@ export function useLocalGame() {
   const set = (next: GameState, saved: LocalHistory) => {
     current.current = next;
     history.current = saved;
+    setUndoDepth(saved.completed.length);
     setGame(next);
   };
   const reset = useCallback(async () => {
@@ -46,6 +49,7 @@ export function useLocalGame() {
     if (result.requestAccepted) {
       history.current = e.recordTurn(history.current!, result);
       current.current = result.state;
+      setUndoDepth(history.current.completed.length);
       setGame(result.state);
     }
     return result;
@@ -86,8 +90,6 @@ export function useLocalGame() {
     undo,
     restoreSaved,
     save,
-    canUndo:
-      !!game &&
-      (!!game.pendingRefusal || (history.current?.completed.length ?? 0) > 0),
+    canUndo: !!game && (!!game.pendingRefusal || undoDepth > 0),
   };
 }

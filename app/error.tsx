@@ -33,6 +33,8 @@ export default function ErrorPage({
           className="rounded border border-stone-600 px-4 py-2 text-sm hover:bg-stone-900"
           onClick={() => {
             clearLocalGame();
+            // A full reload is the point: it discards the failed client state.
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             location.assign("/");
           }}
         >

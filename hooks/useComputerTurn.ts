@@ -37,6 +37,8 @@ export function useComputerTurn(
   useEffect(() => () => idleWorker.current?.terminate(), []);
   useEffect(() => {
     if (!thinking || !game || !engine) return;
+    // Each new search clears the failure from the previous turn.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFailure("");
     let cancelled = false,
       settled = false;
