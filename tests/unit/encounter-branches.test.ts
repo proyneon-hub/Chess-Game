@@ -12,7 +12,7 @@ import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
 import { scheduleCourt, activePlot } from "@/lib/rpg/conspiracy";
 import { progression } from "@/lib/rpg/pressure";
 import { validateState } from "@/lib/game/validation";
-import type { GameState, MoveAttempt } from "@/lib/game/types";
+import type { MoveAttempt } from "@/lib/game/types";
 const rook = () =>
   v5Fixture(
     [

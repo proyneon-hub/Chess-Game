@@ -10,7 +10,6 @@ import type {
 import { rulesFor, clamp } from "./config";
 import { assessOrder, derivePoliticalFacts, type PoliticalFact } from "./facts";
 import {
-  attackMap,
   attackers,
   distance,
   exchangeLoss,
@@ -398,7 +397,7 @@ export function leadershipV3(
       sub.fear -=
         rules.recoveryFear +
         cohesionRecovery(k.cohesion) +
-        Number(distance(sq, king) <= 2 && k.legitimacy >= 60);
+        Number(distance(sq, king) <= rules.auraRadius && k.legitimacy >= 60);
       if (sub.id !== moverId) sub.fatigue -= rules.recoveryFatigue;
       if (own - q.lastHarm >= cfg.calmTurns) sub.resentment--;
     } else if (sub.id !== moverId) sub.fatigue--;

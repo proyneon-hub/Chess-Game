@@ -114,6 +114,12 @@ export function refusalProbability(s: GameState, m: MoveAttempt) {
   );
   return { probability: p, context: c };
 }
+const phaseName = (s: GameState) =>
+  s.ply < rulesFor(s).established
+    ? "discovery"
+    : s.ply < rulesFor(s).crisis
+      ? "established"
+      : "crisis";
 export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
   const sim = s.simulation!,
     sub = sim.subjects[s.pieceIds[m.from[0]][m.from[1]]!],
@@ -129,10 +135,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     const f = forecastV3(s, m);
     if (f.guaranteed) return normal;
     count(s, "eligibleCommands");
-    count(
-      s,
-      `eligible:${m.side}:${sub.personality}:${s.ply < 16 ? "discovery" : s.ply < 40 ? "established" : "crisis"}`,
-    );
+    count(s, `eligible:${m.side}:${sub.personality}:${phaseName(s)}`);
     const roll = rng();
     sim.privateEvents.push({
       seq: ++s.eventSeq,
@@ -207,10 +210,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
   )
     return normal;
   count(s, "eligibleCommands");
-  count(
-    s,
-    `eligible:${m.side}:${sub.personality}:${s.ply < 16 ? "discovery" : s.ply < 40 ? "established" : "crisis"}`,
-  );
+  count(s, `eligible:${m.side}:${sub.personality}:${phaseName(s)}`);
   const { probability: p, context } = refusalProbability(s, m),
     roll = rng();
   sim.privateEvents.push({

@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
-import type { GameState, MoveAttempt } from "@/lib/game/types";
+import type { GameState } from "@/lib/game/types";
 import { encounters } from "@/lib/rpg/encounters/state";
 import {
   responseMoves,

@@ -57,8 +57,6 @@ export type {
 } from "@/lib/game/types";
 export type GameKind = "local" | "computer" | "online";
 export type Difficulty = "normal" | "advanced";
-export type MatchStatus = GameState["status"];
-export const DEPTH_FOR = { normal: 2, advanced: 4 };
 export const getAllLegalMoves = (
   board: Board,
   side: Side,
@@ -127,7 +125,7 @@ export function finish(
           ? "Stalemate — draw."
           : `Draw — ${reason.replaceAll("-", " ")}.`;
 }
-export function ordinaryTerminal(s: GameState, next: Side) {
+function ordinaryTerminal(s: GameState, next: Side) {
   if (!allMoves(s.board, next, s.rights).length)
     finish(
       s,
@@ -403,7 +401,7 @@ export function submitMove(
   s.lastAction = outcome;
   return { ...outcome, state: s, accepted: true };
 }
-export function commitRefusal(
+function commitRefusal(
   s: GameState,
   move: MoveAttempt,
   message: string,

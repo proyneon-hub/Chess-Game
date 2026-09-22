@@ -1,6 +1,6 @@
 import { forecastV3 } from "../forecast";
 import { isInCheck } from "@/lib/chess";
-import type { GameState, ResolvedOrder, Side } from "@/lib/game/types";
+import type { GameState, ResolvedOrder } from "@/lib/game/types";
 import { encounterRulesFor } from "../config";
 import { count, event } from "../events";
 import { relate } from "../relationships";

@@ -1,9 +1,8 @@
 import { applyMove, isInCheck } from "../lib/chess";
-import { getAllLegalMoves, sameIntention } from "../lib/game";
+import { getAllLegalMoves } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
 import { evaluateBoard } from "../lib/ai";
 import {
-  attackMap,
   attackers,
   exchangeLoss,
   locations,
@@ -35,8 +34,7 @@ export function pressureChoice(
     sim = s.simulation!,
     side = s.sideToMove,
     pos = locations(s),
-    own = sim.kingdoms[side].ownTurnsCompleted,
-    map = attackMap(s.board);
+    own = sim.kingdoms[side].ownTurnsCompleted;
   const noise = choices.map(() => draw(rng) * 10);
   const target = Object.values(sim.subjects)
     .filter(

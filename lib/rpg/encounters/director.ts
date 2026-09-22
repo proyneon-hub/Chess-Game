@@ -63,8 +63,8 @@ export function scheduleEncounter(s: GameState, movedSide: Side) {
       deadline:
         own +
         (["petition", "solidarity", "complaint"].includes(candidate.family)
-          ? 4
-          : 3),
+          ? encounterRulesFor(s).petitionWindow
+          : encounterRulesFor(s).personalWindow),
       stage: 1,
       stageOwn: own,
       outcome: "active",

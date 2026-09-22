@@ -1,2647 +1,1207 @@
 {
-    "label":  "Scripted cooperative causal reachability; ordinary execution draws fixed at 0.99; not natural occurrence evidence",
-    "configVersion":  "2026-09-08.1",
-    "seed":  20000,
-    "actions":  [
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     1
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     2
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   2,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     3
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     2
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   3,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   4,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     4
-                                 ],
-                        "to":  [
-                                   4,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     3
-                                 ],
-                        "to":  [
-                                   7,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     2
-                                 ],
-                        "to":  [
-                                   7,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     1
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   1,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     7
-                                 ],
-                        "to":  [
-                                   4,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     5
-                                 ],
-                        "to":  [
-                                   4,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   0,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     0
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     2
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     7
-                                 ],
-                        "to":  [
-                                   5,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     2
-                                 ],
-                        "to":  [
-                                   5,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     0
-                                 ],
-                        "to":  [
-                                   0,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   7,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     4
-                                 ],
-                        "to":  [
-                                   3,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     7
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     5
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     0
-                                 ],
-                        "to":  [
-                                   5,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     3
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     5
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   1,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     0
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     2
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   3,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   0,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     5
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     5
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     6
-                                 ],
-                        "to":  [
-                                   5,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   0,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     6
-                                 ],
-                        "to":  [
-                                   5,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     2
-                                 ],
-                        "to":  [
-                                   2,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   7,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   0,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     6
-                                 ],
-                        "to":  [
-                                   3,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     3
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     5
-                                 ],
-                        "to":  [
-                                   4,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     1
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     4
-                                 ],
-                        "to":  [
-                                   5,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   0,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     2
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   3,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     5
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     7
-                                 ],
-                        "to":  [
-                                   6,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     4
-                                 ],
-                        "to":  [
-                                   4,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   2,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   0,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   6,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     5
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     0
-                                 ],
-                        "to":  [
-                                   0,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     3
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     5
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   6,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     3,
-                                     1
-                                 ],
-                        "to":  [
-                                   6,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     6,
-                                     4
-                                 ],
-                        "to":  [
-                                   5,
-                                   5
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     3
-                                 ],
-                        "to":  [
-                                   0,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     2
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   2,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     7
-                                 ],
-                        "to":  [
-                                   6,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   2,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     5
-                                 ],
-                        "to":  [
-                                   5,
-                                   4
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   0,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   5,
-                                   3
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     3
-                                 ],
-                        "to":  [
-                                   2,
-                                   4
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     3
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     4
-                                 ],
-                        "to":  [
-                                   1,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     4
-                                 ],
-                        "to":  [
-                                   5,
-                                   6
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   2
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   2
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     5,
-                                     6
-                                 ],
-                        "to":  [
-                                   4,
-                                   7
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     5
-                                 ],
-                        "to":  [
-                                   0,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     7,
-                                     0
-                                 ],
-                        "to":  [
-                                   7,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   7
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   4,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     2
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     7
-                                 ],
-                        "to":  [
-                                   1,
-                                   6
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     0
-                                 ],
-                        "to":  [
-                                   3,
-                                   0
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     2
-                                 ],
-                        "to":  [
-                                   2,
-                                   3
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     4,
-                                     1
-                                 ],
-                        "to":  [
-                                   2,
-                                   0
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     0,
-                                     6
-                                 ],
-                        "to":  [
-                                   0,
-                                   5
-                               ],
-                        "side":  "black"
-                    },
-                    {
-                        "from":  [
-                                     2,
-                                     0
-                                 ],
-                        "to":  [
-                                   4,
-                                   1
-                               ],
-                        "side":  "white"
-                    },
-                    {
-                        "from":  [
-                                     1,
-                                     6
-                                 ],
-                        "to":  [
-                                   1,
-                                   4
-                               ],
-                        "side":  "black"
-                    }
-                ]
+  "label": "Scripted cooperative causal reachability; ordinary execution draws fixed at 0.99; not natural occurrence evidence",
+  "configVersion": "2026-09-08.1",
+  "seed": 20000,
+  "actions": [
+    {
+      "from": [6, 3],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [1, 4],
+      "to": [2, 4],
+      "side": "black"
+    },
+    {
+      "from": [6, 1],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [3, 7],
+      "side": "black"
+    },
+    {
+      "from": [7, 2],
+      "to": [2, 7],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [2, 5],
+      "side": "black"
+    },
+    {
+      "from": [2, 7],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [0, 3],
+      "to": [1, 4],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [2, 7],
+      "side": "white"
+    },
+    {
+      "from": [1, 2],
+      "to": [2, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 7],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [3, 1],
+      "to": [2, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 0],
+      "to": [3, 0],
+      "side": "black"
+    },
+    {
+      "from": [7, 1],
+      "to": [5, 0],
+      "side": "white"
+    },
+    {
+      "from": [2, 2],
+      "to": [3, 2],
+      "side": "black"
+    },
+    {
+      "from": [6, 6],
+      "to": [4, 6],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [2, 7],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [3, 3],
+      "side": "black"
+    },
+    {
+      "from": [5, 0],
+      "to": [4, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 4],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [4, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [2, 7],
+      "side": "black"
+    },
+    {
+      "from": [6, 4],
+      "to": [4, 4],
+      "side": "white"
+    },
+    {
+      "from": [0, 1],
+      "to": [2, 0],
+      "side": "black"
+    },
+    {
+      "from": [7, 3],
+      "to": [7, 2],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [1, 4],
+      "side": "black"
+    },
+    {
+      "from": [7, 2],
+      "to": [7, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [7, 1],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [2, 0],
+      "to": [1, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 2],
+      "to": [3, 4],
+      "side": "white"
+    },
+    {
+      "from": [3, 7],
+      "to": [4, 7],
+      "side": "black"
+    },
+    {
+      "from": [7, 5],
+      "to": [4, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [2, 7],
+      "to": [0, 6],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [2, 7],
+      "side": "white"
+    },
+    {
+      "from": [0, 0],
+      "to": [2, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 7],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [2, 7],
+      "side": "black"
+    },
+    {
+      "from": [3, 4],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [3, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [0, 3],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 2],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [3, 1],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [3, 0],
+      "to": [4, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [3, 4],
+      "side": "white"
+    },
+    {
+      "from": [4, 7],
+      "to": [5, 7],
+      "side": "black"
+    },
+    {
+      "from": [3, 4],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [5, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 0],
+      "to": [3, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [3, 4],
+      "side": "white"
+    },
+    {
+      "from": [2, 7],
+      "to": [3, 7],
+      "side": "black"
+    },
+    {
+      "from": [5, 2],
+      "to": [5, 1],
+      "side": "white"
+    },
+    {
+      "from": [3, 0],
+      "to": [0, 0],
+      "side": "black"
+    },
+    {
+      "from": [5, 1],
+      "to": [5, 0],
+      "side": "white"
+    },
+    {
+      "from": [0, 2],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [3, 4],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [5, 0],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 0],
+      "to": [3, 0],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [5, 0],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [2, 7],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [0, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [2, 6],
+      "side": "black"
+    },
+    {
+      "from": [5, 0],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [2, 7],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [4, 7],
+      "side": "white"
+    },
+    {
+      "from": [3, 7],
+      "to": [3, 5],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [7, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 4],
+      "to": [3, 4],
+      "side": "black"
+    },
+    {
+      "from": [4, 7],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [3, 1],
+      "side": "black"
+    },
+    {
+      "from": [7, 2],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 5],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 2],
+      "to": [1, 0],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [4, 0],
+      "to": [5, 0],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 3],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [5, 2],
+      "side": "white"
+    },
+    {
+      "from": [3, 5],
+      "to": [3, 6],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 4],
+      "to": [0, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [1, 2],
+      "side": "black"
+    },
+    {
+      "from": [5, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [3, 0],
+      "to": [2, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [3, 1],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 2],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [3, 6],
+      "to": [3, 5],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [0, 2],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [0, 6],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 2],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 0],
+      "to": [3, 0],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [3, 0],
+      "to": [4, 0],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [4, 0],
+      "to": [4, 2],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [4, 5],
+      "to": [3, 6],
+      "side": "white"
+    },
+    {
+      "from": [3, 5],
+      "to": [5, 5],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [4, 5],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [5, 5],
+      "to": [5, 6],
+      "side": "black"
+    },
+    {
+      "from": [3, 6],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [5, 6],
+      "to": [5, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [0, 6],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [7, 6],
+      "to": [5, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 2],
+      "to": [2, 4],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [7, 5],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [1, 4],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [0, 7],
+      "side": "black"
+    },
+    {
+      "from": [7, 5],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [2, 6],
+      "to": [3, 6],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [2, 4],
+      "to": [0, 2],
+      "side": "black"
+    },
+    {
+      "from": [1, 4],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [4, 2],
+      "to": [4, 1],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [1, 4],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [1, 4],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [0, 3],
+      "to": [1, 4],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [5, 4],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [3, 1],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [4, 1],
+      "to": [6, 1],
+      "side": "black"
+    },
+    {
+      "from": [5, 5],
+      "to": [4, 7],
+      "side": "white"
+    },
+    {
+      "from": [0, 7],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [6, 1],
+      "to": [4, 1],
+      "side": "black"
+    },
+    {
+      "from": [5, 4],
+      "to": [5, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [0, 7],
+      "side": "black"
+    },
+    {
+      "from": [4, 5],
+      "to": [5, 4],
+      "side": "white"
+    },
+    {
+      "from": [0, 2],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [3, 1],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [3, 5],
+      "side": "black"
+    },
+    {
+      "from": [5, 5],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 4],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [4, 5],
+      "to": [5, 5],
+      "side": "white"
+    },
+    {
+      "from": [4, 1],
+      "to": [3, 1],
+      "side": "black"
+    },
+    {
+      "from": [4, 7],
+      "to": [6, 6],
+      "side": "white"
+    },
+    {
+      "from": [0, 7],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [5, 4],
+      "to": [4, 5],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [2, 6],
+      "side": "black"
+    },
+    {
+      "from": [5, 5],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [0, 0],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [6, 3],
+      "side": "white"
+    },
+    {
+      "from": [3, 5],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 0],
+      "to": [0, 4],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 6],
+      "to": [2, 7],
+      "side": "black"
+    },
+    {
+      "from": [6, 3],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [0, 5],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [6, 4],
+      "side": "white"
+    },
+    {
+      "from": [3, 1],
+      "to": [6, 1],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [4, 2],
+      "side": "white"
+    },
+    {
+      "from": [2, 7],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [6, 6],
+      "to": [4, 7],
+      "side": "white"
+    },
+    {
+      "from": [0, 4],
+      "to": [1, 4],
+      "side": "black"
+    },
+    {
+      "from": [6, 4],
+      "to": [5, 5],
+      "side": "white"
+    },
+    {
+      "from": [2, 3],
+      "to": [0, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 2],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [2, 7],
+      "side": "black"
+    },
+    {
+      "from": [4, 7],
+      "to": [6, 6],
+      "side": "white"
+    },
+    {
+      "from": [1, 4],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [2, 6],
+      "side": "black"
+    },
+    {
+      "from": [5, 5],
+      "to": [5, 4],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [0, 6],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [5, 3],
+      "side": "white"
+    },
+    {
+      "from": [1, 3],
+      "to": [2, 4],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [1, 5],
+      "side": "black"
+    },
+    {
+      "from": [5, 3],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [2, 4],
+      "to": [1, 3],
+      "side": "black"
+    },
+    {
+      "from": [5, 4],
+      "to": [5, 6],
+      "side": "white"
+    },
+    {
+      "from": [5, 2],
+      "to": [4, 2],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 2],
+      "side": "white"
+    },
+    {
+      "from": [4, 2],
+      "to": [4, 1],
+      "side": "black"
+    },
+    {
+      "from": [5, 6],
+      "to": [4, 7],
+      "side": "white"
+    },
+    {
+      "from": [1, 5],
+      "to": [0, 6],
+      "side": "black"
+    },
+    {
+      "from": [7, 0],
+      "to": [7, 1],
+      "side": "white"
+    },
+    {
+      "from": [2, 6],
+      "to": [1, 7],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [3, 1],
+      "side": "white"
+    },
+    {
+      "from": [4, 1],
+      "to": [4, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 2],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 7],
+      "to": [1, 6],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [4, 0],
+      "to": [3, 0],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [0, 2],
+      "to": [2, 3],
+      "side": "black"
+    },
+    {
+      "from": [4, 1],
+      "to": [2, 0],
+      "side": "white"
+    },
+    {
+      "from": [0, 6],
+      "to": [0, 5],
+      "side": "black"
+    },
+    {
+      "from": [2, 0],
+      "to": [4, 1],
+      "side": "white"
+    },
+    {
+      "from": [1, 6],
+      "to": [1, 4],
+      "side": "black"
+    }
+  ]
 }

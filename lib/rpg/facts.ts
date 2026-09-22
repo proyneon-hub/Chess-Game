@@ -14,7 +14,6 @@ import {
   exchangeLoss,
   locations,
   opposite,
-  distance,
 } from "./context";
 import { progression } from "./pressure";
 import { rulesFor } from "./config";
@@ -54,8 +53,7 @@ export function saferMove(s: GameState, from: Square, risk: number): boolean {
     s.sideToMove === "white",
     s.rights,
   ).some((to) => {
-    const m = { from, to, side: s.sideToMove },
-      b = applyMove(s.board, from, to, undefined, s.rights);
+    const b = applyMove(s.board, from, to, undefined, s.rights);
     return exchangeLoss(b, to, s.sideToMove) <= risk - 100;
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { type Difficulty, getAllLegalMoves } from "@/lib/game";
+import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
 import { refusalFallback } from "@/lib/ai/restraint";

@@ -1,5 +1,5 @@
 import { validEncounters } from "@/lib/rpg/encounters/validation";
-import { validSquare, type Square } from "@/lib/chess";
+import { validSquare } from "@/lib/chess";
 import { kingsValid, sideOf } from "@/lib/chessRules";
 import { configFor } from "@/lib/rpg/config";
 import { numericSubjectFields } from "@/lib/rpg/subjects";
@@ -399,4 +399,3 @@ export function validateState(value: unknown): asserts value is GameState {
   )
     fail();
 }
-export const copySquare = (s: Square): Square => [s[0], s[1]];
