@@ -1,5 +1,6 @@
 import { compareIds } from "../order";
-import type { GameState, Side } from "@/lib/game/types";
+import type { GameState, Side, SubjectState } from "@/lib/game/types";
+import type { Square } from "@/lib/chess";
 import { locations } from "../context";
 import { encounterRulesFor } from "../config";
 import { encounters, encounterPhase } from "./state";
@@ -11,7 +12,7 @@ import {
   responseMoves,
   storedLoss,
 } from "./objectives";
-import type { Family, Objective } from "./types";
+import type { EncounterState, Family, Objective } from "./types";
 export type Candidate = {
   family: Family;
   side: Side;
@@ -22,6 +23,32 @@ export type Candidate = {
   causes: number[];
   parent: string | null;
 };
+type Add = (
+  family: Family,
+  participants: string[],
+  objective: Objective,
+  priority: number,
+  relevance?: number,
+  causes?: number[],
+  parent?: string | null,
+) => void;
+/** What every candidate rule reads for one side's scheduling pass. */
+type Pass = {
+  s: GameState;
+  side: Side;
+  e: EncounterState;
+  sim: NonNullable<GameState["simulation"]>;
+  own: number;
+  phase: number;
+  pos: Record<string, Square>;
+  add: Add;
+};
+
+/**
+ * Lists the encounters one side could start now, ranked, plus the reasons
+ * nothing was offered. Candidates are generated per subject (single-piece
+ * requests), then per related pair once the game reaches later phases.
+ */
 export function candidates(
   s: GameState,
   side: Side,
@@ -29,8 +56,7 @@ export function candidates(
   const e = encounters(s),
     sim = s.simulation!,
     own = sim.kingdoms[side].ownTurnsCompleted,
-    phase = encounterPhase(s.ply),
-    pos = locations(s);
+    phase = encounterPhase(s.ply);
   const out: Candidate[] = [],
     blockers: string[] = [];
   const active = e.active.filter((x) => x.side === side),
@@ -48,14 +74,15 @@ export function candidates(
         !occupied.has(x.id),
     )
     .sort((a, b) => compareIds(a.id, b.id));
-  const add = (
-    family: Family,
-    participants: string[],
-    objective: Objective,
-    priority: number,
+  // Every candidate must respect cooldowns and keep a feasible response.
+  const add: Add = (
+    family,
+    participants,
+    objective,
+    priority,
     relevance = 0,
-    causes: number[] = [],
-    parent: string | null = null,
+    causes = [],
+    parent = null,
   ) => {
     if (
       participants.some(
@@ -89,219 +116,19 @@ export function candidates(
       parent,
     });
   };
+  const pass: Pass = { s, side, e, sim, own, phase, pos: locations(s), add };
   for (const sub of subjects) {
-    const q = e.subjects[sub.id],
-      loss = lossOf(s, sub.id),
-      defenders = effectiveDefenders(s, sub.id);
-    if (phase >= 1 && loss >= 100) {
-      const strain =
-        sub.fear >= encounterRulesFor(s).strainFear &&
-        q.dangerTurns.filter((t) => own - t <= 6).length >= 2;
-      if (strain || phase >= 2)
-        add(
-          strain ? "strain" : "protection",
-          [sub.id],
-          {
-            kind: "protect",
-            subject: sub.id,
-            initialLoss: storedLoss(loss),
-            defenders,
-          },
-          3,
-          strain ? 200 + loss : loss,
-        );
-    }
-    if (sub.fatigue >= 8) {
-      const wards = defensiveWards(s, sub.id);
-      if (wards.length)
-        add(
-          "relief",
-          [sub.id],
-          {
-            kind: "relieve",
-            subject: sub.id,
-            initialLoss: storedLoss(loss),
-            defenders,
-            wards,
-          },
-          3,
-          sub.fatigue,
-        );
-    }
-    const home = sub.side === "white" ? 7 : 0;
-    if (
-      !q.developed &&
-      (pos[sub.id][0] === home ||
-        (sub.currentKind === "p" &&
-          pos[sub.id][0] === (side === "white" ? 6 : 1)))
-    )
-      add(
-        "initiative",
-        [sub.id],
-        { kind: "develop", subject: sub.id },
-        4,
-        "nb".includes(sub.currentKind) ? 30 : 10,
-      );
-    // Opening moves are deliberately excluded from fatigue bookkeeping, but
-    // they still count as recent activity for a present confidence request.
-    const lastMoveEvent = [...sim.privateEvents]
-      .reverse()
-      .find((event) => event.code === "move" && event.subjectId === sub.id);
-    const lastMovePly = lastMoveEvent
-      ? (s.events.find((event) => event.seq === lastMoveEvent.seq)?.ply ?? -100)
-      : -100;
-    if (own - sub.lastMovedOwnTurn >= 3 && s.ply - lastMovePly >= 6)
-      add(
-        "confidence",
-        [sub.id],
-        { kind: "confidence", subject: sub.id },
-        4,
-        0,
-      );
+    const loss = lossOf(s, sub.id);
+    personalCandidates(pass, sub, loss);
     if (phase < 2) continue;
     for (const other of subjects.filter(
       (x) => x.id !== sub.id && !!sub.relationships[x.id],
     )) {
-      const pair: [string, string] = [sub.id, other.id],
-        relationship = sub.relationships[other.id];
-      const lastDispute = Math.max(
-        -100,
-        ...e.recent
-          .filter(
-            (x) =>
-              x.family === "dispute" &&
-              x.participants.includes(sub.id) &&
-              x.participants.includes(other.id),
-          )
-          .map((x) => x.stageOwn),
-      );
-      const harms = e.sides[side].harms.filter(
-        (h) => own - h.own <= 10 && h.own > lastDispute && h.subject === sub.id,
-      );
-      if (
-        ((relationship.disputed && lastDispute < 0) ||
-          sub.memories.some(
-            (m) =>
-              ["rival_friction", "promotion_envy"].includes(m.type) &&
-              m.source === other.id &&
-              m.createdOwnTurn > lastDispute,
-          ) ||
-          ((sub.personality === "proud" || sub.ambition >= 60) &&
-            new Set(harms.map((h) => h.revision)).size >= 2 &&
-            harms.some((h) => h.involved.includes(other.id)))) &&
-        dependentMove(s, pair)
-      )
-        add(
-          "dispute",
-          pair,
-          { kind: "mediate", pair, separated: 0 },
-          2,
-          150,
-          harms.map((h) => h.revision),
-        );
+      const pair: [string, string] = [sub.id, other.id];
+      disputeCandidate(pass, sub, other, pair);
       if (phase < 3 || sub.id > other.id) continue;
-      const previous = [...e.recent]
-        .reverse()
-        .find(
-          (x) =>
-            x.side === side &&
-            x.stageOwn < own &&
-            x.outcome === "fulfilled" &&
-            x.participants.some((id) => pair.includes(id)),
-        );
-      if (relationship.score > 0) {
-        const benevolent =
-          sim.kingdoms[side].tyranny < 25 &&
-          sim.kingdoms[side].legitimacy > 55 &&
-          sub.loyalty >= 60 &&
-          other.loyalty >= 60;
-        const family =
-          phase >= 4 &&
-          benevolent &&
-          previous &&
-          ["petition", "solidarity"].includes(previous.family)
-            ? "solidarity"
-            : "petition";
-        if (
-          family !== "solidarity" ||
-          own - (e.pairRewards[[...pair].sort().join("|")] ?? -100) >= 6
-        )
-          add(
-            family,
-            pair,
-            {
-              kind: "support",
-              pair,
-              concern:
-                Math.max(loss, lossOf(s, other.id)) >= 100
-                  ? "safety"
-                  : "initiative",
-              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
-            },
-            previous && benevolent ? 2 : 4,
-            20,
-            previous?.causes ?? [],
-            benevolent ? (previous?.id ?? null) : null,
-          );
-      }
-      const shared = e.sides[side].harms.filter(
-        (h) =>
-          pair.includes(h.subject) &&
-          h.involved.some((id) => pair.includes(id)),
-      );
-      const distinct = shared.filter(
-        (h, i) => shared.findIndex((x) => x.revision === h.revision) === i,
-      );
-      const last = distinct.at(-1),
-        earlier = last && distinct.find((h) => last.own - h.own >= 3);
-      if (
-        phase >= 4 &&
-        last &&
-        earlier &&
-        sim.kingdoms[side].tyranny >= 25 &&
-        sim.kingdoms[side].legitimacy <= 55 &&
-        !e.active.some((x) => x.family === "complaint") &&
-        !sim.plots.some((x) => !["resolved", "thwarted"].includes(x.stage))
-      ) {
-        const unresolved = pair.some((id) =>
-          e.sides[side].harms.some(
-            (h) =>
-              h.subject === id &&
-              h.own >
-                (e.recent
-                  .filter(
-                    (x) =>
-                      x.outcome === "fulfilled" && x.participants.includes(id),
-                  )
-                  .at(-1)?.createdOwn ?? -1),
-          ),
-        );
-        const petition = [...e.recent]
-          .reverse()
-          .find(
-            (x) =>
-              x.family === "petition" &&
-              x.outcome === "expired" &&
-              x.stageOwn < own &&
-              x.causes.length &&
-              x.participants.some((id) => pair.includes(id)),
-          );
-        if (unresolved)
-          add(
-            "complaint",
-            pair,
-            {
-              kind: "recover",
-              pair,
-              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
-              separated: 0,
-            },
-            2,
-            100,
-            distinct.map((h) => h.revision),
-            petition?.id ?? null,
-          );
-      }
+      supportCandidate(pass, sub, other, pair, loss);
+      complaintCandidate(pass, other, pair, loss);
     }
   }
   if (!out.length)
@@ -319,4 +146,235 @@ export function candidates(
       compareIds(a.participants.join(), b.participants.join()),
   );
   return { candidates: out, blockers: [...new Set(blockers)] };
+}
+
+/** Strain or protection, relief, initiative, and confidence requests. */
+function personalCandidates(
+  { s, side, e, sim, own, phase, pos, add }: Pass,
+  sub: SubjectState,
+  loss: number,
+) {
+  const q = e.subjects[sub.id],
+    defenders = effectiveDefenders(s, sub.id);
+  if (phase >= 1 && loss >= 100) {
+    const strain =
+      sub.fear >= encounterRulesFor(s).strainFear &&
+      q.dangerTurns.filter((t) => own - t <= 6).length >= 2;
+    if (strain || phase >= 2)
+      add(
+        strain ? "strain" : "protection",
+        [sub.id],
+        {
+          kind: "protect",
+          subject: sub.id,
+          initialLoss: storedLoss(loss),
+          defenders,
+        },
+        3,
+        strain ? 200 + loss : loss,
+      );
+  }
+  if (sub.fatigue >= 8) {
+    const wards = defensiveWards(s, sub.id);
+    if (wards.length)
+      add(
+        "relief",
+        [sub.id],
+        {
+          kind: "relieve",
+          subject: sub.id,
+          initialLoss: storedLoss(loss),
+          defenders,
+          wards,
+        },
+        3,
+        sub.fatigue,
+      );
+  }
+  const home = sub.side === "white" ? 7 : 0;
+  if (
+    !q.developed &&
+    (pos[sub.id][0] === home ||
+      (sub.currentKind === "p" &&
+        pos[sub.id][0] === (side === "white" ? 6 : 1)))
+  )
+    add(
+      "initiative",
+      [sub.id],
+      { kind: "develop", subject: sub.id },
+      4,
+      "nb".includes(sub.currentKind) ? 30 : 10,
+    );
+  // Opening moves are deliberately excluded from fatigue bookkeeping, but
+  // they still count as recent activity for a present confidence request.
+  const lastMoveEvent = [...sim.privateEvents]
+    .reverse()
+    .find((event) => event.code === "move" && event.subjectId === sub.id);
+  const lastMovePly = lastMoveEvent
+    ? (s.events.find((event) => event.seq === lastMoveEvent.seq)?.ply ?? -100)
+    : -100;
+  if (own - sub.lastMovedOwnTurn >= 3 && s.ply - lastMovePly >= 6)
+    add("confidence", [sub.id], { kind: "confidence", subject: sub.id }, 4, 0);
+}
+
+/** A standing dispute, fresh friction or envy, or harm that implicates the other. */
+function disputeCandidate(
+  { s, side, e, own, add }: Pass,
+  sub: SubjectState,
+  other: SubjectState,
+  pair: [string, string],
+) {
+  const relationship = sub.relationships[other.id];
+  const lastDispute = Math.max(
+    -100,
+    ...e.recent
+      .filter(
+        (x) =>
+          x.family === "dispute" &&
+          x.participants.includes(sub.id) &&
+          x.participants.includes(other.id),
+      )
+      .map((x) => x.stageOwn),
+  );
+  const harms = e.sides[side].harms.filter(
+    (h) => own - h.own <= 10 && h.own > lastDispute && h.subject === sub.id,
+  );
+  if (
+    ((relationship.disputed && lastDispute < 0) ||
+      sub.memories.some(
+        (m) =>
+          ["rival_friction", "promotion_envy"].includes(m.type) &&
+          m.source === other.id &&
+          m.createdOwnTurn > lastDispute,
+      ) ||
+      ((sub.personality === "proud" || sub.ambition >= 60) &&
+        new Set(harms.map((h) => h.revision)).size >= 2 &&
+        harms.some((h) => h.involved.includes(other.id)))) &&
+    dependentMove(s, pair)
+  )
+    add(
+      "dispute",
+      pair,
+      { kind: "mediate", pair, separated: 0 },
+      2,
+      150,
+      harms.map((h) => h.revision),
+    );
+}
+
+/** Friends petition together; under a benevolent court a fulfilled petition
+ * can grow into solidarity. */
+function supportCandidate(
+  { s, side, e, sim, own, phase, add }: Pass,
+  sub: SubjectState,
+  other: SubjectState,
+  pair: [string, string],
+  loss: number,
+) {
+  if (sub.relationships[other.id].score <= 0) return;
+  const previous = [...e.recent]
+    .reverse()
+    .find(
+      (x) =>
+        x.side === side &&
+        x.stageOwn < own &&
+        x.outcome === "fulfilled" &&
+        x.participants.some((id) => pair.includes(id)),
+    );
+  const benevolent =
+    sim.kingdoms[side].tyranny < 25 &&
+    sim.kingdoms[side].legitimacy > 55 &&
+    sub.loyalty >= 60 &&
+    other.loyalty >= 60;
+  const family =
+    phase >= 4 &&
+    benevolent &&
+    previous &&
+    ["petition", "solidarity"].includes(previous.family)
+      ? "solidarity"
+      : "petition";
+  if (
+    family !== "solidarity" ||
+    own - (e.pairRewards[[...pair].sort().join("|")] ?? -100) >= 6
+  )
+    add(
+      family,
+      pair,
+      {
+        kind: "support",
+        pair,
+        concern:
+          Math.max(loss, lossOf(s, other.id)) >= 100 ? "safety" : "initiative",
+        initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
+      },
+      previous && benevolent ? 2 : 4,
+      20,
+      previous?.causes ?? [],
+      benevolent ? (previous?.id ?? null) : null,
+    );
+}
+
+/** Repeated shared harm under a harsh court, with no complaint or plot yet. */
+function complaintCandidate(
+  { s, side, e, sim, own, phase, add }: Pass,
+  other: SubjectState,
+  pair: [string, string],
+  loss: number,
+) {
+  const shared = e.sides[side].harms.filter(
+    (h) =>
+      pair.includes(h.subject) && h.involved.some((id) => pair.includes(id)),
+  );
+  const distinct = shared.filter(
+    (h, i) => shared.findIndex((x) => x.revision === h.revision) === i,
+  );
+  const last = distinct.at(-1),
+    earlier = last && distinct.find((h) => last.own - h.own >= 3);
+  if (!(
+    phase >= 4 &&
+    last &&
+    earlier &&
+    sim.kingdoms[side].tyranny >= 25 &&
+    sim.kingdoms[side].legitimacy <= 55 &&
+    !e.active.some((x) => x.family === "complaint") &&
+    !sim.plots.some((x) => !["resolved", "thwarted"].includes(x.stage))
+  ))
+    return;
+  const unresolved = pair.some((id) =>
+    e.sides[side].harms.some(
+      (h) =>
+        h.subject === id &&
+        h.own >
+          (e.recent
+            .filter(
+              (x) => x.outcome === "fulfilled" && x.participants.includes(id),
+            )
+            .at(-1)?.createdOwn ?? -1),
+    ),
+  );
+  const petition = [...e.recent]
+    .reverse()
+    .find(
+      (x) =>
+        x.family === "petition" &&
+        x.outcome === "expired" &&
+        x.stageOwn < own &&
+        x.causes.length &&
+        x.participants.some((id) => pair.includes(id)),
+    );
+  if (unresolved)
+    add(
+      "complaint",
+      pair,
+      {
+        kind: "recover",
+        pair,
+        initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
+        separated: 0,
+      },
+      2,
+      100,
+      distinct.map((h) => h.revision),
+      petition?.id ?? null,
+    );
 }
