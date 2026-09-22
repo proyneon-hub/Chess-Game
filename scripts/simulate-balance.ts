@@ -1,4 +1,3 @@
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { applyMove } from "../lib/chess";
 import { createGameState, getAllLegalMoves, submitMove } from "../lib/game";
@@ -9,8 +8,7 @@ import { evaluateBoard } from "../lib/ai";
 import { searchMoves } from "../lib/ai/search";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
 import { exchangeLoss } from "../lib/rpg/context";
-import { CONFIG, configFor } from "../lib/rpg/config";
-import { resolve, relative, isAbsolute, join } from "node:path";
+import { configFor } from "../lib/rpg/config";
 import { pressureChoice } from "./progression-policies";
 import { chooseAfterRefusal } from "../lib/ai/restraint";
 import { progression, harmfulEpisodes } from "../lib/rpg/pressure";
@@ -18,58 +16,10 @@ import { assessOrder } from "../lib/rpg/facts";
 import { agencyForecast } from "../lib/rpg/agency";
 import { politicalDiagnostics } from "./political-diagnostics";
 import { boardChoice, type BoardPolicy } from "./board-policies";
-const flags: Record<string, string> = {};
-for (let i = 2; i < process.argv.length; i += 2) {
-  const key = process.argv[i],
-    value = process.argv[i + 1];
-  if (
-    ![
-      "--config",
-      "--games",
-      "--seed-start",
-      "--out",
-      "--suite",
-      "--trace-seed",
-    ].includes(key) ||
-    value === undefined ||
-    flags[key] !== undefined
-  )
-    throw Error("Invalid or duplicate option: " + key);
-  flags[key] = value;
-}
-const version = flags["--config"] ?? CONFIG.version,
-  suite = flags["--suite"] ?? "ordinary",
-  seedStart = Number(flags["--seed-start"] ?? 10000);
-if (
-  !configFor(version) ||
-  (suite === "pressure" && (configFor(version)?.generation ?? 0) < 3) ||
-  ![
-    "ordinary",
-    "pressure",
-    "holdout",
-    "development",
-    "board-ordinary",
-    "board-protective",
-    "board-mistreatment",
-  ].includes(suite) ||
-  !Number.isSafeInteger(seedStart) ||
-  seedStart < 0 ||
-  seedStart > 4294960000
-)
-  throw Error("Invalid config, suite or seed.");
-const output = resolve(
-    flags["--out"] ?? `docs/progression/${version}-${suite}-${seedStart}`,
-  ),
-  inside = relative(process.cwd(), output);
-if (
-  !inside ||
-  inside.startsWith("..") ||
-  isAbsolute(inside) ||
-  inside.split(/[\\/]/).some((x) => x.startsWith("."))
-)
-  throw Error("Output must be a visible directory inside the repository.");
-if (existsSync(output))
-  throw Error("Refusing to overwrite an existing report directory.");
+import { parseOptions } from "./sim/options";
+import { buildReport, writeReport, type SimResult } from "./sim/report";
+const options = parseOptions(process.argv, process.env),
+  { version, suite, seedStart, games, traceSeed } = options;
 const timingNodes: number[] = [],
   restraintCosts: number[] = [],
   leadershipTimes: number[] = [];
@@ -103,40 +53,14 @@ const measuredMetrics = [
   "ambient",
 ];
 const policies = ["neutral", "protective", "coercive", "ambition"],
-  games = Number(flags["--games"] ?? process.env.SIM_GAMES ?? 1000),
   cap = 240;
-if (!Number.isSafeInteger(games) || games < 2 || games > 10000 || games % 2)
-  throw Error("Games must be an even integer from 2 to 10000.");
 const aggregate: Record<string, number> = {},
   resolver: number[] = [],
   ai: number[] = [],
   sizes: number[] = [],
   payloads: number[] = [];
 const breakdown: Record<string, Record<string, number>> = {};
-const results: {
-  seed: number;
-  pair: number;
-  white: string;
-  black: string;
-  tactical: boolean;
-  plies: number;
-  terminal: string;
-  winner: string | null;
-  counters: Record<string, number>;
-  firstEventPly: number | null;
-  extrema: Record<string, number>;
-  gates: Record<string, boolean>;
-  maxStorage: Record<string, number>;
-  rareEvents: unknown[];
-  diagnostics: Record<string, number>;
-  plotTransitions: unknown[];
-  replay?: {
-    command: unknown;
-    resolution: unknown;
-    ply: number;
-    events: unknown[];
-  }[];
-}[] = [];
+const results: SimResult[] = [];
 const start = performance.now();
 let invalid = 0,
   stalls = 0,
@@ -165,7 +89,7 @@ for (let index = 0; index < games; index++) {
   let firstEventPly: number | null = null;
   const rareEvents: unknown[] = [];
   const replay =
-    Number(flags["--trace-seed"]) === seed
+    traceSeed === seed
       ? ([] as {
           command: unknown;
           resolution: unknown;
@@ -551,206 +475,21 @@ for (let index = 0; index < games; index++) {
       `${index + 1}/${games} games; ${Math.round((performance.now() - start) / 1000)}s; invalid=${invalid}, stalls=${stalls}`,
     );
 }
-const stats = (v: number[]) => {
-  const sorted = [...v].sort((a, b) => a - b);
-  return {
-    n: v.length,
-    mean: v.reduce((a, b) => a + b, 0) / (v.length || 1),
-    median: sorted[Math.floor(sorted.length * 0.5)] ?? 0,
-    p90: sorted[Math.floor(sorted.length * 0.9)] ?? 0,
-    p95: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
-    p99: sorted[Math.floor(sorted.length * 0.99)] ?? 0,
-  };
-};
-const terminalCounts: Record<string, number> = {};
-for (const r of results)
-  terminalCounts[r.terminal] = (terminalCounts[r.terminal] ?? 0) + 1;
-const w = results.filter((r) => r.winner === "white").length,
-  b = results.filter((r) => r.winner === "black").length;
-const pairs = Array.from(
-  { length: Math.floor(results.length / 2) },
-  (_, i) =>
-    results
-      .slice(i * 2, i * 2 + 2)
-      .reduce(
-        (n, r) =>
-          n + (r.winner === "white" ? 1 : r.winner === "black" ? -1 : 0),
-        0,
-      ) / 2,
-);
-const mean = pairs.reduce((a, b) => a + b, 0) / (pairs.length || 1),
-  variance =
-    pairs.reduce((n, x) => n + (x - mean) ** 2, 0) /
-    Math.max(1, pairs.length - 1),
-  error95 = 1.96 * Math.sqrt(variance / Math.max(1, pairs.length));
-const report = {
-  configVersion: version,
-  metricsVersion: 6,
-  diagnosticVersion: 1,
-  responsibilityRules: configFor(version)!.responsibility ?? null,
-  gateThresholds: configFor(version)!.progression ?? null,
-  suite,
-  seedStart,
-  policyNotes: suite.startsWith("board-")
-    ? "Board-only policies: legal board, rights, public repetition/refusal and a separate policy RNG; no hidden politics or protected victims"
-    : suite === "pressure"
-      ? "Pressure policy v3 (material weight .5; repeat dangerous dependence on an actual sole defender) vs seeded eight-candidate one-ply material/PST/risk opponent; no forced RNG or protected victims"
-      : "Original paired neutral/protective/coercive/promotion policies; deterministic depth-one top-three mix",
-  games,
-  cap,
-  elapsedSeconds: (performance.now() - start) / 1000,
-  tacticalGames: results.filter((r) => r.tactical).length,
-  aggregate,
-  breakdown,
-  terminalCounts,
-  whiteWins: w,
-  blackWins: b,
-  colorDifference: {
-    mean,
-    approx95: [mean - error95, mean + error95],
-    method: "paired normal approximation; draws/truncations contribute zero",
-  },
-  rates: {
-    calmRefusal: [aggregate.calmRefusals ?? 0, aggregate.calmCommands ?? 0],
-    refusal: [aggregate.refusal ?? 0, aggregate.eligibleCommands ?? 0],
-    retreat: [aggregate.retreats ?? 0, aggregate.eligibleCommands ?? 0],
-    plots: [aggregate.plots ?? 0, aggregate.eligibleKingdomTurns ?? 0],
-    regicidePerMatch: [aggregate.regicides ?? 0, games],
-    regicidePerAttempt: [
-      aggregate.regicides ?? 0,
-      aggregate.armedAttempts ?? 0,
-    ],
-  },
-  resolverMs: stats(resolver),
-  aiDecisionMs: stats(ai),
-  leadershipProjectionMs: stats(leadershipTimes),
-  finalStateBytes: stats(sizes),
-  finalApiBytes: stats(payloads),
-  invalid,
-  stalls,
-  errors,
-  openingAnomalies,
-  privacyFailures,
-  terminalViolations,
-  duplicateMutations,
-  discovery: {
-    wholeCohort: [
-      results.filter((r) => r.firstEventPly !== null).length,
-      games,
-    ],
-    reached40: [
-      results.filter((r) => r.plies >= 40 && r.firstEventPly !== null).length,
-      results.filter((r) => r.plies >= 40).length,
-    ],
-    firstEventPly: stats(
-      results.flatMap((r) =>
-        r.firstEventPly === null ? [] : [r.firstEventPly],
-      ),
-    ),
-    checkpoints: [20, 40, 60, 80].map((ply) => ({
-      ply,
-      observedByCheckpoint: results.filter(
-        (r) => r.firstEventPly !== null && r.firstEventPly <= ply,
-      ).length,
-      wholeCohort: games,
-      reachedCheckpoint: results.filter((r) => r.plies >= ply).length,
-      endedEarlierWithoutEvent: results.filter(
-        (r) => r.plies < ply && r.firstEventPly === null,
-      ).length,
-      truncated: results.filter((r) => r.terminal === "truncated").length,
-    })),
-  },
-  naturalGates: Object.fromEntries(
-    ["retreats", "disputeRelevantCommands", "armedAttempts"].map((key) => [
-      key,
-      {
-        seeds: [
-          ...new Set(
-            results
-              .filter((r) => (r.diagnostics[key] ?? 0) > 0)
-              .map((r) => r.seed),
-          ),
-        ],
-        requiredDistinctSeeds: 2,
-      },
-    ]),
-  ),
-  diagnostics: results.reduce(
-    (acc, r) => {
-      for (const [key, n] of Object.entries(r.diagnostics))
-        acc[key] = (acc[key] ?? 0) + n;
-      return acc;
-    },
-    {} as Record<string, number>,
-  ),
-  pressureGates: {
-    gamesWithDisputes: [
-      results.filter((r) => (r.counters.disputes ?? 0) > 0).length,
-      games,
-    ],
-    gamesWithEligibility: [
-      results.filter((r) => (r.counters.eligibleKingdomTurns ?? 0) > 0).length,
-      games,
-    ],
-    gamesWithPlots: [
-      results.filter((r) => (r.counters.plots ?? 0) > 0).length,
-      games,
-    ],
-    distinctDisputeSeeds: new Set(
-      results.filter((r) => (r.counters.disputes ?? 0) > 0).map((r) => r.seed),
-    ).size,
-    distinctPlotSeeds: new Set(
-      results.filter((r) => (r.counters.plots ?? 0) > 0).map((r) => r.seed),
-    ).size,
-  },
-  nodes: stats(timingNodes),
-  restraintTacticalCost: stats(restraintCosts),
-  gateCrossings: Object.fromEntries(
-    [
-      "tyranny",
-      "legitimacy",
-      "leaderLoyalty",
-      "leaderResentment",
-      "ambition",
-    ].map((g) => [g, [results.filter((r) => r.gates[g]).length, games]]),
-  ),
-  results,
-};
-mkdirSync(output, { recursive: true });
-writeFileSync(join(output, "raw.json"), JSON.stringify(report) + "\n", {
-  flag: "wx",
-});
-const summary = {
-  ...report,
-  results: undefined,
-  breakdown: undefined,
-  aggregate: Object.fromEntries(
-    Object.entries(aggregate).filter(
-      ([k]) =>
-        !k.startsWith("policyPair:") &&
-        !k.startsWith("eligible:") &&
-        !k.startsWith("refused:"),
-    ),
-  ),
-};
-writeFileSync(
-  join(output, "summary.json"),
-  JSON.stringify(summary, null, 2) + "\n",
-  { flag: "wx" },
-);
-writeFileSync(
-  join(output, "report.md"),
-  `# ${version}: ${suite}\n\nSeed start ${seedStart}; ${games} games (${games / 2} color-swapped pairs), 240-ply cap. This is simulation evidence, not human playtesting.\n\nRefusals: ${report.rates.refusal.join(" / ")}. Discovery among games reaching ply 40: ${report.discovery.reached40.join(" / ")}. Court-eligible games: ${report.pressureGates.gamesWithEligibility.join(" / ")}.\n\nSee [summary](summary.json) for denominators/blockers and [raw](raw.json) for every game, extrema and policy/side/personality/phase breakdown. No historical output was overwritten.\n`,
-  { flag: "wx" },
-);
-console.log(
-  JSON.stringify({
-    output,
-    config: version,
-    refusal: report.rates.refusal,
-    discovery: report.discovery.reached40,
-    pressure: report.pressureGates,
-    resolver: report.resolverMs,
+const failed = writeReport(
+  options,
+  buildReport(options, {
+    cap,
+    elapsedSeconds: (performance.now() - start) / 1000,
+    results,
+    aggregate,
+    breakdown,
+    resolver,
+    ai,
+    leadershipTimes,
+    sizes,
+    payloads,
+    timingNodes,
+    restraintCosts,
     invalid,
     stalls,
     errors,
@@ -760,13 +499,4 @@ console.log(
     duplicateMutations,
   }),
 );
-if (
-  invalid ||
-  stalls ||
-  errors ||
-  openingAnomalies ||
-  privacyFailures ||
-  terminalViolations ||
-  duplicateMutations
-)
-  process.exitCode = 1;
+if (failed) process.exitCode = 1;
