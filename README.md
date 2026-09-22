@@ -35,7 +35,7 @@ Open [localhost:3000](http://localhost:3000). Local and computer games need no d
 
 - **Play here:** two players, one board, with Undo for up to 20 completed turns.
 - **Play computer:** White against a worker-based opponent. Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
-- **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity.
+- **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity; it renews with activity and expires after 30 days without a visit, like inactive matches.
 - Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
 - After a piece hesitates, **Repeat order** executes that command; a different legal order also completes the turn. **Retry connection** resends the same network request.
 - Undo during a pending hesitation restores the start of that turn first. A later Undo reverses the preceding completed turn. New Game resets the seed; Leave cancels online work and clears the invite URL.
@@ -105,7 +105,7 @@ Public access was verified on 2026-09-07 against production commit `0e73af7`: HT
 
 Vercel's generated deployment/team URLs remain sign-in protected; share the public production domain above. The historical `chess-game-six-zeta.vercel.app` address returns `DEPLOYMENT_NOT_FOUND`. No deployment-protection change was needed once the configured public domain was identified.
 
-Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
+Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. To rotate it, move the old value to `CHESS_AUTH_SECRET_PREVIOUS`; guests are re-signed on their next request, and the previous secret can be removed after 30 days. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
 
 The release passed lint, TypeScript, formatting, the production build, **62 unit/integration tests**, and **9 production-browser tests**. The recorded 1,000-game simulation had zero invalid states, stalls, errors, or opening anomalies. See the [verification report](docs/hidden-kingdom-implementation.md) for coverage and numerical tuning. Nine high dependency findings remain documented in the retained Next.js 14/eslint stack.
 

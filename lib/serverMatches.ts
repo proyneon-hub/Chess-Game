@@ -33,8 +33,8 @@ type StoredMatch = {
   receipts?: Receipt[];
 };
 const stored = (v: unknown): StoredMatch => v as StoredMatch;
-// Inactive matches are deleted by a TTL index. Guest cookies last 30 days, so
-// an older match could not be resumed by its players anyway.
+// Inactive matches are deleted by a TTL index after 30 idle days, the same
+// idle lifetime as the sliding guest cookie.
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const expiry = () => new Date(Date.now() + RETENTION_MS);
 // A soft cap on unjoined invites per guest per day, against accidental floods.
