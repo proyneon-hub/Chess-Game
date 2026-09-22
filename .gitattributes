@@ -1,0 +1,2 @@
+# Prettier and CI expect LF; keep Windows checkouts consistent.
+* text=auto eol=lf

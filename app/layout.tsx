@@ -11,11 +11,7 @@ export const metadata: Metadata = {
 
 // RootLayout wraps every route. The body classes provide the dark background
 // and smoothing used by the chess board UI.
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-stone-950 min-h-screen antialiased">{children}</body>
