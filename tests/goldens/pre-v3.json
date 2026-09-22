@@ -6,14 +6,86 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.1",
       "board": [
-        ["r", "n", "b", "q", "k", "b", "n", "r"],
-        ["p", "p", "p", "p", "p", "p", "p", "p"],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        ["P", "P", "P", "P", "P", "P", "P", "P"],
-        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+        [
+          "r",
+          "n",
+          "b",
+          "q",
+          "k",
+          "b",
+          "n",
+          "r"
+        ],
+        [
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ],
+        [
+          "R",
+          "N",
+          "B",
+          "Q",
+          "K",
+          "B",
+          "N",
+          "R"
+        ]
       ],
       "pieceIds": [
         [
@@ -36,10 +108,46 @@
           "black_pawn_7",
           "black_pawn_8"
         ],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           "white_pawn_1",
           "white_pawn_2",
@@ -1136,53 +1244,113 @@
     },
     "actions": [
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [1, 4],
-        "to": [3, 4],
+        "from": [
+          1,
+          4
+        ],
+        "to": [
+          3,
+          4
+        ],
         "side": "black"
       },
       {
-        "from": [7, 6],
-        "to": [5, 5],
+        "from": [
+          7,
+          6
+        ],
+        "to": [
+          5,
+          5
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [2, 2],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          2,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 5],
-        "to": [4, 2],
+        "from": [
+          7,
+          5
+        ],
+        "to": [
+          4,
+          2
+        ],
         "side": "white"
       },
       {
-        "from": [0, 6],
-        "to": [2, 5],
+        "from": [
+          0,
+          6
+        ],
+        "to": [
+          2,
+          5
+        ],
         "side": "black"
       },
       {
-        "from": [6, 3],
-        "to": [5, 3],
+        "from": [
+          6,
+          3
+        ],
+        "to": [
+          5,
+          3
+        ],
         "side": "white"
       },
       {
-        "from": [0, 5],
-        "to": [3, 2],
+        "from": [
+          0,
+          5
+        ],
+        "to": [
+          3,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 4],
-        "to": [7, 6],
+        "from": [
+          7,
+          4
+        ],
+        "to": [
+          7,
+          6
+        ],
         "side": "white"
       },
       {
-        "from": [0, 4],
-        "to": [0, 6],
+        "from": [
+          0,
+          4
+        ],
+        "to": [
+          0,
+          6
+        ],
         "side": "black"
       }
     ],
@@ -1207,24 +1375,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.1",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "Q", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "Q",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "white_queen_1", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white_queen_1",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -1405,17 +1717,32 @@
     },
     "actions": [
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       }
     ],
-    "forced": [0, 0.99],
+    "forced": [
+      0,
+      0.99
+    ],
     "hashes": [
       "257dd3d93798648e4150ef27fe20749b0bac6cfe1240e8de5d29495a87bf638f",
       "6ad1a241b1107727cbe1ef6e93df45b9b1ea1a775ae16930b24379d2b2aea041"
@@ -1429,24 +1756,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.1",
       "board": [
-        [null, null, null, null, "k", null, null, "r"],
-        ["P", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          "r"
+        ],
+        [
+          "P",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        [null, null, null, null, "black_king_1", null, null, "black_rook_1"],
-        ["white_pawn_1", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          "black_rook_1"
+        ],
+        [
+          "white_pawn_1",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -1627,8 +2098,14 @@
     },
     "actions": [
       {
-        "from": [1, 0],
-        "to": [0, 0],
+        "from": [
+          1,
+          0
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "white",
         "promotion": "n"
       }
@@ -1645,21 +2122,138 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.1",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "B", null, "N", null, null],
-        [null, null, null, null, null, null, null, null],
-        ["R", null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "B",
+          null,
+          "N",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "R",
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           null,
           null,
@@ -1670,8 +2264,26 @@
           null,
           null
         ],
-        [null, null, null, null, null, null, null, null],
-        ["white_rook_1", null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "white_rook_1",
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -1910,54 +2522,136 @@
     },
     "actions": [
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       }
     ],
     "forced": [
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0,
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0
     ],
     "hashes": [
       "e7dae8893767be23a76c8544a284eac0dd1226e17fad118262ac8b7642e78ec6",
@@ -1979,14 +2673,86 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.2",
       "board": [
-        ["r", "n", "b", "q", "k", "b", "n", "r"],
-        ["p", "p", "p", "p", "p", "p", "p", "p"],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        ["P", "P", "P", "P", "P", "P", "P", "P"],
-        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+        [
+          "r",
+          "n",
+          "b",
+          "q",
+          "k",
+          "b",
+          "n",
+          "r"
+        ],
+        [
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ],
+        [
+          "R",
+          "N",
+          "B",
+          "Q",
+          "K",
+          "B",
+          "N",
+          "R"
+        ]
       ],
       "pieceIds": [
         [
@@ -2009,10 +2775,46 @@
           "black_pawn_7",
           "black_pawn_8"
         ],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           "white_pawn_1",
           "white_pawn_2",
@@ -3109,53 +3911,113 @@
     },
     "actions": [
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [1, 4],
-        "to": [3, 4],
+        "from": [
+          1,
+          4
+        ],
+        "to": [
+          3,
+          4
+        ],
         "side": "black"
       },
       {
-        "from": [7, 6],
-        "to": [5, 5],
+        "from": [
+          7,
+          6
+        ],
+        "to": [
+          5,
+          5
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [2, 2],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          2,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 5],
-        "to": [4, 2],
+        "from": [
+          7,
+          5
+        ],
+        "to": [
+          4,
+          2
+        ],
         "side": "white"
       },
       {
-        "from": [0, 6],
-        "to": [2, 5],
+        "from": [
+          0,
+          6
+        ],
+        "to": [
+          2,
+          5
+        ],
         "side": "black"
       },
       {
-        "from": [6, 3],
-        "to": [5, 3],
+        "from": [
+          6,
+          3
+        ],
+        "to": [
+          5,
+          3
+        ],
         "side": "white"
       },
       {
-        "from": [0, 5],
-        "to": [3, 2],
+        "from": [
+          0,
+          5
+        ],
+        "to": [
+          3,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 4],
-        "to": [7, 6],
+        "from": [
+          7,
+          4
+        ],
+        "to": [
+          7,
+          6
+        ],
         "side": "white"
       },
       {
-        "from": [0, 4],
-        "to": [0, 6],
+        "from": [
+          0,
+          4
+        ],
+        "to": [
+          0,
+          6
+        ],
         "side": "black"
       }
     ],
@@ -3180,24 +4042,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.2",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "Q", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "Q",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "white_queen_1", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white_queen_1",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -3378,17 +4384,32 @@
     },
     "actions": [
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       }
     ],
-    "forced": [0, 0.99],
+    "forced": [
+      0,
+      0.99
+    ],
     "hashes": [
       "65c6a68b94f73b54cffe45dc02a9003e5a4ca17ea94ba7040e203fecc1141d0e",
       "b67ff4731810a02f8eecb72f62a59bc85f9dfe6d0704440bf6e644f2d3d669b6"
@@ -3402,24 +4423,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.2",
       "board": [
-        [null, null, null, null, "k", null, null, "r"],
-        ["P", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          "r"
+        ],
+        [
+          "P",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        [null, null, null, null, "black_king_1", null, null, "black_rook_1"],
-        ["white_pawn_1", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          "black_rook_1"
+        ],
+        [
+          "white_pawn_1",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -3600,8 +4765,14 @@
     },
     "actions": [
       {
-        "from": [1, 0],
-        "to": [0, 0],
+        "from": [
+          1,
+          0
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "white",
         "promotion": "n"
       }
@@ -3618,21 +4789,138 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.2",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "B", null, "N", null, null],
-        [null, null, null, null, null, null, null, null],
-        ["R", null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "B",
+          null,
+          "N",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "R",
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           null,
           null,
@@ -3643,8 +4931,26 @@
           null,
           null
         ],
-        [null, null, null, null, null, null, null, null],
-        ["white_rook_1", null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "white_rook_1",
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -3883,54 +5189,136 @@
     },
     "actions": [
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       }
     ],
     "forced": [
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0,
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0
     ],
     "hashes": [
       "4efb2bd1e602a79833ae6f85d73449728130412ed2e2bda328de97f54406492e",
@@ -3952,14 +5340,86 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.3",
       "board": [
-        ["r", "n", "b", "q", "k", "b", "n", "r"],
-        ["p", "p", "p", "p", "p", "p", "p", "p"],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        ["P", "P", "P", "P", "P", "P", "P", "P"],
-        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+        [
+          "r",
+          "n",
+          "b",
+          "q",
+          "k",
+          "b",
+          "n",
+          "r"
+        ],
+        [
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ],
+        [
+          "R",
+          "N",
+          "B",
+          "Q",
+          "K",
+          "B",
+          "N",
+          "R"
+        ]
       ],
       "pieceIds": [
         [
@@ -3982,10 +5442,46 @@
           "black_pawn_7",
           "black_pawn_8"
         ],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           "white_pawn_1",
           "white_pawn_2",
@@ -5082,53 +6578,113 @@
     },
     "actions": [
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [1, 4],
-        "to": [3, 4],
+        "from": [
+          1,
+          4
+        ],
+        "to": [
+          3,
+          4
+        ],
         "side": "black"
       },
       {
-        "from": [7, 6],
-        "to": [5, 5],
+        "from": [
+          7,
+          6
+        ],
+        "to": [
+          5,
+          5
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [2, 2],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          2,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 5],
-        "to": [4, 2],
+        "from": [
+          7,
+          5
+        ],
+        "to": [
+          4,
+          2
+        ],
         "side": "white"
       },
       {
-        "from": [0, 6],
-        "to": [2, 5],
+        "from": [
+          0,
+          6
+        ],
+        "to": [
+          2,
+          5
+        ],
         "side": "black"
       },
       {
-        "from": [6, 3],
-        "to": [5, 3],
+        "from": [
+          6,
+          3
+        ],
+        "to": [
+          5,
+          3
+        ],
         "side": "white"
       },
       {
-        "from": [0, 5],
-        "to": [3, 2],
+        "from": [
+          0,
+          5
+        ],
+        "to": [
+          3,
+          2
+        ],
         "side": "black"
       },
       {
-        "from": [7, 4],
-        "to": [7, 6],
+        "from": [
+          7,
+          4
+        ],
+        "to": [
+          7,
+          6
+        ],
         "side": "white"
       },
       {
-        "from": [0, 4],
-        "to": [0, 6],
+        "from": [
+          0,
+          4
+        ],
+        "to": [
+          0,
+          6
+        ],
         "side": "black"
       }
     ],
@@ -5153,24 +6709,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.3",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "Q", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "Q",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "white_queen_1", null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "white_queen_1",
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -5351,17 +7051,32 @@
     },
     "actions": [
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [4, 3],
-        "to": [4, 4],
+        "from": [
+          4,
+          3
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       }
     ],
-    "forced": [0, 0.99],
+    "forced": [
+      0,
+      0.99
+    ],
     "hashes": [
       "fbdb25d1c5691c8e74a59e62c823349dcec6cdf262621e13dbb5f4ee81f12a30",
       "c1fae4fb605f0ac4bb1336e7f96e1784ba763709c4710e5fac2b7d7827559ea6"
@@ -5375,24 +7090,168 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.3",
       "board": [
-        [null, null, null, null, "k", null, null, "r"],
-        ["P", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "K", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          "r"
+        ],
+        [
+          "P",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        [null, null, null, null, "black_king_1", null, null, "black_rook_1"],
-        ["white_pawn_1", null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          "black_rook_1"
+        ],
+        [
+          "white_pawn_1",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -5573,8 +7432,14 @@
     },
     "actions": [
       {
-        "from": [1, 0],
-        "to": [0, 0],
+        "from": [
+          1,
+          0
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "white",
         "promotion": "n"
       }
@@ -5591,21 +7456,138 @@
       "rulesetVersion": "hidden-kingdom-v2",
       "configVersion": "2026-09-07.3",
       "board": [
-        ["r", null, null, null, "k", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, "B", null, "N", null, null],
-        [null, null, null, null, null, null, null, null],
-        ["R", null, null, null, "K", null, null, null]
+        [
+          "r",
+          null,
+          null,
+          null,
+          "k",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          "B",
+          null,
+          "N",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "R",
+          null,
+          null,
+          null,
+          "K",
+          null,
+          null,
+          null
+        ]
       ],
       "pieceIds": [
-        ["black_rook_1", null, null, null, "black_king_1", null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          "black_rook_1",
+          null,
+          null,
+          null,
+          "black_king_1",
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           null,
           null,
@@ -5616,8 +7598,26 @@
           null,
           null
         ],
-        [null, null, null, null, null, null, null, null],
-        ["white_rook_1", null, null, null, "white_king_1", null, null, null]
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "white_rook_1",
+          null,
+          null,
+          null,
+          "white_king_1",
+          null,
+          null,
+          null
+        ]
       ],
       "simulation": {
         "schemaVersion": 2,
@@ -5856,54 +7856,136 @@
     },
     "actions": [
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       },
       {
-        "from": [0, 0],
-        "to": [0, 1],
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          0,
+          1
+        ],
         "side": "black"
       },
       {
-        "from": [7, 1],
-        "to": [7, 0],
+        "from": [
+          7,
+          1
+        ],
+        "to": [
+          7,
+          0
+        ],
         "side": "white"
       },
       {
-        "from": [0, 1],
-        "to": [0, 0],
+        "from": [
+          0,
+          1
+        ],
+        "to": [
+          0,
+          0
+        ],
         "side": "black"
       },
       {
-        "from": [7, 0],
-        "to": [7, 1],
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          7,
+          1
+        ],
         "side": "white"
       }
     ],
     "forced": [
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0,
-      0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0, 0.99, 0
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0,
+      0.99,
+      0
     ],
     "hashes": [
       "16d431f9ccb93e22da9ebf3395d1e973d805b2c9d596531565852443e11268f5",
@@ -5925,14 +8007,86 @@
       "rulesetVersion": "legacy-v1",
       "configVersion": "legacy-safety-1",
       "board": [
-        ["r", "n", "b", "q", "k", "b", "n", "r"],
-        ["p", "p", "p", "p", "p", "p", "p", "p"],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        ["P", "P", "P", "P", "P", "P", "P", "P"],
-        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+        [
+          "r",
+          "n",
+          "b",
+          "q",
+          "k",
+          "b",
+          "n",
+          "r"
+        ],
+        [
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ],
+        [
+          "R",
+          "N",
+          "B",
+          "Q",
+          "K",
+          "B",
+          "N",
+          "R"
+        ]
       ],
       "pieceIds": [
         [
@@ -5955,10 +8109,46 @@
           "black_pawn_7",
           "black_pawn_8"
         ],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           "white_pawn_1",
           "white_pawn_2",
@@ -6526,13 +8716,25 @@
     },
     "actions": [
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [1, 4],
-        "to": [3, 4],
+        "from": [
+          1,
+          4
+        ],
+        "to": [
+          3,
+          4
+        ],
         "side": "black"
       }
     ],
@@ -6549,14 +8751,86 @@
       "rulesetVersion": "legacy-v1",
       "configVersion": "legacy-safety-1",
       "board": [
-        ["r", "n", "b", "q", "k", "b", "n", "r"],
-        ["p", "p", "p", "p", "p", "p", "p", "p"],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        ["P", "P", "P", "P", "P", "P", "P", "P"],
-        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+        [
+          "r",
+          "n",
+          "b",
+          "q",
+          "k",
+          "b",
+          "n",
+          "r"
+        ],
+        [
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p",
+          "p"
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ],
+        [
+          "R",
+          "N",
+          "B",
+          "Q",
+          "K",
+          "B",
+          "N",
+          "R"
+        ]
       ],
       "pieceIds": [
         [
@@ -6579,10 +8853,46 @@
           "black_pawn_7",
           "black_pawn_8"
         ],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null, null],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
         [
           "white_pawn_1",
           "white_pawn_2",
@@ -7150,17 +9460,32 @@
     },
     "actions": [
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       },
       {
-        "from": [6, 4],
-        "to": [4, 4],
+        "from": [
+          6,
+          4
+        ],
+        "to": [
+          4,
+          4
+        ],
         "side": "white"
       }
     ],
-    "forced": [0, 0.99],
+    "forced": [
+      0,
+      0.99
+    ],
     "hashes": [
       "8422eadd62883a5c85ab881256e9fe447d81f422ddc82be565c9cdde117712e8",
       "45152e6c77eb89ac0f6e93f8bfc17c07e2357088a30080d483e65d5824bf9e96"

@@ -1,1 +1,2 @@
 docs/balance/*.json
+tests/goldens/
