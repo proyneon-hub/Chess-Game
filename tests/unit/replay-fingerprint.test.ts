@@ -3,7 +3,14 @@ import { expect, it } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
 import { searchMoves } from "@/lib/ai/search";
-import { V2_CONFIG, V3_CONFIG, V4_CONFIG, CONFIG } from "@/lib/rpg/config";
+import {
+  V2_CONFIG,
+  V3_CONFIG,
+  V4_CONFIG,
+  CONFIG,
+  PLAYTEST_CONFIG,
+  V6_CONFIG,
+} from "@/lib/rpg/config";
 import { seedRng, draw } from "@/lib/rpg/rng";
 import type { GameState } from "@/lib/game/types";
 
@@ -71,6 +78,34 @@ it("seeded play replays identically across rule generations", () => {
     state: state.digest("hex").slice(0, 16),
     public: pub.digest("hex").slice(0, 16),
   }).toEqual({ plies: PINS.plies, state: PINS.state, public: PINS.public });
+}, 60000);
+
+// Configs added after the pins above: playtest tuning (generation 5) and
+// generation 6. Same rule: a change here needs a new config version.
+const LATER_PINS = {
+  plies: 1600,
+  state: "edf18e82308ffaf6",
+  public: "d85ec2bfea8b9392",
+};
+it("seeded play replays identically for later configs", () => {
+  const state = createHash("sha256"),
+    pub = createHash("sha256");
+  let plies = 0;
+  for (const version of [PLAYTEST_CONFIG.version, V6_CONFIG.version])
+    for (let seed = 0; seed < 8; seed++) {
+      let last: GameState | undefined;
+      for (const s of play(version, seed, 100)) {
+        state.update(canonical(s));
+        last = s;
+        plies++;
+      }
+      pub.update(canonical(publicState(last!)));
+    }
+  expect({
+    plies,
+    state: state.digest("hex").slice(0, 16),
+    public: pub.digest("hex").slice(0, 16),
+  }).toEqual(LATER_PINS);
 }, 60000);
 
 it("fixed-depth search returns identical rankings", () => {

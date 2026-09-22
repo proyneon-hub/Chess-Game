@@ -120,7 +120,7 @@ export type ProgressionConfig = {
 export type RuleConfig = {
   readonly [K in keyof typeof ORIGINAL]: K extends "version" ? string : number;
 } & {
-  readonly generation: 2 | 3 | 4 | 5;
+  readonly generation: 2 | 3 | 4 | 5 | 6;
   readonly responsibility?: {
     readonly rivalryWindow: number;
     readonly preferNearbyLeader: boolean;
@@ -295,11 +295,17 @@ export const ENCOUNTER_RULES = Object.freeze({
   steadyTurns: 2,
   supportTurns: 6,
   modifierCap: 0.06,
+  // Generation 6: an ignored personal request adds this refusal chance to its
+  // piece for restlessTurns own turns.
+  restless: 0.04,
+  restlessTurns: 4,
   steady: -0.03,
   support: -0.03,
   dispute: 0.04,
   physicalFear: 4,
   strainFear: 40,
+  // Recent danger turns (within 6 own turns) before strain can be requested.
+  strainDangerTurns: 2,
   withdrawalFear: 50,
   withdrawalBase: 0.03,
   withdrawalHighFear: 0.02,
@@ -314,6 +320,14 @@ export const ENCOUNTER_RULES = Object.freeze({
   complaintTyranny: 25,
   complaintLegitimacy: 55,
   complaintHarmGap: 3,
+  // Generation 6: harms to the side (distinct turns) within complaintWindow
+  // own turns that let a harsh court hear a complaint.
+  complaintHarms: 3,
+  complaintWindow: 10,
+  // Own turns a complaint stays open (v5 used the petition window).
+  complaintDeadline: 4,
+  // Own turns before continued harm can renew a complaint as a warning.
+  complaintStageTurns: 2,
   // A plot may start only after this ply, from a standing stage-2 complaint.
   plotPly: 64,
 });
@@ -339,8 +353,40 @@ export const PLAYTEST_CONFIG: RuleConfig = Object.freeze({
   }),
   encounters: Object.freeze({ ...ENCOUNTER_RULES, aiAccommodation: 25 }),
 });
+// Generation 6 (docs/v6-playtest): requests carry stakes, strain can be
+// raised after one dangerous turn, and complaints form around the pairs a
+// court needs, so warned withdrawals and conspiracies are reachable.
+export const V6_CONFIG: RuleConfig = Object.freeze({
+  ...PLAYTEST_CONFIG,
+  version: "2026-09-23.1",
+  generation: 6,
+  progression: Object.freeze({
+    ...PLAYTEST_CONFIG.progression!,
+    plotTyranny: 15,
+    plotLegitimacy: 62,
+    // A v6 plot breaks up once the court recovers past these.
+    recoveryTyranny: 8,
+    recoveryLegitimacy: 66,
+    recoveryLoyalty: 85,
+    recoveryResentment: 3,
+  }),
+  encounters: Object.freeze({
+    ...PLAYTEST_CONFIG.encounters!,
+    strainFear: 18,
+    strainDangerTurns: 1,
+    withdrawalFear: 18,
+    withdrawalBase: 0.25,
+    withdrawalMax: 0.35,
+    complaintPhase: 3,
+    complaintDeadline: 7,
+    complaintStageTurns: 1,
+    complaintTyranny: 12,
+    complaintLegitimacy: 62,
+    plotPly: 40,
+  }),
+});
 /** What new games use. CONFIG stays the v5 baseline that reports refer to. */
-export const DEFAULT_CONFIG = PLAYTEST_CONFIG;
+export const DEFAULT_CONFIG = V6_CONFIG;
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -354,6 +400,7 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [V4_CONFIG.version]: V4_CONFIG,
   [CONFIG.version]: CONFIG,
   [PLAYTEST_CONFIG.version]: PLAYTEST_CONFIG,
+  [V6_CONFIG.version]: V6_CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
 export const configFor = (version: string) =>

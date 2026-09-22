@@ -10,6 +10,7 @@ import { DIFFICULTY } from "../lib/ai/difficulty";
 import { refusalFallback } from "../lib/ai/restraint";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
 import { configFor, DEFAULT_CONFIG } from "../lib/rpg/config";
+import { hasEncounters } from "../lib/rpg/capabilities";
 import { seedRng, draw, type RngState } from "../lib/rpg/rng";
 import type { Difficulty } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
@@ -95,6 +96,7 @@ type GameRecord = {
   families: Record<string, number>;
   warnings: number;
   plots: number;
+  counters: Record<string, number>;
 };
 
 function play(seed: number, style: Style): GameRecord {
@@ -114,6 +116,7 @@ function play(seed: number, style: Style): GameRecord {
     families,
     warnings: 0,
     plots: 0,
+    counters: {},
   };
   let lastWarning = "";
   for (
@@ -151,7 +154,7 @@ function play(seed: number, style: Style): GameRecord {
         record.requests[e.side]++;
         signal = true;
       }
-    if (s.simulation?.schemaVersion === 5)
+    if (hasEncounters(s.simulation))
       for (const e of s.simulation.encounters.active)
         if (!started.has(e.id)) {
           started.add(e.id);
@@ -169,6 +172,7 @@ function play(seed: number, style: Style): GameRecord {
   record.terminal = s.terminal?.reason ?? (s.ply >= cap ? "cap" : "unfinished");
   record.winner = s.terminal?.winner ?? null;
   record.plots = s.simulation?.plots.length ?? 0;
+  record.counters = { ...s.simulation?.counters };
   return record;
 }
 
@@ -228,7 +232,30 @@ for (const style of styles) {
       reached(60).filter((r) => r.warnings > 0).length,
       reached(60).length,
     ),
+    "complaint stage 2": String(sum((r) => r.counters.complaintStage2 ?? 0)),
+    families: Object.entries(
+      records.reduce<Record<string, number>>((n, r) => {
+        for (const [k, v] of Object.entries(r.families)) n[k] = (n[k] ?? 0) + v;
+        return n;
+      }, {}),
+    )
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => `${k} ${v}`)
+      .join(", "),
     plots: String(sum((r) => r.plots)),
+    // Court turns past the phase gate, and what most often blocked them.
+    "court blockers": (() => {
+      const total: Record<string, number> = {};
+      for (const r of records)
+        for (const [k, v] of Object.entries(r.counters))
+          if (k.startsWith("court-blocker:") && k !== "court-blocker:phase")
+            total[k.slice(14)] = (total[k.slice(14)] ?? 0) + v;
+      return Object.entries(total)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([k, v]) => `${k} ${v}`)
+        .join(", ");
+    })(),
     regicides: String(records.filter((r) => r.terminal === "regicide").length),
     endings: Object.entries(
       records.reduce<Record<string, number>>(

@@ -1,8 +1,10 @@
 import type { GameState } from "@/lib/game/types";
+import { hasEncounters } from "@/lib/rpg/capabilities";
 import { MAX_STORED_LOSS } from "./objectives";
 // No defaults or coercion: malformed saved encounters fail closed.
 export function validEncounters(s: GameState): boolean {
-  if (s.simulation?.schemaVersion !== 5) return false;
+  if (!hasEncounters(s.simulation)) return false;
+  const schema = s.simulation.schemaVersion;
   const sim = s.simulation,
     e = sim.encounters;
   const obj = (v: unknown): v is Record<string, unknown> =>
@@ -225,7 +227,12 @@ export function validEncounters(s: GameState): boolean {
         (sim.subjects[m.helper]?.side === sim.subjects[m.subject].side &&
           m.helper !== m.subject)
       ) ||
-      !["steady", "support", "dispute"].includes(m.kind) ||
+      ![
+        "steady",
+        "support",
+        "dispute",
+        ...(schema === 6 ? ["restless"] : []),
+      ].includes(m.kind) ||
       !int(m.expires) ||
       typeof m.consumed !== "boolean"
     )

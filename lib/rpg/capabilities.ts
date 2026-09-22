@@ -32,6 +32,14 @@ export type Capabilities = {
   turnLevelDeltaCap: boolean;
   /** Leadership emits its own observations at the end of the turn. */
   observationsAtLeadership: boolean;
+  /** An ignored personal request leaves its piece briefly restless. */
+  requestStakes: boolean;
+  /** Initiative requests skip rook pawns, whose pushes rarely develop. */
+  soundRequests: boolean;
+  /** Complaints come from a harsh court's accumulated harm to its side, and
+   * a renewed complaint can become a plot among its two pieces, instead of
+   * requiring one pair harmed together twice and per-piece court gates. */
+  courtComplaints: boolean;
 };
 
 const legacy: Capabilities = {
@@ -44,6 +52,20 @@ const legacy: Capabilities = {
   plotRoll: true,
   turnLevelDeltaCap: false,
   observationsAtLeadership: false,
+  requestStakes: false,
+  soundRequests: false,
+  courtComplaints: false,
+};
+const v5: Capabilities = {
+  ...legacy,
+  progression: true,
+  responsibility: true,
+  encounters: true,
+  graceInclusive: true,
+  disputeRefusals: false,
+  riskyMoveFear: false,
+  plotRoll: false,
+  turnLevelDeltaCap: true,
 };
 const BY_SCHEMA: Record<number, Capabilities> = {
   1: legacy,
@@ -55,17 +77,8 @@ const BY_SCHEMA: Record<number, Capabilities> = {
     responsibility: true,
     observationsAtLeadership: true,
   },
-  5: {
-    progression: true,
-    responsibility: true,
-    encounters: true,
-    graceInclusive: true,
-    disputeRefusals: false,
-    riskyMoveFear: false,
-    plotRoll: false,
-    turnLevelDeltaCap: true,
-    observationsAtLeadership: false,
-  },
+  5: v5,
+  6: { ...v5, requestStakes: true, soundRequests: true, courtComplaints: true },
 };
 
 export function capabilities(s: { schemaVersion: number }): Capabilities {
@@ -84,7 +97,7 @@ export const hasProgression = <T extends Versioned>(
 export const hasEncounters = <T extends Versioned>(
   sim: T | null | undefined,
 ): sim is T & {
-  schemaVersion: 5;
+  schemaVersion: 5 | 6;
   progression: ProgressionState;
   encounters: EncounterState;
-} => sim?.schemaVersion === 5;
+} => !!sim && sim.schemaVersion >= 5;

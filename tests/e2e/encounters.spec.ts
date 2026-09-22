@@ -58,7 +58,7 @@ test("normal-start request is visible, fulfilled through a legal move, and resto
     blackRequest ? /Black bishop/ : /White bishop/,
   );
 });
-test("a player can continue another plan and let a request expire neutrally on mobile", async ({
+test("a player can continue another plan and an ignored request leaves its piece restless on mobile", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -74,7 +74,7 @@ test("a player can continue another plan and let a request expire neutrally on m
     await move(page, from, to);
   await expect(
     page.getByRole("region", { name: "Piece requests" }),
-  ).toContainText("request passes without a response");
+  ).toContainText(/grows restless; its next orders may meet hesitation/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

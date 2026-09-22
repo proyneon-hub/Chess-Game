@@ -1,4 +1,4 @@
-import { hasEncounters } from "@/lib/rpg/capabilities";
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { forecastV3 } from "../forecast";
 import { isInCheck, type Side, type Square } from "@/lib/chess";
 import type {
@@ -10,9 +10,10 @@ import { encounterRulesFor } from "../config";
 import { count, event } from "../events";
 import { relate } from "../relationships";
 import { deriveResolvedFacts } from "../factsV4";
-import { locations, attackMap, attackers } from "../context";
+import { locations, attackMap, attackers, distance } from "../context";
+import { compareIds } from "../order";
 import { remember } from "../subjects";
-import { encounters } from "./state";
+import { encounters, PERSONAL } from "./state";
 import { effect, grantModifier, applicableModifiers } from "./effects";
 import {
   evaluateObjective,
@@ -108,6 +109,8 @@ export function resolveEncounters(
     if (
       e.side !== side &&
       !isInCheck(s.board, e.side === "white") &&
+      // A v6 complaint stands until its deadline even when unanswerable.
+      !(capabilities(s).courtComplaints && e.family === "complaint") &&
       !responseMoves(s, e.side, e.objective).length
     )
       closeEncounter(s, e, "interrupted");
@@ -244,7 +247,7 @@ function stallForCheck({ sim, state, side, own }: Resolution) {
 /** Fulfils, interrupts, escalates, or expires one active encounter. */
 function progress(t: Resolution, e: Encounter) {
   const { before, s, order, state, side, own } = t;
-  if (e.participants.some((id) => !t.pos[id])) {
+  if (e.participants.some((id) => !t.pos[id]) && !carryComplaint(t, e)) {
     closeEncounter(s, e, "interrupted");
     return;
   }
@@ -277,10 +280,18 @@ function progress(t: Resolution, e: Encounter) {
   ) {
     closeEncounter(s, e, "interrupted");
   } else if (e.family === "complaint") {
+    // v6 courts renew a complaint on any harm to the side, not only to the
+    // two pieces that raised it.
     const newHarm = state.sides[side].harms.filter(
-      (h) => h.own > e.stageOwn && e.participants.includes(h.subject),
+      (h) =>
+        h.own > e.stageOwn &&
+        (capabilities(s).courtComplaints || e.participants.includes(h.subject)),
     );
-    if (e.stage === 1 && own - e.stageOwn >= 2 && newHarm.length) {
+    if (
+      e.stage === 1 &&
+      own - e.stageOwn >= encounterRulesFor(s).complaintStageTurns &&
+      newHarm.length
+    ) {
       e.stage = 2;
       e.stageOwn = own;
       e.deadline = own + 4;
@@ -292,12 +303,49 @@ function progress(t: Resolution, e: Encounter) {
     } else if (own >= e.deadline && !newHarm.length)
       closeEncounter(s, e, "expired");
   } else if (own >= e.deadline) {
+    if (capabilities(s).requestStakes && PERSONAL.includes(e.family))
+      grantModifier(s, e, e.participants[0], "restless");
     if (e.family === "dispute") {
       grantModifier(s, e, e.participants[0], "dispute", e.participants[1]);
       grantModifier(s, e, e.participants[1], "dispute", e.participants[0]);
     }
     closeEncounter(s, e, "expired");
   }
+}
+
+/**
+ * v6: a complaint outlives a captured speaker. The survivor's nearest free
+ * ally takes its place (so a nearby one when there is one); false if nobody
+ * can.
+ */
+function carryComplaint(t: Resolution, e: Encounter) {
+  const { s, sim, state, pos } = t;
+  if (!capabilities(s).courtComplaints || e.family !== "complaint")
+    return false;
+  const survivors = e.participants.filter((id) => pos[id]);
+  if (survivors.length !== 1 || e.objective.kind !== "recover") return false;
+  const [survivor] = survivors,
+    busy = new Set(state.active.flatMap((x) => x.participants));
+  const replacement = Object.values(sim.subjects)
+    .filter(
+      (x) =>
+        x.side === e.side &&
+        x.status === "active" &&
+        x.currentKind !== "k" &&
+        !busy.has(x.id) &&
+        !!pos[x.id],
+    )
+    .sort(
+      (a, b) =>
+        distance(pos[survivor], pos[a.id]) -
+          distance(pos[survivor], pos[b.id]) || compareIds(a.id, b.id),
+    )[0];
+  if (!replacement) return false;
+  const pair: [string, string] = [survivor, replacement.id];
+  e.participants = pair;
+  e.objective = { ...e.objective, pair, separated: 0 };
+  count(s, "complaintCarried");
+  return true;
 }
 
 /** The family-specific reward for an order that answered the request. */

@@ -79,3 +79,58 @@ npm run playtest -- --games 200 --config 2026-09-22.1 --difficulty easy --json t
 
 The computer's time budget is soft. At depth 1–2 the search finishes inside it,
 so reruns match. The Easy spread uses a seeded draw in the harness.
+
+---
+
+# Generation 6: `2026-09-23.1`
+
+Generation 6 (`hidden-kingdom-v6`) is the default for new games. It keeps the
+v5 state shape and the `2026-09-22.1` tuning, and adds rule changes behind
+three capability flags (`lib/rpg/capabilities.ts`):
+
+| Flag | Change |
+|---|---|
+| `requestStakes` | An ignored personal request (initiative, confidence, protection, relief, strain) leaves its piece **restless**: +4% refusal for 4 own turns. The card says so ("…grows restless; its next orders may meet hesitation"). |
+| `soundRequests` | No initiative requests for rook pawns ("the pawn at a2 looks for room to act"). |
+| `courtComplaints` | A complaint comes from a harsh court whose side took 3+ harms within 10 own turns (tyranny ≥ 12, legitimacy ≤ 62). The most-harmed living piece speaks, with its nearest ally. A captured speaker is replaced by the survivor's nearest free ally, and an unanswerable complaint stays open until its 7-turn deadline. Further harm renews it (stage 2, a public warning) after one own turn. If the player doesn't answer in the following turn, it becomes a plot between the two pieces, provided the court is still harsh (ply > 40, tyranny ≥ 15, legitimacy ≤ 62). The existing three plot warnings, counterplay (guards, separation, recovery, king distance) and armed attempt are unchanged. |
+
+Other v6 settings:
+- Strain can be requested after one dangerous turn at fear ≥ 18.
+- A warned withdrawal has a 25–35% chance.
+- A plot breaks up when the court recovers (tyranny < 8, legitimacy > 66).
+
+v5 gates that were literals are now `ENCOUNTER_RULES` entries with unchanged v5 values: `strainDangerTurns`, `complaintDeadline`, `complaintStageTurns`, `withdrawalMax`.
+
+## Results (200 games per style, seeds 7000–7199)
+
+Complaint and plot counts include both sides: the player's court and the computer's.
+
+| Opponent | Style | W/D/L | Hesitations W / B | Complaints (games reaching 50) | Stage-2 renewals | Plots | Warnings (games reaching 60) | Regicides |
+|---|---|---|---|---|---|---|---|---|
+| Normal | aware | 0/1/199 | 0.72 / 0.47 | 19% | 11 | 5 | 3% | 0 |
+| Normal | engine | 75/64/61 | 1.64 / 1.48 | 6% | 3 | 2 | 1% | 0 |
+| Normal | reckless | 0/0/200 | 0.76 / 0.50 | 8% | 9 | 2 | 0% | 0 |
+| Easy | aware | 19/121/60 | 1.25 / 1.05 | 25% | 10 | 5 | 2% | 0 |
+| Easy | engine | 200/0/0 | 0.43 / 0.56 | 15% | 4 | 2 | 4% | 0 |
+| Easy | reckless | 0/5/195 | 0.90 / 0.88 | 26% | 20 | 5 | 4% | 0 |
+
+With `2026-09-22.1`, all of these were 0.
+
+## Against the plan's targets
+
+| Target | Result |
+|---|---|
+| Complaints in ≥ 25% of reckless games reaching ply 50 | **Met against Easy (26%)**, not against Normal (8%), where reckless games end around ply 48 |
+| Warnings in ≥ 10% of reckless games reaching ply 60 | **Not met:** 0–4%. The arc is reachable but rare. About 1 in 40–100 games sees a plot. Most complaints are answered or defused by separation before they renew. |
+| Regicide ≤ 3% of reckless games, 0 in careful games | **Met:** 0 in 1,200 games |
+| Warned withdrawals in ≥ 20% of reckless games | **Not met:** about 0. A withdrawal needs the same warned piece to be ordered into danger again, which play against the computer rarely produces. |
+| Requests stay about 1 per 6–10 plies | Met |
+
+The conspiracy is now a rare climax that play can bring about, where before it was unreachable. If it should be more common, the next levers are the renewal step (`complaintStageTurns`, `complaintHarms`) and the plot court gates. Withdrawals would need a rule change: for example, warning every frightened piece rather than only the strained one.
+
+## Reproduce
+
+```sh
+npm run playtest -- --games 200 --json true
+npm run playtest -- --games 200 --difficulty easy --json true
+```

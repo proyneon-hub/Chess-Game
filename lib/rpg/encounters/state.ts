@@ -1,6 +1,14 @@
 import { hasEncounters } from "@/lib/rpg/capabilities";
 import type { GameState, SubjectState } from "@/lib/game/types";
-import type { EncounterState } from "./types";
+import type { EncounterState, Family } from "./types";
+// Single-piece requests whose neglect leaves the piece restless (v6).
+export const PERSONAL: Family[] = [
+  "initiative",
+  "confidence",
+  "protection",
+  "relief",
+  "strain",
+];
 import { ENCOUNTER_RULES } from "../config";
 export function initialEncounters(
   subjects: Record<string, SubjectState>,

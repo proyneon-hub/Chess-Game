@@ -1,7 +1,13 @@
 import { expect, it } from "vitest";
 import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import { createGameState } from "@/lib/game";
-import { V2_CONFIG, V3_CONFIG, V4_CONFIG, CONFIG } from "@/lib/rpg/config";
+import {
+  V2_CONFIG,
+  V3_CONFIG,
+  V4_CONFIG,
+  CONFIG,
+  V6_CONFIG,
+} from "@/lib/rpg/config";
 
 // Saved games keep their generation, so these rows must never change.
 it("each generation's capabilities are fixed", () => {
@@ -29,7 +35,17 @@ it("each generation's capabilities are fixed", () => {
     "responsibility",
     "turnLevelDeltaCap",
   ]);
-  expect(() => capabilities({ schemaVersion: 6 })).toThrow();
+  expect(on(6)).toEqual([
+    "courtComplaints",
+    "encounters",
+    "graceInclusive",
+    "progression",
+    "requestStakes",
+    "responsibility",
+    "soundRequests",
+    "turnLevelDeltaCap",
+  ]);
+  expect(() => capabilities({ schemaVersion: 7 })).toThrow();
 });
 
 it("type guards follow each config's generation", () => {
@@ -38,6 +54,7 @@ it("type guards follow each config's generation", () => {
     [V3_CONFIG, false],
     [V4_CONFIG, false],
     [CONFIG, true],
+    [V6_CONFIG, true],
   ] as const)
     expect(hasEncounters(createGameState(1, config.version).simulation)).toBe(
       encounters,

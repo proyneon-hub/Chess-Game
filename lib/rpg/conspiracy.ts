@@ -236,6 +236,7 @@ function attempt(
  */
 function startTrackedPlot(c: Court) {
   const { s, side, own, pos, rng } = c;
+  if (capabilities(s).courtComplaints) return startComplaintPlot(c);
   const assessment = courtEligibility(s, side, c.startedInCheck),
     tracking = progression(s).sides[side];
   for (const blocker of assessment.blockers)
@@ -283,6 +284,52 @@ function startTrackedPlot(c: Court) {
   }
   const { a, b } = candidates[0];
   if (complaint) closeEncounter(s, complaint, "escalated");
+  openPlot(c, a, b);
+}
+
+/**
+ * v6: a renewed (stage-2) complaint under a court still harsh enough becomes
+ * a plot between its two pieces. Warnings and counterplay are unchanged.
+ */
+function startComplaintPlot(c: Court) {
+  const { s, sim, side, k, own, pos, check } = c;
+  const cfg = rulesFor(s).progression!;
+  const complaint = encounters(s).active.find(
+    (e) =>
+      e.side === side &&
+      e.family === "complaint" &&
+      e.stage === 2 &&
+      own > e.stageOwn,
+  );
+  const blocker = !complaint
+    ? "complaint"
+    : s.ply <= encounterRulesFor(s).plotPly
+      ? "phase"
+      : check
+        ? "check"
+        : k.plotAttemptUsed
+          ? "attempt-used"
+          : k.tyranny < cfg.plotTyranny
+            ? "tyranny"
+            : k.legitimacy > cfg.plotLegitimacy
+              ? "legitimacy"
+              : null;
+  if (blocker) {
+    count(s, `court-blocker:${blocker}`);
+    return;
+  }
+  const [a, b] = complaint!.participants.map((id) => sim.subjects[id]);
+  if (
+    a.status !== "active" ||
+    b.status !== "active" ||
+    distance(pos[a.id], pos[b.id]) > 3
+  ) {
+    count(s, "court-blocker:proximity");
+    return;
+  }
+  count(s, "eligibleKingdomTurns");
+  count(s, `eligibleCourt:${side}`);
+  closeEncounter(s, complaint!, "escalated");
   openPlot(c, a, b);
 }
 
