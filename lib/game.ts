@@ -128,6 +128,99 @@ const reject = (state: GameState, message: string): MoveResult => ({
   message,
   special: false,
 });
+function claimDraw(state: GameState, type: string): MoveResult {
+  if (type !== "claim-draw") return reject(state, "Unknown action.");
+  const repeated =
+    (state.positions[
+      positionKey(state.board, state.sideToMove, state.rights)
+    ] ?? 0) >= 3;
+  if (!repeated && state.rights.halfmove < 100)
+    return reject(state, "A draw cannot be claimed in this position.");
+  const s = structuredClone(state);
+  finish(s, repeated ? "threefold" : "fifty-move", null);
+  closeTerminalEncounters(s);
+  event(s, "draw", s.result!);
+  s.revision++;
+  const outcome: ActionOutcome = {
+    requestAccepted: true,
+    turnConsumed: false,
+    boardChanged: false,
+    resolution: "terminal",
+    message: s.result!,
+    special: false,
+  };
+  s.lastAction = outcome;
+  return { ...outcome, state: s, accepted: true };
+}
+/**
+ * Moves piece ids with the committed board (captures, castling rook) and
+ * updates the moved and captured subjects. Returns the mover's id.
+ */
+function trackPieces(
+  s: GameState,
+  state: GameState,
+  actual: MoveAttempt,
+  piece: string,
+  board: Board,
+): string {
+  const destination = actual.to;
+  const captured = captureSquare(state.board, actual),
+    capturedId = captured ? s.pieceIds[captured[0]][captured[1]] : null,
+    id = s.pieceIds[actual.from[0]][actual.from[1]]!;
+  if (captured) s.pieceIds[captured[0]][captured[1]] = null;
+  s.pieceIds[destination[0]][destination[1]] = id;
+  s.pieceIds[actual.from[0]][actual.from[1]] = null;
+  if (
+    piece.toLowerCase() === "k" &&
+    Math.abs(destination[1] - actual.from[1]) === 2
+  ) {
+    const r = actual.from[0],
+      c = destination[1] === 6 ? 7 : 0;
+    s.pieceIds[r][destination[1] === 6 ? 5 : 3] = s.pieceIds[r][c];
+    s.pieceIds[r][c] = null;
+  }
+  if (s.simulation) {
+    if (capturedId) {
+      const sub = s.simulation.subjects[capturedId];
+      sub.status = "captured";
+      sub.relationships = {};
+      sub.memories = sub.memories.slice(-2);
+      for (const other of Object.values(s.simulation.subjects))
+        delete other.relationships[capturedId];
+    }
+    const sub = s.simulation.subjects[id];
+    const kind = board[destination[0]][
+      destination[1]
+    ]!.toLowerCase() as typeof sub.currentKind;
+    if (sub.currentKind !== kind) {
+      sub.currentKind = kind;
+      sub.skill = roleStats[kind].skill;
+      sub.power = roleStats[kind].power;
+    }
+  } else if (s.rpgState) {
+    const kind = pieceKind(board[destination[0]][destination[1]]);
+    s.rpgState.pieces[id].kind = kind;
+    s.rpgState.pieces[id].stats = { ...PIECE_STATS[kind] };
+  }
+  return id;
+}
+/** Irreversible moves (pawn, capture, castling rights) reset repetition. */
+function recordPosition(s: GameState, state: GameState, next: Side) {
+  const key = positionKey(s.board, next, s.rights);
+  if (
+    !s.rights.halfmove ||
+    JSON.stringify(s.rights.castling) !== JSON.stringify(state.rights.castling)
+  )
+    s.positions = {};
+  s.positions[key] = (s.positions[key] ?? 0) + 1;
+}
+/** v4+ keeps the action explanation beside check or the result. */
+function moveMessage(s: GameState, next: Side, message: string): string {
+  const check = isInCheck(s.board, next === "white") ? "Check!" : "";
+  return s.schemaVersion >= 4
+    ? [message, s.result ?? check].filter(Boolean).join(" ")
+    : (s.result ?? (check || message));
+}
 export type ResolverDependencies = {
   /** Test dependency, never accepted from transport. */ draw?: Draw;
   classic?: boolean;
@@ -146,30 +239,7 @@ export function submitMove(
   } catch {
     return reject(state, "This game uses an unsupported rules configuration.");
   }
-  if ("type" in action) {
-    if (action.type !== "claim-draw") return reject(state, "Unknown action.");
-    const repeated =
-      (state.positions[
-        positionKey(state.board, state.sideToMove, state.rights)
-      ] ?? 0) >= 3;
-    if (!repeated && state.rights.halfmove < 100)
-      return reject(state, "A draw cannot be claimed in this position.");
-    const s = structuredClone(state);
-    finish(s, repeated ? "threefold" : "fifty-move", null);
-    closeTerminalEncounters(s);
-    event(s, "draw", s.result!);
-    s.revision++;
-    const outcome: ActionOutcome = {
-      requestAccepted: true,
-      turnConsumed: false,
-      boardChanged: false,
-      resolution: "terminal",
-      message: s.result!,
-      special: false,
-    };
-    s.lastAction = outcome;
-    return { ...outcome, state: s, accepted: true };
-  }
+  if ("type" in action) return claimDraw(state, action.type);
   if (
     !validSquare(action.from) ||
     !validSquare(action.to) ||
@@ -250,44 +320,7 @@ export function submitMove(
   );
   if (!legalFinalBoard(board, move.side))
     return reject(state, "That move is not available.");
-  const captured = captureSquare(state.board, actual),
-    capturedId = captured ? s.pieceIds[captured[0]][captured[1]] : null,
-    id = s.pieceIds[move.from[0]][move.from[1]]!;
-  if (captured) s.pieceIds[captured[0]][captured[1]] = null;
-  s.pieceIds[destination[0]][destination[1]] = id;
-  s.pieceIds[move.from[0]][move.from[1]] = null;
-  if (
-    piece.toLowerCase() === "k" &&
-    Math.abs(destination[1] - move.from[1]) === 2
-  ) {
-    const r = move.from[0],
-      c = destination[1] === 6 ? 7 : 0;
-    s.pieceIds[r][destination[1] === 6 ? 5 : 3] = s.pieceIds[r][c];
-    s.pieceIds[r][c] = null;
-  }
-  if (s.simulation) {
-    if (capturedId) {
-      const sub = s.simulation.subjects[capturedId];
-      sub.status = "captured";
-      sub.relationships = {};
-      sub.memories = sub.memories.slice(-2);
-      for (const other of Object.values(s.simulation.subjects))
-        delete other.relationships[capturedId];
-    }
-    const sub = s.simulation.subjects[id];
-    const kind = board[destination[0]][
-      destination[1]
-    ]!.toLowerCase() as typeof sub.currentKind;
-    if (sub.currentKind !== kind) {
-      sub.currentKind = kind;
-      sub.skill = roleStats[kind].skill;
-      sub.power = roleStats[kind].power;
-    }
-  } else if (s.rpgState) {
-    const kind = pieceKind(board[destination[0]][destination[1]]);
-    s.rpgState.pieces[id].kind = kind;
-    s.rpgState.pieces[id].stats = { ...PIECE_STATS[kind] };
-  }
+  const id = trackPieces(s, state, actual, piece, board);
   s.board = board;
   s.rights = nextRights(state.board, state.rights, actual);
   s.ply++;
@@ -295,13 +328,7 @@ export function submitMove(
   s.lastMove = [move.from, destination];
   s.specialSquare = special ? destination : null;
   const next: Side = move.side === "white" ? "black" : "white";
-  const key = positionKey(board, next, s.rights);
-  if (
-    !s.rights.halfmove ||
-    JSON.stringify(s.rights.castling) !== JSON.stringify(state.rights.castling)
-  )
-    s.positions = {};
-  s.positions[key] = (s.positions[key] ?? 0) + 1;
+  recordPosition(s, state, next);
   if (s.simulation && !deps.classic)
     leadership(state, s, actual, {
       intended: move,
@@ -320,16 +347,7 @@ export function submitMove(
   ordinaryTerminal(s, next);
   closeTerminalEncounters(s);
   const text = `${pieceName(piece)} ${squareName(move.from)} → ${squareName(destination)}${move.promotion ? ` = ${move.promotion.toUpperCase()}` : ""}`;
-  message =
-    s.schemaVersion >= 4
-      ? [
-          message || text,
-          s.result ?? (isInCheck(board, next === "white") ? "Check!" : ""),
-        ]
-          .filter(Boolean)
-          .join(" ")
-      : (s.result ??
-        (isInCheck(board, next === "white") ? "Check!" : message || text));
+  message = moveMessage(s, next, message || text);
   const actionMessage = message;
   event(s, "move", message, {
     square: destination,
