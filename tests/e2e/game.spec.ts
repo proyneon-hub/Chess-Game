@@ -198,3 +198,33 @@ test("security headers are sent and the CSP allows the computer worker", async (
   });
   expect(violations).toEqual([]);
 });
+
+test("the board is one tab stop with arrow, Home and End navigation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play here/ }).click();
+  await expect(page.locator('[data-square][tabindex="0"]')).toHaveCount(1);
+  await square(page, "e2").focus();
+  await page.keyboard.press("End");
+  await expect(square(page, "h2")).toBeFocused();
+  await page.keyboard.press("Home");
+  await page.keyboard.press("ArrowUp");
+  await expect(square(page, "a3")).toBeFocused();
+  await expect(square(page, "a3")).toHaveAttribute("tabindex", "0");
+  await page.keyboard.press("Tab");
+  expect(
+    await page.evaluate(() =>
+      (document.activeElement as HTMLElement | null)?.getAttribute(
+        "data-square",
+      ),
+    ),
+  ).toBeNull();
+  await page.keyboard.press("Shift+Tab");
+  await expect(square(page, "a3")).toBeFocused();
+  await move(page, "e2", "e4");
+  await expect(square(page, "e4")).toHaveAttribute(
+    "aria-label",
+    /White pawn, last move/,
+  );
+});

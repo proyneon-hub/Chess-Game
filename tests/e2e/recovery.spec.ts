@@ -115,6 +115,8 @@ test("armed warning survives reconnect and keyboard promotion remains ordinary",
     "aria-label",
     /White knight/,
   );
+  // Closing the dialog returns focus to the board.
+  await expect(page.locator('[data-square="a8"]')).toBeFocused();
   await context.close();
 });
 test("leaving during an in-flight poll cannot restore the old match", async ({

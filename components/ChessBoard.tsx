@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type Square,
   type PromotionKind,
@@ -10,7 +10,7 @@ import {
 } from "@/lib/chess";
 import { type Difficulty, type GameKind } from "@/lib/game";
 import type { Intention } from "@/lib/game/types";
-import { publicState } from "@/lib/game/publicState";
+import { publicState, type PublicGame } from "@/lib/game/publicState";
 import { useLocalGame } from "@/hooks/useLocalGame";
 import { useOnlineMatch } from "@/hooks/useOnlineMatch";
 import { useComputerTurn } from "@/hooks/useComputerTurn";
@@ -19,6 +19,7 @@ import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
 import { statusText } from "@/components/chess/statusText";
+const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
 export default function ChessBoard({
@@ -119,6 +120,13 @@ export default function ChessBoard({
     const p = visible.board[sq[0]][sq[1]];
     setSelected(p && (isWhite(p) ? "white" : "black") === side ? sq : null);
   };
+  // Board squares are memoized; give them one stable handler that always
+  // runs the latest square logic.
+  const latestSquare = useRef(square);
+  useEffect(() => {
+    latestSquare.current = square;
+  });
+  const onSquare = useCallback((sq: Square) => latestSquare.current(sq), []);
   const chooseOpponent = () => {
     leave();
     clearUrl();
@@ -211,7 +219,7 @@ export default function ChessBoard({
           selected={selected}
           moves={moves}
           flipped={kind === "online" && side === "black"}
-          onSquare={square}
+          onSquare={onSquare}
         />
         <aside className="flex min-w-0 flex-col gap-4">
           <div className="w-fit rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-stone-200">
@@ -226,18 +234,17 @@ export default function ChessBoard({
             className="rounded border border-amber-500/45 bg-slate-950/80 px-4 py-3 text-sm text-stone-200"
           >
             {status}
+            {/* One live region: secondary notices announce with the status. */}
+            {notice && (
+              <span className="mt-2 block text-stone-300">{notice}</span>
+            )}
+            {kind === "computer" && computerFailure && (
+              <span className="mt-2 block text-stone-400">
+                {computerFailure}
+              </span>
+            )}
           </div>
-          <EncounterArea encounters={visible.encounters ?? []} />
-          {notice && (
-            <p role="status" className="text-sm text-stone-300">
-              {notice}
-            </p>
-          )}
-          {kind === "computer" && computerFailure && (
-            <p role="status" className="text-sm text-stone-400">
-              {computerFailure}
-            </p>
-          )}
+          <EncounterArea encounters={visible.encounters ?? NO_ENCOUNTERS} />
           {kind === "online" && online.error && visible.warning && (
             <p role="alert" className="text-sm text-amber-200">
               {online.error}

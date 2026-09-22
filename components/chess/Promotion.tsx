@@ -11,7 +11,17 @@ export function Promotion({
   const dialog = useRef<HTMLDialogElement>(null),
     [piece, setPiece] = useState<PromotionKind>("q");
   useEffect(() => {
-    dialog.current?.showModal();
+    // Return focus to the square that opened the dialog once it closes.
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const el = dialog.current;
+    el?.showModal();
+    return () => {
+      if (el?.open) el.close();
+      if (opener?.isConnected) opener.focus();
+    };
   }, []);
   return (
     <dialog
