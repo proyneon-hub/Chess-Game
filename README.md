@@ -22,7 +22,7 @@ checks from unresolved product acceptance and remaining implementation work.
 
 ## Run
 
-Use Node **22.13+ or 24** and npm. The framework is Next.js 15.5 / React 19.
+Use Node **22.13+ or 24** and npm. The framework is Next.js 16 / React 19.
 
 ```sh
 npm ci

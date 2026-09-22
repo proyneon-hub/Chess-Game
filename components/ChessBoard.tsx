@@ -85,6 +85,8 @@ export default function ChessBoard({
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("match");
     if (id && onlineSupported) {
+      // The URL is only readable after hydration, so this cannot be initial state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setKind("online");
       void open(id);
       return;
@@ -111,7 +113,9 @@ export default function ChessBoard({
     local.game.status === "active";
   const confirmDiscard = (action: () => void) => () =>
     inProgress ? setConfirming(() => action) : action();
+  // A new position invalidates any half-made move.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelected(null);
     setPromotion(null);
   }, [online.remote?.version, local.game?.revision]);
