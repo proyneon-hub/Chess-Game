@@ -7,7 +7,6 @@ import {
   isWhite,
   sameSquare,
   squareName,
-  isInCheck,
 } from "@/lib/chess";
 import { type Difficulty, type GameKind } from "@/lib/game";
 import type { Intention } from "@/lib/game/types";
@@ -19,6 +18,7 @@ import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
+import { statusText } from "@/components/chess/statusText";
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
 export default function ChessBoard({
@@ -35,7 +35,8 @@ export default function ChessBoard({
   const local = useLocalGame(),
     online = useOnlineMatch(),
     { open, leave } = online;
-  const visible = online.remote?.state ?? publicState(local.game),
+  const localView = useMemo(() => publicState(local.game), [local.game]);
+  const visible = online.remote?.state ?? localView,
     side =
       kind === "online"
         ? online.remote?.playerSide
@@ -118,16 +119,18 @@ export default function ChessBoard({
     const p = visible.board[sq[0]][sq[1]];
     setSelected(p && (isWhite(p) ? "white" : "black") === side ? sq : null);
   };
-  const reset = () => {
+  const chooseOpponent = () => {
+    leave();
+    clearUrl();
+    local.reset();
+    setKind(null);
     setSelected(null);
     setPromotion(null);
-    if (kind === "online") {
-      leave();
-      clearUrl();
-      setKind(null);
-      setMessage("Choose how you would like to play.");
-    } else start(kind ?? "local");
+    setNotice("");
+    setMessage("Choose how you would like to play.");
   };
+  const reset = () =>
+    kind === "online" ? chooseOpponent() : start(kind ?? "local");
   if (!kind)
     return (
       <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-5 text-center">
@@ -190,27 +193,13 @@ export default function ChessBoard({
         </p>
       </div>
     );
-  const status =
-    visible.result ??
-    (isInCheck(visible.board, visible.sideToMove === "white")
-      ? "Check!"
-      : null) ??
-    visible.warning?.message ??
-    (kind === "online"
-      ? online.error ||
-        (!online.remote
-          ? "Opening the match…"
-          : online.remote.waitingForOpponent
-            ? "Waiting for an opponent to join."
-            : online.busy
-              ? "Submitting move…"
-              : visible.lastAction?.message ||
-                (isInCheck(visible.board, visible.sideToMove === "white")
-                  ? "Check!"
-                  : "Select a piece and destination."))
-      : computerThinking
-        ? "Your opponent is considering the board."
-        : message);
+  const status = statusText({
+    game: visible,
+    kind,
+    online,
+    computerThinking,
+    message,
+  });
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center px-3 py-6 sm:px-6">
       <h1 className="text-3xl font-light uppercase tracking-widest text-amber-600">
@@ -335,19 +324,7 @@ export default function ChessBoard({
               Undo
             </button>
           </div>
-          <button
-            className={button}
-            onClick={() => {
-              leave();
-              clearUrl();
-              setKind(null);
-              setPromotion(null);
-              setSelected(null);
-              setNotice("");
-              setMessage("Choose how you would like to play.");
-              local.reset();
-            }}
-          >
+          <button className={button} onClick={chooseOpponent}>
             Choose opponent
           </button>
           <details className="text-sm text-stone-300">
