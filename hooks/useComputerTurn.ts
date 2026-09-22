@@ -2,8 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
-import { ownPolitics } from "@/lib/ai/politicalEvaluation";
-import { refusalFallback } from "@/lib/ai/restraint";
+import type { LocalEngine } from "@/hooks/useLocalGame";
 // A rejected search result leaves the game unchanged, so the turn effect would
 // never rerun. Try the legal fallback before giving up on this turn.
 export function submitWithFallback(
@@ -17,14 +16,19 @@ export function submitWithFallback(
     : result;
 }
 export function useComputerTurn(
-  game: GameState,
+  game: GameState | null,
+  engine: LocalEngine | null,
   enabled: boolean,
   difficulty: Difficulty,
   submit: (a: MoveAttempt) => MoveResult,
   onMessage: (m: string) => void,
 ) {
   const thinking =
-    enabled && game.status === "active" && game.sideToMove === "black";
+    enabled &&
+    !!game &&
+    !!engine &&
+    game.status === "active" &&
+    game.sideToMove === "black";
   const [failure, setFailure] = useState("");
   // One worker is reused across turns so the search runs JIT-warm and the
   // chunk loads once. A worker still searching when its turn is cancelled is
@@ -32,12 +36,12 @@ export function useComputerTurn(
   const idleWorker = useRef<Worker | null>(null);
   useEffect(() => () => idleWorker.current?.terminate(), []);
   useEffect(() => {
-    if (!thinking) return;
+    if (!thinking || !game || !engine) return;
     setFailure("");
     let cancelled = false,
       settled = false;
     const revision = game.revision;
-    const fallback = refusalFallback(game);
+    const fallback = engine.refusalFallback(game);
     const commit = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
       const result = submitWithFallback(submit, move, fallback);
@@ -88,7 +92,7 @@ export function useComputerTurn(
           side: "black",
           depth: difficulty === "advanced" ? 4 : 2,
           budgetMs: difficulty === "advanced" ? 1000 : 250,
-          own: ownPolitics(game, "black"),
+          own: engine.ownPolitics(game, "black"),
           positions: game.positions,
         },
       });
@@ -108,6 +112,6 @@ export function useComputerTurn(
       clearTimeout(watchdog);
       if (searching) discard();
     };
-  }, [thinking, game, difficulty, submit, onMessage]);
+  }, [thinking, game, engine, difficulty, submit, onMessage]);
   return { thinking, failure };
 }

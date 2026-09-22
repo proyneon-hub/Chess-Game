@@ -10,7 +10,7 @@ import {
 } from "@/lib/chess";
 import { type Difficulty, type GameKind } from "@/lib/game";
 import type { Intention } from "@/lib/game/types";
-import { publicState, type PublicGame } from "@/lib/game/publicState";
+import type { PublicGame } from "@/lib/game/publicState";
 import { useLocalGame } from "@/hooks/useLocalGame";
 import { useOnlineMatch } from "@/hooks/useOnlineMatch";
 import { useComputerTurn } from "@/hooks/useComputerTurn";
@@ -18,11 +18,7 @@ import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
-import {
-  clearLocalGame,
-  loadLocalGame,
-  saveLocalGame,
-} from "@/hooks/localSave";
+import { clearLocalGame, readLocalSave } from "@/hooks/localSave";
 import { statusText } from "@/components/chess/statusText";
 const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
@@ -42,24 +38,27 @@ export default function ChessBoard({
   const local = useLocalGame(),
     online = useOnlineMatch(),
     { open, leave } = online,
-    { restore, snapshot } = local;
-  const localView = useMemo(() => publicState(local.game), [local.game]);
-  const visible = online.remote?.state ?? localView,
+    { restoreSaved, save } = local;
+  // Null while an online match opens or the local engine loads.
+  const visible: PublicGame | null =
+      kind === "online" ? (online.remote?.state ?? null) : local.view,
     side =
       kind === "online"
         ? online.remote?.playerSide
         : kind === "local"
-          ? visible.sideToMove
+          ? visible?.sideToMove
           : "white";
   const { thinking: computerThinking, failure: computerFailure } =
     useComputerTurn(
       local.game,
+      local.engine,
       kind === "computer",
       difficulty,
       local.submit,
       setMessage,
     );
   const myTurn =
+    !!visible &&
     !!side &&
     side === visible.sideToMove &&
     visible.status === "active" &&
@@ -73,7 +72,7 @@ export default function ChessBoard({
     );
   const moves = useMemo(
     () =>
-      selected && side
+      selected && side && visible
         ? getLegalMoves(
             visible.board,
             ...selected,
@@ -81,7 +80,7 @@ export default function ChessBoard({
             visible.rights,
           )
         : [],
-    [selected, side, visible.board, visible.rights],
+    [selected, side, visible],
   );
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("match");
@@ -90,24 +89,24 @@ export default function ChessBoard({
       void open(id);
       return;
     }
-    const saved = loadLocalGame();
-    if (saved) {
-      restore(saved.game, saved.history);
-      setDifficulty(saved.difficulty);
-      setKind(saved.mode);
-      setMessage("Your game has been restored.");
-    }
-  }, [open, onlineSupported, restore]);
+    // Only a stored game pulls in the rules engine before a mode is chosen.
+    if (readLocalSave())
+      void restoreSaved().then((saved) => {
+        if (!saved) return;
+        setDifficulty(saved.difficulty);
+        setKind(saved.mode);
+        setMessage("Your game has been restored.");
+      });
+  }, [open, onlineSupported, restoreSaved]);
   // Keep local and computer games across reloads in this browser.
   useEffect(() => {
-    if (kind !== "local" && kind !== "computer") return;
-    if (!local.game.revision) clearLocalGame();
-    else saveLocalGame({ mode: kind, difficulty, ...snapshot() });
-  }, [kind, difficulty, local.game, snapshot]);
+    if (kind === "local" || kind === "computer") save(kind, difficulty);
+  }, [kind, difficulty, local.game, save]);
   // Only local and computer games are lost on reset; online matches stay on
   // the server.
   const inProgress =
     (kind === "local" || kind === "computer") &&
+    !!local.game &&
     local.game.revision > 0 &&
     local.game.status === "active";
   const confirmDiscard = (action: () => void) => () =>
@@ -115,17 +114,20 @@ export default function ChessBoard({
   useEffect(() => {
     setSelected(null);
     setPromotion(null);
-  }, [online.remote?.version, local.game.revision]);
+  }, [online.remote?.version, local.game?.revision]);
   const clearUrl = () => history.replaceState({}, "", location.pathname);
   const start = (mode: "local" | "computer") => {
     leave();
     clearUrl();
-    local.reset();
-    setKind(mode);
     setSelected(null);
     setPromotion(null);
     setNotice("");
-    setMessage("White to move.");
+    // Switch modes only once the fresh game exists, so the previous game is
+    // never shown (or saved) under the new mode.
+    void local.reset().then(() => {
+      setKind(mode);
+      setMessage("White to move.");
+    });
   };
   const send = (intent: Intention | { type: "claim-draw" }) => {
     if (!myTurn || !side) return;
@@ -160,7 +162,6 @@ export default function ChessBoard({
     clearLocalGame();
     leave();
     clearUrl();
-    local.reset();
     setKind(null);
     setSelected(null);
     setPromotion(null);
@@ -229,6 +230,22 @@ export default function ChessBoard({
         <p role="status" className="mt-5 text-sm text-stone-300">
           {message}
         </p>
+      </div>
+    );
+  if (!visible)
+    return (
+      <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-5 text-center">
+        <h1 className="text-3xl font-light uppercase tracking-widest text-amber-600">
+          Chess
+        </h1>
+        <p role="status" className="mt-5 text-sm text-stone-300">
+          {kind === "online"
+            ? online.error || "Opening the match…"
+            : "Loading the board…"}
+        </p>
+        <button className={button + " mt-6"} onClick={chooseOpponent}>
+          Choose opponent
+        </button>
       </div>
     );
   const status = statusText({
