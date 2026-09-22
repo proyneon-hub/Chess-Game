@@ -53,7 +53,11 @@ export function grantModifier(
       subject,
       helper,
       kind,
-      expires: own + (kind === "steady" ? 2 : 6),
+      expires:
+        own +
+        (kind === "steady"
+          ? encounterRulesFor(s).steadyTurns
+          : encounterRulesFor(s).supportTurns),
       consumed: false,
     });
     if (pair && kind === "support") state.pairRewards[pair] = own;

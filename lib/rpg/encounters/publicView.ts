@@ -2,7 +2,7 @@ import { KIND_NAMES, squareName } from "@/lib/chess";
 import type { GameState } from "@/lib/game/types";
 import { locations } from "../context";
 import type { Encounter } from "./types";
-export function participantLabels(s: GameState, e: Encounter) {
+function participantLabels(s: GameState, e: Encounter) {
   const pos = locations(s);
   return e.participants
     .filter((id) => pos[id])

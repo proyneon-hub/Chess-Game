@@ -8,13 +8,7 @@ import {
 
 const gameMatchSchema = new Schema(
   {
-    inviteId: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-      maxlength: 80,
-    },
+    inviteId: { type: String, required: true, unique: true, maxlength: 80 },
     whitePlayerId: { type: String, required: true, maxlength: 64 },
     blackPlayerId: { type: String, default: null, maxlength: 64 },
     // State includes the hidden RPG fields. API code deliberately projects them
@@ -25,11 +19,16 @@ const gameMatchSchema = new Schema(
     rulesetVersion: { type: String },
     configVersion: { type: String },
     receipts: { type: [Schema.Types.Mixed], default: [] },
+    // Refreshed on every write. Matches saved before this field existed have
+    // no expiry and are kept.
+    expiresAt: { type: Date },
   },
   { timestamps: true, minimize: false },
 );
 
 gameMatchSchema.index({ updatedAt: -1 });
+gameMatchSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+gameMatchSchema.index({ whitePlayerId: 1, blackPlayerId: 1, createdAt: -1 });
 
 export const GameMatch =
   (models.GameMatch as

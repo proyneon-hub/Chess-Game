@@ -48,7 +48,12 @@ export function useOnlineMatch() {
     setRetryable(false);
   }, []);
   const request = useCallback(
-    async (path: string, method = "GET", body?: unknown) => {
+    async (
+      path: string,
+      method = "GET",
+      body?: unknown,
+      knownVersion?: number,
+    ) => {
       const controller = new AbortController();
       controllers.current.add(controller);
       try {
@@ -59,10 +64,12 @@ export function useOnlineMatch() {
           headers:
             method === "POST"
               ? { "content-type": "application/json" }
-              : undefined,
+              : knownVersion !== undefined
+                ? { "if-none-match": `"${knownVersion}"` }
+                : undefined,
           body: body === undefined ? undefined : JSON.stringify(body),
         });
-        const payload = await response.json();
+        const payload = response.status === 304 ? null : await response.json();
         return { response, payload };
       } finally {
         controllers.current.delete(controller);
@@ -108,7 +115,13 @@ export function useOnlineMatch() {
     let cancelled = false;
     const poll = async () => {
       try {
-        const { response, payload } = await request(`/api/matches/${id}`);
+        // Unchanged matches answer 304 with no body.
+        const { response, payload } = await request(
+          `/api/matches/${id}`,
+          "GET",
+          undefined,
+          latest.current?.id === id ? latest.current.version : undefined,
+        );
         if (response.ok && !cancelled && epoch === generation.current)
           receive(payload);
       } catch {

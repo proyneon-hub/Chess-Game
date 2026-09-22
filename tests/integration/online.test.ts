@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { randomUUID } from "node:crypto";
 import {
   createServerMatch,
+  isCurrentVersion,
+  tooManyOpenInvites,
   getServerMatch,
   joinServerMatch,
   submitServerMove,
@@ -496,5 +498,44 @@ describe("runtime contracts and nested privacy", () => {
       mutate(s);
       expect(() => validateState(s)).toThrow();
     }
+  });
+});
+describe("match lifecycle", () => {
+  it("polls detect the current version cheaply and every write refreshes expiry", async () => {
+    const white = randomUUID(),
+      created = await createServerMatch(white);
+    const expiryOf = async () =>
+      (await GameMatch.findOne({ inviteId: created.id }).lean())!.expiresAt!;
+    const first = await expiryOf();
+    expect(first.getTime()).toBeGreaterThan(Date.now());
+    expect(await isCurrentVersion(created.id, created.version)).toBe(true);
+    const joined = (await joinServerMatch(created.id, randomUUID())).match!;
+    expect(await isCurrentVersion(created.id, created.version)).toBe(false);
+    expect(await isCurrentVersion(created.id, joined.version)).toBe(true);
+    expect(await isCurrentVersion("not-a-uuid", 1)).toBe(false);
+    expect((await expiryOf()).getTime()).toBeGreaterThanOrEqual(
+      first.getTime(),
+    );
+    await GameMatch.init();
+    const ttl = (await GameMatch.collection.indexes()).find(
+      (i) => i.key.expiresAt === 1,
+    );
+    expect(ttl?.expireAfterSeconds).toBe(0);
+  });
+  it("caps unjoined invites per guest", async () => {
+    const white = randomUUID();
+    for (let i = 0; i < 19; i++) await createServerMatch(white);
+    expect(await tooManyOpenInvites(white)).toBe(false);
+    await createServerMatch(white);
+    expect(await tooManyOpenInvites(white)).toBe(true);
+    expect(await tooManyOpenInvites(randomUUID())).toBe(false);
+  });
+});
+describe("health", () => {
+  it("reports database reachability", async () => {
+    const { GET } = await import("@/app/api/health/route");
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
   });
 });

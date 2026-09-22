@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type Square,
   type PromotionKind,
@@ -7,11 +7,10 @@ import {
   isWhite,
   sameSquare,
   squareName,
-  isInCheck,
 } from "@/lib/chess";
 import { type Difficulty, type GameKind } from "@/lib/game";
 import type { Intention } from "@/lib/game/types";
-import { publicState } from "@/lib/game/publicState";
+import { publicState, type PublicGame } from "@/lib/game/publicState";
 import { useLocalGame } from "@/hooks/useLocalGame";
 import { useOnlineMatch } from "@/hooks/useOnlineMatch";
 import { useComputerTurn } from "@/hooks/useComputerTurn";
@@ -19,6 +18,13 @@ import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
+import {
+  clearLocalGame,
+  loadLocalGame,
+  saveLocalGame,
+} from "@/hooks/localSave";
+import { statusText } from "@/components/chess/statusText";
+const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
 export default function ChessBoard({
@@ -31,24 +37,28 @@ export default function ChessBoard({
     [selected, setSelected] = useState<Square | null>(null),
     [promotion, setPromotion] = useState<Intention | null>(null),
     [message, setMessage] = useState("Choose how you would like to play."),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [confirming, setConfirming] = useState<(() => void) | null>(null);
   const local = useLocalGame(),
     online = useOnlineMatch(),
-    { open, leave } = online;
-  const visible = online.remote?.state ?? publicState(local.game),
+    { open, leave } = online,
+    { restore, snapshot } = local;
+  const localView = useMemo(() => publicState(local.game), [local.game]);
+  const visible = online.remote?.state ?? localView,
     side =
       kind === "online"
         ? online.remote?.playerSide
         : kind === "local"
           ? visible.sideToMove
           : "white";
-  const { thinking: computerThinking } = useComputerTurn(
-    local.game,
-    kind === "computer",
-    difficulty,
-    local.submit,
-    setMessage,
-  );
+  const { thinking: computerThinking, failure: computerFailure } =
+    useComputerTurn(
+      local.game,
+      kind === "computer",
+      difficulty,
+      local.submit,
+      setMessage,
+    );
   const myTurn =
     !!side &&
     side === visible.sideToMove &&
@@ -78,8 +88,30 @@ export default function ChessBoard({
     if (id && onlineSupported) {
       setKind("online");
       void open(id);
+      return;
     }
-  }, [open, onlineSupported]);
+    const saved = loadLocalGame();
+    if (saved) {
+      restore(saved.game, saved.history);
+      setDifficulty(saved.difficulty);
+      setKind(saved.mode);
+      setMessage("Your game has been restored.");
+    }
+  }, [open, onlineSupported, restore]);
+  // Keep local and computer games across reloads in this browser.
+  useEffect(() => {
+    if (kind !== "local" && kind !== "computer") return;
+    if (!local.game.revision) clearLocalGame();
+    else saveLocalGame({ mode: kind, difficulty, ...snapshot() });
+  }, [kind, difficulty, local.game, snapshot]);
+  // Only local and computer games are lost on reset; online matches stay on
+  // the server.
+  const inProgress =
+    (kind === "local" || kind === "computer") &&
+    local.game.revision > 0 &&
+    local.game.status === "active";
+  const confirmDiscard = (action: () => void) => () =>
+    inProgress ? setConfirming(() => action) : action();
   useEffect(() => {
     setSelected(null);
     setPromotion(null);
@@ -117,16 +149,26 @@ export default function ChessBoard({
     const p = visible.board[sq[0]][sq[1]];
     setSelected(p && (isWhite(p) ? "white" : "black") === side ? sq : null);
   };
-  const reset = () => {
+  // Board squares are memoized; give them one stable handler that always
+  // runs the latest square logic.
+  const latestSquare = useRef(square);
+  useEffect(() => {
+    latestSquare.current = square;
+  });
+  const onSquare = useCallback((sq: Square) => latestSquare.current(sq), []);
+  const chooseOpponent = () => {
+    clearLocalGame();
+    leave();
+    clearUrl();
+    local.reset();
+    setKind(null);
     setSelected(null);
     setPromotion(null);
-    if (kind === "online") {
-      leave();
-      clearUrl();
-      setKind(null);
-      setMessage("Choose how you would like to play.");
-    } else start(kind ?? "local");
+    setNotice("");
+    setMessage("Choose how you would like to play.");
   };
+  const reset = () =>
+    kind === "online" ? chooseOpponent() : start(kind ?? "local");
   if (!kind)
     return (
       <div className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-5 text-center">
@@ -189,27 +231,13 @@ export default function ChessBoard({
         </p>
       </div>
     );
-  const status =
-    visible.result ??
-    (isInCheck(visible.board, visible.sideToMove === "white")
-      ? "Check!"
-      : null) ??
-    visible.warning?.message ??
-    (kind === "online"
-      ? online.error ||
-        (!online.remote
-          ? "Opening the match…"
-          : online.remote.waitingForOpponent
-            ? "Waiting for an opponent to join."
-            : online.busy
-              ? "Submitting move…"
-              : visible.lastAction?.message ||
-                (isInCheck(visible.board, visible.sideToMove === "white")
-                  ? "Check!"
-                  : "Select a piece and destination."))
-      : computerThinking
-        ? "Your opponent is considering the board."
-        : message);
+  const status = statusText({
+    game: visible,
+    kind,
+    online,
+    computerThinking,
+    message,
+  });
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center px-3 py-6 sm:px-6">
       <h1 className="text-3xl font-light uppercase tracking-widest text-amber-600">
@@ -221,7 +249,7 @@ export default function ChessBoard({
           selected={selected}
           moves={moves}
           flipped={kind === "online" && side === "black"}
-          onSquare={square}
+          onSquare={onSquare}
         />
         <aside className="flex min-w-0 flex-col gap-4">
           <div className="w-fit rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-stone-200">
@@ -236,13 +264,17 @@ export default function ChessBoard({
             className="rounded border border-amber-500/45 bg-slate-950/80 px-4 py-3 text-sm text-stone-200"
           >
             {status}
+            {/* One live region: secondary notices announce with the status. */}
+            {notice && (
+              <span className="mt-2 block text-stone-300">{notice}</span>
+            )}
+            {kind === "computer" && computerFailure && (
+              <span className="mt-2 block text-stone-400">
+                {computerFailure}
+              </span>
+            )}
           </div>
-          <EncounterArea encounters={visible.encounters ?? []} />
-          {notice && (
-            <p role="status" className="text-sm text-stone-300">
-              {notice}
-            </p>
-          )}
+          <EncounterArea encounters={visible.encounters ?? NO_ENCOUNTERS} />
           {kind === "online" && online.error && visible.warning && (
             <p role="alert" className="text-sm text-amber-200">
               {online.error}
@@ -314,7 +346,10 @@ export default function ChessBoard({
             )}
           <GameHistory game={visible} />
           <div className="flex gap-2">
-            <button className={button + " flex-1"} onClick={reset}>
+            <button
+              className={button + " flex-1"}
+              onClick={confirmDiscard(reset)}
+            >
               {kind === "online" ? "Leave" : "New Game"}
             </button>
             <button
@@ -329,27 +364,43 @@ export default function ChessBoard({
               Undo
             </button>
           </div>
-          <button
-            className={button}
-            onClick={() => {
-              leave();
-              clearUrl();
-              setKind(null);
-              setPromotion(null);
-              setSelected(null);
-              setNotice("");
-              setMessage("Choose how you would like to play.");
-              local.reset();
-            }}
-          >
+          <button className={button} onClick={confirmDiscard(chooseOpponent)}>
             Choose opponent
           </button>
+          {confirming && (
+            <div
+              role="group"
+              aria-label="Discard this game?"
+              className="rounded border border-amber-500/45 px-4 py-3 text-sm text-stone-200"
+            >
+              <p>Discard this game? It cannot be recovered.</p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  className={button + " flex-1"}
+                  onClick={() => {
+                    setConfirming(null);
+                    confirming();
+                  }}
+                >
+                  Discard game
+                </button>
+                <button
+                  autoFocus
+                  className={button + " flex-1"}
+                  onClick={() => setConfirming(null)}
+                >
+                  Keep playing
+                </button>
+              </div>
+            </div>
+          )}
           <details className="text-sm text-stone-300">
             <summary>Controls</summary>
             <p className="mt-2">
-              Select a piece, then a highlighted destination. Use Tab or arrow
-              keys to focus squares and Enter to select. Choose a piece when
-              promoting a pawn.
+              Select a piece, then a highlighted destination. Tab to the board,
+              then use the arrow keys (Home and End along a rank) and Enter to
+              select. Choose a piece when promoting a pawn. Games here are kept
+              in this browser if you reload.
             </p>
             {visible.events.some((e) => e.message.includes("hesitates")) && (
               <p className="mt-2">

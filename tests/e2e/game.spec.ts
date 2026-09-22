@@ -45,6 +45,7 @@ test("AI completes and restart cancels worker", async ({ page }) => {
   await page.getByRole("button", { name: /Play computer/ }).click();
   await move(page, "e2", "e4");
   await page.getByRole("button", { name: "New Game", exact: true }).click();
+  await page.getByRole("button", { name: "Discard game" }).click();
   await page.waitForTimeout(1500);
   await expect(square(page, "e2")).toHaveAttribute("aria-label", /White pawn/);
   await expect(page.getByText("No moves yet.")).toBeVisible();
@@ -171,4 +172,150 @@ test("full computer search runs in a worker with no main-thread search task", as
     JSON.stringify(report, null, 2) + "\n",
   );
   expect(report.longTasks).toHaveLength(0);
+});
+
+test("security headers are sent and the CSP allows the computer worker", async ({
+  page,
+}) => {
+  const violations: string[] = [];
+  page.on("console", (m) => {
+    if (/Content Security Policy|Refused to/i.test(m.text()))
+      violations.push(m.text());
+  });
+  const response = await page.goto("/");
+  const headers = response!.headers();
+  expect(headers["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(headers["content-security-policy"]).not.toContain("unsafe-eval");
+  expect(headers["referrer-policy"]).toBe("same-origin");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-powered-by"]).toBeUndefined();
+  await page.getByRole("button", { name: /Play computer/ }).click();
+  await move(page, "e2", "e4");
+  await expect(page.getByText("White to Move", { exact: true })).toBeVisible({
+    timeout: 5000,
+  });
+  expect(violations).toEqual([]);
+});
+
+test("the board is one tab stop with arrow, Home and End navigation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play here/ }).click();
+  await expect(page.locator('[data-square][tabindex="0"]')).toHaveCount(1);
+  await square(page, "e2").focus();
+  await page.keyboard.press("End");
+  await expect(square(page, "h2")).toBeFocused();
+  await page.keyboard.press("Home");
+  await page.keyboard.press("ArrowUp");
+  await expect(square(page, "a3")).toBeFocused();
+  await expect(square(page, "a3")).toHaveAttribute("tabindex", "0");
+  await page.keyboard.press("Tab");
+  expect(
+    await page.evaluate(() =>
+      (document.activeElement as HTMLElement | null)?.getAttribute(
+        "data-square",
+      ),
+    ),
+  ).toBeNull();
+  await page.keyboard.press("Shift+Tab");
+  await expect(square(page, "a3")).toBeFocused();
+  await move(page, "e2", "e4");
+  await expect(square(page, "e4")).toHaveAttribute(
+    "aria-label",
+    /White pawn, last move/,
+  );
+});
+
+test("local games survive a reload and resets ask before discarding", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play here/ }).click();
+  await move(page, "e2", "e4");
+  await move(page, "e7", "e5");
+  await page.reload();
+  await expect(square(page, "e4")).toHaveAttribute("aria-label", /White pawn/);
+  await expect(square(page, "e5")).toHaveAttribute("aria-label", /Black pawn/);
+  await expect(page.getByText("White to Move", { exact: true })).toBeVisible();
+  // Undo history is restored too.
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(square(page, "e7")).toHaveAttribute("aria-label", /Black pawn/);
+  await page.getByRole("button", { name: "New Game", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Keep playing" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Keep playing" }).click();
+  await expect(square(page, "e4")).toHaveAttribute("aria-label", /White pawn/);
+  await page.getByRole("button", { name: "Choose opponent" }).click();
+  await page.getByRole("button", { name: "Discard game" }).click();
+  await page.reload();
+  await expect(page.getByRole("button", { name: /Play here/ })).toBeVisible();
+});
+
+test("a corrupted saved game falls back to a fresh start", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "chess:local-game:v1",
+      JSON.stringify({ mode: "local", difficulty: "normal", game: { x: 1 } }),
+    ),
+  );
+  await page.reload();
+  await expect(page.getByRole("button", { name: /Play here/ })).toBeVisible();
+  expect(
+    await page.evaluate(() => localStorage.getItem("chess:local-game:v1")),
+  ).toBeNull();
+});
+
+test("unknown pages show a way home and pages carry metadata", async ({
+  page,
+}) => {
+  const response = await page.goto("/no-such-page");
+  expect(response!.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "Page not found" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Page not found · Chess");
+  await page.getByRole("link", { name: "Play chess" }).click();
+  await expect(page).toHaveTitle("Chess");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    /icon\.svg/,
+  );
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
+    "content",
+    "#0c0a09",
+  );
+});
+
+test("the computer reuses one worker across turns", async ({ page }) => {
+  await page.addInitScript(() => {
+    const Native = window.Worker;
+    (window as typeof window & { workers: number }).workers = 0;
+    window.Worker = class extends Native {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        (window as typeof window & { workers: number }).workers++;
+      }
+    };
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play computer/ }).click();
+  const whiteToMove = page.getByText("White to Move", { exact: true });
+  await move(page, "e2", "e4");
+  await expect(whiteToMove).toBeVisible({ timeout: 5000 });
+  await move(page, "d2", "d4");
+  await expect(page.getByText("Move History").locator("..")).toContainText(
+    "4.",
+    { timeout: 5000 },
+  );
+  expect(
+    await page.evaluate(
+      () => (window as typeof window & { workers: number }).workers,
+    ),
+  ).toBe(1);
 });

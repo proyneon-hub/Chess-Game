@@ -1,4 +1,5 @@
 import type { GameState } from "@/lib/game/types";
+import { MAX_STORED_LOSS } from "./objectives";
 // No defaults or coercion: malformed saved encounters fail closed.
 export function validEncounters(s: GameState): boolean {
   if (s.simulation?.schemaVersion !== 5) return false;
@@ -180,7 +181,7 @@ export function validEncounters(s: GameState): boolean {
         return false;
       if (o.kind === "protect" || o.kind === "relieve")
         if (
-          !int(o.initialLoss, 0, 20000) ||
+          !int(o.initialLoss, 0, MAX_STORED_LOSS) ||
           !Array.isArray(o.defenders) ||
           o.defenders.length > 16 ||
           !o.defenders.every((id) => sim.subjects[id]?.side === x.side)
@@ -206,7 +207,8 @@ export function validEncounters(s: GameState): boolean {
       )
         return false;
       if (o.kind !== "support" && !int(o.separated)) return false;
-      if (o.kind !== "mediate" && !int(o.initialLoss, 0, 20000)) return false;
+      if (o.kind !== "mediate" && !int(o.initialLoss, 0, MAX_STORED_LOSS))
+        return false;
       if (o.kind === "support" && !["safety", "initiative"].includes(o.concern))
         return false;
     } else return false;

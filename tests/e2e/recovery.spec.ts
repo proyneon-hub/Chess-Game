@@ -115,6 +115,8 @@ test("armed warning survives reconnect and keyboard promotion remains ordinary",
     "aria-label",
     /White knight/,
   );
+  // Closing the dialog returns focus to the board.
+  await expect(page.locator('[data-square="a8"]')).toBeFocused();
   await context.close();
 });
 test("leaving during an in-flight poll cannot restore the old match", async ({
@@ -202,3 +204,20 @@ for (const generation of [3, 4])
     );
     await context.close();
   });
+
+test("unchanged polls answer 304 and a move still reaches the opponent", async ({
+  page,
+}) => {
+  const { id, context, guest } = await joined(page);
+  const unchanged = guest.waitForResponse(
+    (r) =>
+      r.url().endsWith(`/api/matches/${id}`) &&
+      r.request().method() === "GET" &&
+      r.status() === 304,
+  );
+  await unchanged;
+  await page.locator('[data-square="e2"]').click();
+  await page.locator('[data-square="e4"]').click();
+  await expect(guest.getByText(/Black to Move/)).toBeVisible();
+  await context.close();
+});

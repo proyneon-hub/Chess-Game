@@ -149,7 +149,8 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
       : sub.fear >= cfg.retreatFear && sub.loyalty <= cfg.retreatLoyalty) &&
     assessment.residual >= 100 &&
     own - q.lastRetreat >= rules.cooldown &&
-    p.sides[m.side].retreats < cfg.retreatLimit
+    p.sides[m.side].retreats <
+      (encounterState ? rules.encounters!.withdrawalLimit : cfg.retreatLimit)
   ) {
     const king = findKing(s.board, m.side === "white")!;
     const options = getLegalMoves(

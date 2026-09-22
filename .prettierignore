@@ -1,3 +1,2 @@
-# Unchanged baseline module; keep unrelated formatting out of this delivery.
-lib/db.ts
 docs/balance/*.json
+tests/goldens/

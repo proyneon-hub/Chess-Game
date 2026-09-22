@@ -1,12 +1,13 @@
 import type { GameState, SubjectState } from "@/lib/game/types";
 import type { EncounterState } from "./types";
+import { ENCOUNTER_RULES } from "../config";
 export function initialEncounters(
   subjects: Record<string, SubjectState>,
 ): EncounterState {
   return {
     serial: 0,
     lastStartPly: -100,
-    duePly: 10,
+    duePly: ENCOUNTER_RULES.firstPly,
     processedRevision: -1,
     sides: {
       white: { lastStart: -100, lastWithdrawal: -100, family: {}, harms: [] },

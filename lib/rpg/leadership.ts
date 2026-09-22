@@ -1,7 +1,8 @@
+import { compareIds } from "./order";
 import { findKing, isInCheck, type Square } from "@/lib/chess";
 import { material, captureSquare, positionKey } from "@/lib/chessRules";
 import type { GameState, MoveAttempt, ResolvedOrder } from "@/lib/game/types";
-import { sameIntention } from "@/lib/game";
+import { sameIntention } from "@/lib/game/core";
 import {
   attackMap,
   attackers,
@@ -196,7 +197,7 @@ export function leadership(
           x.loyalty <= 55 &&
           distance(pos[x.id], move.to) <= 3,
       )
-      .sort((a, b) => b.ambition - a.ambition || a.id.localeCompare(b.id))[0];
+      .sort((a, b) => b.ambition - a.ambition || compareIds(a.id, b.id))[0];
     if (envious) {
       envious.resentment += 4;
       relate(s, envious, mover, -10);

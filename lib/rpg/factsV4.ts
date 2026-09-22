@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import { applyMove, sameSquare } from "@/lib/chess";
 import { captureSquare } from "@/lib/chessRules";
 import type { GameState, ResolvedOrder } from "@/lib/game/types";
@@ -83,7 +84,7 @@ export function deriveResolvedFacts(
         100,
   );
   for (const [id, q] of Object.entries(p.subjects).sort(([a], [b]) =>
-    a.localeCompare(b),
+    compareIds(a, b),
   )) {
     if (
       !q.hazard ||
@@ -118,7 +119,7 @@ export function deriveResolvedFacts(
   }
   facts.push(
     ...neglect
-      .sort((a, b) => a.subjectId.localeCompare(b.subjectId))
+      .sort((a, b) => compareIds(a.subjectId, b.subjectId))
       .slice(0, cfg.neglectLimit),
   );
   for (const f of physical.filter((f) =>

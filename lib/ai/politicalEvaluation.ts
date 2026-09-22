@@ -17,7 +17,7 @@ import {
   attackMap,
   attackers,
 } from "@/lib/rpg/context";
-import { clamp } from "@/lib/rpg/config";
+import { clamp, encounterRulesFor } from "@/lib/rpg/config";
 import type { ChessMove } from "@/lib/chessRules";
 import {
   leadershipView,
@@ -118,7 +118,10 @@ export function politicalScore(
         );
         const remaining = encounter.deadline - own.kingdom.ownTurnsCompleted;
         if (response.success)
-          accommodation = Math.max(accommodation, remaining <= 1 ? 75 : 50);
+          accommodation = Math.max(
+            accommodation,
+            remaining <= 1 ? encounterRulesFor(state).aiAccommodation : 50,
+          );
         else if (response.progress && remaining >= 2)
           accommodation = Math.max(accommodation, 25);
         else if (encounter.family === "complaint" && encounter.stage === 2)

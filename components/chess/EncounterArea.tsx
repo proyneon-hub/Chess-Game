@@ -9,6 +9,9 @@ export function EncounterArea({
   const seen = useRef(new Set<string>()),
     [announcement, setAnnouncement] = useState("");
   useEffect(() => {
+    // Encounter ids are unique within a game; an empty list (including a new
+    // game) lets repeated ids from a later game announce again.
+    if (!encounters.length) seen.current.clear();
     const fresh = encounters.filter(
       (e) => !seen.current.has(`${e.id}|${e.message}|${e.outcome}`),
     );

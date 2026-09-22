@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import {
   applyMove,
   getLegalMoves,
@@ -13,7 +14,6 @@ import {
   exchangeLoss,
   locations,
   opposite,
-  distance,
 } from "./context";
 import { progression } from "./pressure";
 import { rulesFor } from "./config";
@@ -53,8 +53,7 @@ export function saferMove(s: GameState, from: Square, risk: number): boolean {
     s.sideToMove === "white",
     s.rights,
   ).some((to) => {
-    const m = { from, to, side: s.sideToMove },
-      b = applyMove(s.board, from, to, undefined, s.rights);
+    const b = applyMove(s.board, from, to, undefined, s.rights);
     return exchangeLoss(b, to, s.sideToMove) <= risk - 100;
   });
 }
@@ -158,7 +157,7 @@ export function derivePoliticalFacts(
         x.status === "active" &&
         x.currentKind !== "k",
     )
-    .sort((a, b) => a.id.localeCompare(b.id))) {
+    .sort((a, b) => compareIds(a.id, b.id))) {
     const sq = pos[ally.id];
     if (!sq) continue;
     const memory = p.subjects[ally.id],

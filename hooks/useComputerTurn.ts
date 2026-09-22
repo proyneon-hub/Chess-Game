@@ -1,9 +1,21 @@
 "use client";
-import { useEffect, useState } from "react";
-import { type Difficulty, getAllLegalMoves } from "@/lib/game";
+import { useEffect, useRef, useState } from "react";
+import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
 import { refusalFallback } from "@/lib/ai/restraint";
+// A rejected search result leaves the game unchanged, so the turn effect would
+// never rerun. Try the legal fallback before giving up on this turn.
+export function submitWithFallback(
+  submit: (a: MoveAttempt) => MoveResult,
+  move: MoveAttempt,
+  fallback: MoveAttempt | undefined,
+): MoveResult {
+  const result = submit(move);
+  return !result.requestAccepted && fallback && fallback !== move
+    ? submit(fallback)
+    : result;
+}
 export function useComputerTurn(
   game: GameState,
   enabled: boolean,
@@ -14,16 +26,22 @@ export function useComputerTurn(
   const thinking =
     enabled && game.status === "active" && game.sideToMove === "black";
   const [failure, setFailure] = useState("");
+  // One worker is reused across turns so the search runs JIT-warm and the
+  // chunk loads once. A worker still searching when its turn is cancelled is
+  // terminated (the search is synchronous), and the next turn starts a new one.
+  const idleWorker = useRef<Worker | null>(null);
+  useEffect(() => () => idleWorker.current?.terminate(), []);
   useEffect(() => {
     if (!thinking) return;
+    setFailure("");
     let cancelled = false,
       settled = false;
     const revision = game.revision;
     const fallback = refusalFallback(game);
     const commit = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
-      settled = true;
-      const result = submit(move);
+      const result = submitWithFallback(submit, move, fallback);
+      settled = result.requestAccepted;
       onMessage(result.message);
     };
     // After refusal, the same legal command completes with no search or roll.
@@ -37,19 +55,31 @@ export function useComputerTurn(
         clearTimeout(timer);
       };
     }
-    let worker: Worker | undefined;
+    let worker: Worker | undefined,
+      searching = false;
+    const discard = () => {
+      worker?.terminate();
+      if (idleWorker.current === worker) idleWorker.current = null;
+    };
     try {
-      worker = new Worker(new URL("../lib/ai/worker.ts", import.meta.url));
+      worker =
+        idleWorker.current ??
+        new Worker(new URL("../lib/ai/worker.ts", import.meta.url));
+      idleWorker.current = worker;
       worker.onmessage = (e) => {
         if (e.data.revision !== revision) return;
+        searching = false;
         if (e.data.error)
           setFailure("Computer search recovered with a legal move.");
         commit(e.data.result?.moves[0] ?? fallback);
       };
       worker.onerror = () => {
+        searching = false;
+        discard();
         setFailure("Computer search recovered with a legal move.");
         commit(fallback);
       };
+      searching = true;
       worker.postMessage({
         revision,
         input: {
@@ -59,6 +89,7 @@ export function useComputerTurn(
           depth: difficulty === "advanced" ? 4 : 2,
           budgetMs: difficulty === "advanced" ? 1000 : 250,
           own: ownPolitics(game, "black"),
+          positions: game.positions,
         },
       });
     } catch {
@@ -66,7 +97,8 @@ export function useComputerTurn(
     }
     const watchdog = setTimeout(
       () => {
-        worker?.terminate();
+        if (searching) discard();
+        searching = false;
         commit(fallback);
       },
       difficulty === "advanced" ? 4000 : 2000,
@@ -74,7 +106,7 @@ export function useComputerTurn(
     return () => {
       cancelled = true;
       clearTimeout(watchdog);
-      worker?.terminate();
+      if (searching) discard();
     };
   }, [thinking, game, difficulty, submit, onMessage]);
   return { thinking, failure };

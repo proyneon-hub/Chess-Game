@@ -1,6 +1,5 @@
 import { expect, it, vi, afterEach } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
-import { positionKey } from "@/lib/chessRules";
 import { publicState } from "@/lib/game/publicState";
 import { validateState } from "@/lib/game/validation";
 import { newerMatch } from "@/hooks/useOnlineMatch";

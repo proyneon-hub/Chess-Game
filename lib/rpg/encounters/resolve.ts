@@ -1,6 +1,6 @@
 import { forecastV3 } from "../forecast";
 import { isInCheck } from "@/lib/chess";
-import type { GameState, ResolvedOrder, Side } from "@/lib/game/types";
+import type { GameState, ResolvedOrder } from "@/lib/game/types";
 import { encounterRulesFor } from "../config";
 import { count, event } from "../events";
 import { relate } from "../relationships";
@@ -228,12 +228,6 @@ export function resolveEncounters(
             !e.participants.includes(mod.helper),
         );
         count(s, "disputeMediations");
-      } else if (
-        response.success &&
-        !intention.success &&
-        order.outcome !== "obeyed"
-      ) {
-        closeEncounter(s, e, "interrupted");
       } else if (e.family === "complaint") {
         effect(s, e, e.participants[0], "recovery", () => {
           s.simulation!.kingdoms[side].tyranny -= 4;

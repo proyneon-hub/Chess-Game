@@ -27,7 +27,7 @@ import {
 } from "../lib/rpg/encounters/objectives";
 import { agencyForecast } from "../lib/rpg/agency";
 import { CONFIG } from "../lib/rpg/config";
-import type { GameState, MoveAttempt } from "../lib/game/types";
+import type { MoveAttempt } from "../lib/game/types";
 import type { Encounter } from "../lib/rpg/encounters/types";
 const flags = Object.fromEntries(
   process.argv

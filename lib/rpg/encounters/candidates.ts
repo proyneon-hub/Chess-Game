@@ -1,3 +1,4 @@
+import { compareIds } from "../order";
 import type { GameState, Side } from "@/lib/game/types";
 import { locations } from "../context";
 import { encounterRulesFor } from "../config";
@@ -8,6 +9,7 @@ import {
   defensiveWards,
   lossOf,
   responseMoves,
+  storedLoss,
 } from "./objectives";
 import type { Family, Objective } from "./types";
 export type Candidate = {
@@ -45,7 +47,7 @@ export function candidates(
         x.currentKind !== "k" &&
         !occupied.has(x.id),
     )
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .sort((a, b) => compareIds(a.id, b.id));
   const add = (
     family: Family,
     participants: string[],
@@ -99,7 +101,12 @@ export function candidates(
         add(
           strain ? "strain" : "protection",
           [sub.id],
-          { kind: "protect", subject: sub.id, initialLoss: loss, defenders },
+          {
+            kind: "protect",
+            subject: sub.id,
+            initialLoss: storedLoss(loss),
+            defenders,
+          },
           3,
           strain ? 200 + loss : loss,
         );
@@ -113,7 +120,7 @@ export function candidates(
           {
             kind: "relieve",
             subject: sub.id,
-            initialLoss: loss,
+            initialLoss: storedLoss(loss),
             defenders,
             wards,
           },
@@ -229,7 +236,7 @@ export function candidates(
                 Math.max(loss, lossOf(s, other.id)) >= 100
                   ? "safety"
                   : "initiative",
-              initialLoss: Math.max(loss, lossOf(s, other.id)),
+              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
             },
             previous && benevolent ? 2 : 4,
             20,
@@ -286,7 +293,7 @@ export function candidates(
             {
               kind: "recover",
               pair,
-              initialLoss: Math.max(loss, lossOf(s, other.id)),
+              initialLoss: storedLoss(Math.max(loss, lossOf(s, other.id))),
               separated: 0,
             },
             2,
@@ -309,7 +316,7 @@ export function candidates(
       rank(a) - rank(b) ||
       Math.max(...a.participants.map((id) => e.subjects[id].lastStart)) -
         Math.max(...b.participants.map((id) => e.subjects[id].lastStart)) ||
-      a.participants.join().localeCompare(b.participants.join()),
+      compareIds(a.participants.join(), b.participants.join()),
   );
   return { candidates: out, blockers: [...new Set(blockers)] };
 }

@@ -1,8 +1,9 @@
+import { compareIds } from "./order";
 import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
 import { findKing, isInCheck, KIND_NAMES, type Side } from "@/lib/chess";
 import type { CourtPlot, GameState, SubjectState } from "@/lib/game/types";
-import { finish } from "@/lib/game";
+import { finish } from "@/lib/game/core";
 import { rulesFor, clamp } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
 import { count, event } from "@/lib/rpg/events";
@@ -286,10 +287,10 @@ export function scheduleCourt(
       (x, y) =>
         y.a.resentment - x.a.resentment ||
         y.a.ambition - x.a.ambition ||
-        x.a.id.localeCompare(y.a.id) ||
+        compareIds(x.a.id, y.a.id) ||
         y.b.resentment - x.b.resentment ||
         y.b.ambition - x.b.ambition ||
-        x.b.id.localeCompare(y.b.id),
+        compareIds(x.b.id, y.b.id),
     );
   if (!candidates.length) return;
   count(s, "eligibleKingdomTurns");

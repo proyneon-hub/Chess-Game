@@ -1,3 +1,4 @@
+import { compareIds } from "./order";
 import { KIND_NAMES, squareName, type Side, type Square } from "@/lib/chess";
 import type { GameState } from "@/lib/game/types";
 import { locations } from "./context";
@@ -43,7 +44,7 @@ export function relationshipTransitions(
     }
   }
   return transitions.sort(
-    (a, b) => a.a.localeCompare(b.a) || a.b.localeCompare(b.b),
+    (a, b) => compareIds(a.a, b.a) || compareIds(a.b, b.b),
   );
 }
 export function relationshipObservations(
@@ -84,7 +85,7 @@ export function emitObservation(
     .sort(
       (a, b) =>
         priority.indexOf(a.kind) - priority.indexOf(b.kind) ||
-        a.subjectId.localeCompare(b.subjectId),
+        compareIds(a.subjectId, b.subjectId),
     )
     .find(
       (c) =>

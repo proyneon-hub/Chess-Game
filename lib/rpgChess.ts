@@ -223,9 +223,6 @@ export const initializeRpgState = (
   };
 };
 
-export const describeKing = (king: KingRpgState) =>
-  `${king.tier} (${king.baseStrength})`;
-
 const findPieceId = (pieceIds: PieceIdBoard, id: string): Square | null => {
   for (let r = 0; r < 8; r++)
     for (let c = 0; c < 8; c++) if (pieceIds[r][c] === id) return [r, c];
@@ -316,7 +313,7 @@ const extendDestination = (
   return target;
 };
 
-export const applyPieceIdMove = (
+const applyPieceIdMove = (
   pieceIds: PieceIdBoard,
   from: Square,
   to: Square,

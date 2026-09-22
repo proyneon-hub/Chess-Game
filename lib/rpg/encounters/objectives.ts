@@ -52,6 +52,10 @@ export function defensiveWards(s: GameState, id: string): string[] {
     )
     .map((sub) => sub.id);
 }
+// Saved objectives must stay finite and within validation bounds; lossOf itself
+// returns Infinity for an off-board subject so comparisons treat it as worst.
+export const MAX_STORED_LOSS = 20000;
+export const storedLoss = (loss: number) => Math.min(loss, MAX_STORED_LOSS);
 export function lossOf(s: GameState, id: string): number {
   const sq = locations(s)[id];
   return sq

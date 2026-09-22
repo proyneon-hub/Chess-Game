@@ -51,8 +51,10 @@ export function publicState(s: GameState) {
       message: m.message,
       special: m.special,
     })),
-    events: s.events.map((e): PublicEvent => ({
-      seq: e.seq,
+    // Public events are append-only, so an ordinal is stable. The raw seq is
+    // shared with private events and its gaps would reveal hidden rolls.
+    events: s.events.map((e, i): PublicEvent => ({
+      seq: i + 1,
       ply: e.ply,
       message: e.message,
       square: square(e.square),
