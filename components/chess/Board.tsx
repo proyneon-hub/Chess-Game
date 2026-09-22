@@ -1,5 +1,5 @@
 "use client";
-import { memo, useRef, useState, type KeyboardEvent } from "react";
+import { memo, useCallback, useRef, useState, type KeyboardEvent } from "react";
 import {
   type Square,
   PIECE_SYMBOLS,
@@ -167,12 +167,13 @@ export function Board({
   const [focused, setFocused] = useState<Square | null>(null),
     squares = useRef<(HTMLButtonElement | null)[]>([]);
   const tabStop: Square = selected ?? focused ?? (flipped ? [0, 4] : [7, 4]);
-  const register = useRef(
+  const register = useCallback(
     (r: number, c: number, el: HTMLButtonElement | null) => {
       squares.current[r * 8 + c] = el;
     },
-  ).current;
-  const onNavigate = useRef(
+    [],
+  );
+  const onNavigate = useCallback(
     (e: KeyboardEvent, r: number, c: number, view: boolean) => {
       let target: Square | null = null;
       if (e.key in ARROWS) {
@@ -188,7 +189,8 @@ export function Board({
       setFocused(target);
       squares.current[nr * 8 + nc]?.focus();
     },
-  ).current;
+    [],
+  );
   return (
     <section
       aria-label="Chess board"
