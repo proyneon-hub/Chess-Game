@@ -270,3 +270,24 @@ test("a corrupted saved game falls back to a fresh start", async ({ page }) => {
     await page.evaluate(() => localStorage.getItem("chess:local-game:v1")),
   ).toBeNull();
 });
+
+test("unknown pages show a way home and pages carry metadata", async ({
+  page,
+}) => {
+  const response = await page.goto("/no-such-page");
+  expect(response!.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "Page not found" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle("Page not found · Chess");
+  await page.getByRole("link", { name: "Play chess" }).click();
+  await expect(page).toHaveTitle("Chess");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    /icon\.svg/,
+  );
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute(
+    "content",
+    "#0c0a09",
+  );
+});
