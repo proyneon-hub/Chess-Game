@@ -5,6 +5,7 @@ import { submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
 import { validateState } from "@/lib/game/validation";
 import { candidates } from "@/lib/rpg/encounters/candidates";
+import { agencyForecast } from "@/lib/rpg/agency";
 import { encounterPhase, encounters } from "@/lib/rpg/encounters/state";
 import type { Encounter, Objective } from "@/lib/rpg/encounters/types";
 import type { GameState } from "@/lib/game/types";
@@ -203,4 +204,59 @@ it("a renewed v6 complaint under a harsh court becomes a warned plot", () => {
   const plot = r.state.simulation!.plots.find((p) => p.side === "white");
   expect(plot).toMatchObject({ ringleader: knight, accomplice: bishop });
   expect(r.state.warning?.message).toMatch(/turns away from its king/);
+});
+
+it("v6 warns about any frightened piece, and sending it back into danger may make it withdraw", () => {
+  for (const [fixture, warns] of [
+    [v5Fixture, false],
+    [v6Fixture, true],
+  ] as const) {
+    const s = fixture(
+      [
+        ["K", [7, 7]],
+        ["k", [0, 0]],
+        ["N", [4, 3]],
+        ["p", [2, 4]],
+      ],
+      20,
+    );
+    const knight = id(s, [4, 3]);
+    subjectAt(s, [4, 3]).fear = 30;
+    // An unrelated king move: the frightened knight is noticed afterwards.
+    const r = submitMove(s, { from: [7, 7], to: [6, 7], side: "white" });
+    expect(r.requestAccepted).toBe(true);
+    validateState(r.state);
+    expect(encounters(r.state).subjects[knight].warningOwn !== null).toBe(
+      warns,
+    );
+    expect(
+      publicState(r.state).events.some((e) =>
+        /knight at d4 is shaken/.test(e.message),
+      ),
+    ).toBe(warns);
+    if (!warns) continue;
+    // The warning is followed by one free turn; after it, ordering the
+    // shaken knight onto f5, where the e6 pawn takes it, may make it withdraw.
+    let next = r.state;
+    for (const move of [
+      { from: [0, 0], to: [0, 1], side: "black" },
+      { from: [6, 7], to: [7, 7], side: "white" },
+      { from: [0, 1], to: [0, 0], side: "black" },
+    ] as const) {
+      const step = submitMove(next, {
+        from: [...move.from],
+        to: [...move.to],
+        side: move.side,
+      });
+      expect(step.requestAccepted).toBe(true);
+      next = step.state;
+    }
+    const forecast = agencyForecast(next, {
+      from: [4, 3],
+      to: [3, 5],
+      side: "white",
+    });
+    expect(forecast.retreat).toBeGreaterThan(0.3);
+    expect(forecast.retreatTo).not.toBeNull();
+  }
 });

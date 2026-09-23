@@ -81,31 +81,43 @@ it("seeded play replays identically across rule generations", () => {
 }, 60000);
 
 // Configs added after the pins above: playtest tuning (generation 5) and
-// generation 6. Same rule: a change here needs a new config version.
-const LATER_PINS = {
-  plies: 1600,
-  state: "edf18e82308ffaf6",
-  public: "d85ec2bfea8b9392",
-};
-it("seeded play replays identically for later configs", () => {
+// generation 6, pinned separately so a v6-only change can't silently move
+// the v5-tuning pin (and vice versa). Same rule: a change here needs a new
+// config version.
+function replayHash(version: string) {
   const state = createHash("sha256"),
     pub = createHash("sha256");
   let plies = 0;
-  for (const version of [PLAYTEST_CONFIG.version, V6_CONFIG.version])
-    for (let seed = 0; seed < 8; seed++) {
-      let last: GameState | undefined;
-      for (const s of play(version, seed, 100)) {
-        state.update(canonical(s));
-        last = s;
-        plies++;
-      }
-      pub.update(canonical(publicState(last!)));
+  for (let seed = 0; seed < 8; seed++) {
+    let last: GameState | undefined;
+    for (const s of play(version, seed, 100)) {
+      state.update(canonical(s));
+      last = s;
+      plies++;
     }
-  expect({
+    pub.update(canonical(publicState(last!)));
+  }
+  return {
     plies,
     state: state.digest("hex").slice(0, 16),
     public: pub.digest("hex").slice(0, 16),
-  }).toEqual(LATER_PINS);
+  };
+}
+const PLAYTEST_PINS = {
+  plies: 800,
+  state: "42b61b4fec7a3bd7",
+  public: "07f80210c567ab1d",
+};
+it("seeded play replays identically for the 09-22.1 tuning config", () => {
+  expect(replayHash(PLAYTEST_CONFIG.version)).toEqual(PLAYTEST_PINS);
+}, 60000);
+const V6_PINS = {
+  plies: 800,
+  state: "6e5111a1e0711e96",
+  public: "e456f3373f987a1c",
+};
+it("seeded play replays identically for the v6 config", () => {
+  expect(replayHash(V6_CONFIG.version)).toEqual(V6_PINS);
 }, 60000);
 
 it("fixed-depth search returns identical rankings", () => {

@@ -9,7 +9,10 @@ import {
   V6_CONFIG,
 } from "@/lib/rpg/config";
 
-// Saved games keep their generation, so these rows must never change.
+// Saved games keep their generation, so these rows must never change. The
+// progression (schema 3+) and encounters (schema 5+) boundaries themselves
+// are pinned by hasProgression()/hasEncounters() below and by
+// replay-fingerprint, not by a name in this list.
 it("each generation's capabilities are fixed", () => {
   const on = (v: number) =>
     Object.entries(capabilities({ schemaVersion: v }))
@@ -19,27 +22,20 @@ it("each generation's capabilities are fixed", () => {
   const legacy = ["disputeRefusals", "plotRoll", "riskyMoveFear"];
   expect(on(1)).toEqual(legacy);
   expect(on(2)).toEqual(legacy);
-  expect(on(3)).toEqual([...legacy, "progression"].sort());
+  expect(on(3)).toEqual(legacy);
   expect(on(4)).toEqual(
-    [
-      ...legacy,
-      "observationsAtLeadership",
-      "progression",
-      "responsibility",
-    ].sort(),
+    [...legacy, "observationsAtLeadership", "responsibility"].sort(),
   );
   expect(on(5)).toEqual([
-    "encounters",
     "graceInclusive",
-    "progression",
     "responsibility",
     "turnLevelDeltaCap",
   ]);
   expect(on(6)).toEqual([
+    "ambientFlavor",
     "courtComplaints",
-    "encounters",
+    "frightenedWithdrawal",
     "graceInclusive",
-    "progression",
     "requestStakes",
     "responsibility",
     "soundRequests",
