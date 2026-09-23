@@ -1,4 +1,8 @@
-import { capabilities } from "@/lib/rpg/capabilities";
+import {
+  capabilities,
+  hasEncounters,
+  hasProgression,
+} from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
@@ -16,7 +20,7 @@ import type {
   SubjectState,
 } from "@/lib/game/types";
 import { finish } from "@/lib/game/core";
-import { rulesFor, clamp } from "@/lib/rpg/config";
+import { rulesFor, clamp, encounterRulesFor } from "@/lib/rpg/config";
 import { distance, locations, opposite } from "@/lib/rpg/context";
 import { count, event } from "@/lib/rpg/events";
 import { remember } from "@/lib/rpg/subjects";
@@ -48,7 +52,7 @@ export function guardCount(
   );
 }
 function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
-  if (capabilities(s).progression) count(s, `thwart:${reason}`);
+  if (hasProgression(s.simulation)) count(s, `thwart:${reason}`);
   p.stage = "thwarted";
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
@@ -149,7 +153,7 @@ function advancePlot(c: Court, active: CourtPlot) {
     thwart(s, active, "separation");
     return;
   }
-  if (capabilities(s).encounters && check) {
+  if (hasEncounters(s.simulation) && check) {
     active.stageEnteredOwnTurn++;
     return;
   }
@@ -236,6 +240,7 @@ function attempt(
  */
 function startTrackedPlot(c: Court) {
   const { s, side, own, pos, rng } = c;
+  if (capabilities(s).courtComplaints) return startComplaintPlot(c);
   const assessment = courtEligibility(s, side, c.startedInCheck),
     tracking = progression(s).sides[side];
   for (const blocker of assessment.blockers)
@@ -248,7 +253,7 @@ function startTrackedPlot(c: Court) {
       tracking.pairs[key] = (old[key] ?? 0) + 1;
     }
   const caps = capabilities(s);
-  const complaint = caps.encounters
+  const complaint = hasEncounters(s.simulation)
     ? encounters(s).active.find(
         (e) =>
           e.side === side &&
@@ -260,7 +265,11 @@ function startTrackedPlot(c: Court) {
           ),
       )
     : null;
-  if (caps.encounters && (s.ply <= 64 || !complaint)) return;
+  if (
+    hasEncounters(s.simulation) &&
+    (s.ply <= encounterRulesFor(s).plotPly || !complaint)
+  )
+    return;
   const candidates = assessment.pairs.filter(
     ({ a, b }) =>
       (tracking.pairs[`${a.id}|${b.id}`] ?? 0) >= 2 &&
@@ -272,7 +281,10 @@ function startTrackedPlot(c: Court) {
   count(s, "eligibleKingdomTurns");
   count(s, `eligibleCourt:${side}`);
   if (caps.plotRoll && rng() >= rulesFor(s).plotChance) return;
-  if (caps.encounters || rulesFor(s).responsibility?.preferNearbyLeader) {
+  if (
+    hasEncounters(s.simulation) ||
+    rulesFor(s).responsibility?.preferNearbyLeader
+  ) {
     const king = findKing(s.board, side === "white")!;
     candidates.sort(
       (x, y) =>
@@ -282,6 +294,52 @@ function startTrackedPlot(c: Court) {
   }
   const { a, b } = candidates[0];
   if (complaint) closeEncounter(s, complaint, "escalated");
+  openPlot(c, a, b);
+}
+
+/**
+ * v6: a renewed (stage-2) complaint under a court still harsh enough becomes
+ * a plot between its two pieces. Warnings and counterplay are unchanged.
+ */
+function startComplaintPlot(c: Court) {
+  const { s, sim, side, k, own, pos, check } = c;
+  const cfg = rulesFor(s).progression!;
+  const complaint = encounters(s).active.find(
+    (e) =>
+      e.side === side &&
+      e.family === "complaint" &&
+      e.stage === 2 &&
+      own > e.stageOwn,
+  );
+  const blocker = !complaint
+    ? "complaint"
+    : s.ply <= encounterRulesFor(s).plotPly
+      ? "phase"
+      : check
+        ? "check"
+        : k.plotAttemptUsed
+          ? "attempt-used"
+          : k.tyranny < cfg.plotTyranny
+            ? "tyranny"
+            : k.legitimacy > cfg.plotLegitimacy
+              ? "legitimacy"
+              : null;
+  if (blocker) {
+    count(s, `court-blocker:${blocker}`);
+    return;
+  }
+  const [a, b] = complaint!.participants.map((id) => sim.subjects[id]);
+  if (
+    a.status !== "active" ||
+    b.status !== "active" ||
+    distance(pos[a.id], pos[b.id]) > 3
+  ) {
+    count(s, "court-blocker:proximity");
+    return;
+  }
+  count(s, "eligibleKingdomTurns");
+  count(s, `eligibleCourt:${side}`);
+  closeEncounter(s, complaint!, "escalated");
   openPlot(c, a, b);
 }
 

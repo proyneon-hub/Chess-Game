@@ -1,7 +1,8 @@
 import { compareIds } from "../order";
+import { capabilities } from "@/lib/rpg/capabilities";
 import type { GameState, Side, SubjectState } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
-import { locations } from "../context";
+import { distance, locations } from "../context";
 import { encounterRulesFor } from "../config";
 import { encounters, encounterPhase } from "./state";
 import {
@@ -128,9 +129,11 @@ export function candidates(
       disputeCandidate(pass, sub, other, pair);
       if (phase < 3 || sub.id > other.id) continue;
       supportCandidate(pass, sub, other, pair, loss);
-      complaintCandidate(pass, other, pair, loss);
+      if (!capabilities(s).courtComplaints)
+        complaintCandidate(pass, other, pair, loss);
     }
   }
+  if (capabilities(s).courtComplaints) courtComplaintCandidate(pass, subjects);
   if (!out.length)
     blockers.push(
       subjects.length ? "no-supported-candidate" : "no-mobile-candidate",
@@ -159,7 +162,8 @@ function personalCandidates(
   if (phase >= 1 && loss >= 100) {
     const strain =
       sub.fear >= encounterRulesFor(s).strainFear &&
-      q.dangerTurns.filter((t) => own - t <= 6).length >= 2;
+      q.dangerTurns.filter((t) => own - t <= 6).length >=
+        encounterRulesFor(s).strainDangerTurns;
     if (strain || phase >= 2)
       add(
         strain ? "strain" : "protection",
@@ -191,9 +195,11 @@ function personalCandidates(
         sub.fatigue,
       );
   }
-  const home = sub.side === "white" ? 7 : 0;
+  const home = sub.side === "white" ? 7 : 0,
+    rookPawn = sub.currentKind === "p" && [0, 7].includes(pos[sub.id][1]);
   if (
     !q.developed &&
+    !(capabilities(s).soundRequests && rookPawn) &&
     (pos[sub.id][0] === home ||
       (sub.currentKind === "p" &&
         pos[sub.id][0] === (side === "white" ? 6 : 1)))
@@ -314,6 +320,67 @@ function supportCandidate(
     );
 }
 
+/**
+ * v6: a harsh court whose side keeps being harmed hears a complaint from its
+ * most-harmed piece (the most resentful if none survives) and the nearest
+ * ally within three squares, preferring a harmed one.
+ */
+function courtComplaintCandidate(pass: Pass, subjects: SubjectState[]) {
+  const { s, side, e, sim, own, phase, pos, add } = pass;
+  const rules = encounterRulesFor(s);
+  if (
+    phase < rules.complaintPhase ||
+    sim.kingdoms[side].tyranny < rules.complaintTyranny ||
+    sim.kingdoms[side].legitimacy > rules.complaintLegitimacy ||
+    e.active.some((x) => x.family === "complaint") ||
+    sim.plots.some((x) => !["resolved", "thwarted"].includes(x.stage))
+  )
+    return;
+  const recent = e.sides[side].harms.filter(
+    (h) => own - h.own <= rules.complaintWindow,
+  );
+  const revisions = [...new Set(recent.map((h) => h.revision))];
+  if (revisions.length < rules.complaintHarms) return;
+  const harmed = (id: string) => recent.filter((h) => h.subject === id).length;
+  const ranked = [...subjects].sort(
+    (a, b) =>
+      harmed(b.id) - harmed(a.id) ||
+      b.resentment - a.resentment ||
+      compareIds(a.id, b.id),
+  );
+  for (const leader of ranked) {
+    const partner = subjects
+      .filter(
+        (x) => x.id !== leader.id && distance(pos[leader.id], pos[x.id]) <= 3,
+      )
+      .sort(
+        (a, b) =>
+          Number(harmed(b.id) > 0) - Number(harmed(a.id) > 0) ||
+          distance(pos[leader.id], pos[a.id]) -
+            distance(pos[leader.id], pos[b.id]) ||
+          compareIds(a.id, b.id),
+      )[0];
+    if (!partner) continue;
+    const pair: [string, string] = [leader.id, partner.id];
+    add(
+      "complaint",
+      pair,
+      {
+        kind: "recover",
+        pair,
+        initialLoss: storedLoss(
+          Math.max(lossOf(s, leader.id), lossOf(s, partner.id)),
+        ),
+        separated: 0,
+      },
+      2,
+      100,
+      revisions,
+    );
+    return;
+  }
+}
+
 /** Repeated shared harm under a harsh court, with no complaint or plot yet. */
 function complaintCandidate(
   { s, side, e, sim, own, phase, add }: Pass,
@@ -328,14 +395,16 @@ function complaintCandidate(
   const distinct = shared.filter(
     (h, i) => shared.findIndex((x) => x.revision === h.revision) === i,
   );
+  const rules = encounterRulesFor(s);
   const last = distinct.at(-1),
-    earlier = last && distinct.find((h) => last.own - h.own >= 3);
+    earlier =
+      last && distinct.find((h) => last.own - h.own >= rules.complaintHarmGap);
   if (!(
-    phase >= 4 &&
+    phase >= rules.complaintPhase &&
     last &&
     earlier &&
-    sim.kingdoms[side].tyranny >= 25 &&
-    sim.kingdoms[side].legitimacy <= 55 &&
+    sim.kingdoms[side].tyranny >= rules.complaintTyranny &&
+    sim.kingdoms[side].legitimacy <= rules.complaintLegitimacy &&
     !e.active.some((x) => x.family === "complaint") &&
     !sim.plots.some((x) => !["resolved", "thwarted"].includes(x.stage))
   ))

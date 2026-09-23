@@ -1,4 +1,5 @@
-import { hasEncounters } from "@/lib/rpg/capabilities";
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
+import { PERSONAL } from "./state";
 import { KIND_NAMES, squareName } from "@/lib/chess";
 import type { GameState } from "@/lib/game/types";
 import { locations } from "../context";
@@ -64,7 +65,9 @@ export function encounterCopy(s: GameState, e: Encounter) {
       : e.outcome === "expired"
         ? e.family === "dispute"
           ? "The disagreement remains; orders relying on the other piece may meet hesitation."
-          : "The request passes without a response."
+          : capabilities(s).requestStakes && PERSONAL.includes(e.family)
+            ? `The ${who} grows restless; its next orders may meet hesitation.`
+            : "The request passes without a response."
         : e.outcome === "interrupted"
           ? "The changed position closes the request."
           : e.outcome === "escalated"

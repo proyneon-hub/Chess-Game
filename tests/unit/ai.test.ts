@@ -163,3 +163,31 @@ it("easy play chooses among near-best moves but never passes up mate", () => {
     1,
   );
 });
+it("in a level position the computer avoids shuffling back into a seen position", async () => {
+  const { nextRights, positionKey } = await import("@/lib/chessRules");
+  const { freshRights } = await import("@/lib/chess");
+  const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+  // Kings and blocked e-pawns: nothing to win, only squares to shuffle.
+  board[0][4] = "k";
+  board[3][4] = "p";
+  board[4][4] = "P";
+  board[7][4] = "K";
+  const rights = { ...freshRights(false), halfmove: 10 };
+  const input = {
+    board,
+    rights,
+    side: "black" as const,
+    depth: 1,
+    budgetMs: 1e6,
+    own: null,
+  };
+  const top = searchMoves(input).moves[0];
+  const key = positionKey(
+    applyMove(board, top.from, top.to),
+    "white",
+    nextRights(board, rights, top),
+  );
+  expect(
+    searchMoves({ ...input, positions: { [key]: 1 } }).moves[0],
+  ).not.toEqual(top);
+});
