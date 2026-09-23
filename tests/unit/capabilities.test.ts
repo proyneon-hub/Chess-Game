@@ -32,6 +32,7 @@ it("each generation's capabilities are fixed", () => {
     "turnLevelDeltaCap",
   ]);
   expect(on(6)).toEqual([
+    "ambientFlavor",
     "courtComplaints",
     "frightenedWithdrawal",
     "graceInclusive",
