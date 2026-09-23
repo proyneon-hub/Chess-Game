@@ -113,8 +113,8 @@ it("seeded play replays identically for the 09-22.1 tuning config", () => {
 }, 60000);
 const V6_PINS = {
   plies: 800,
-  state: "580ae3a3228efb60",
-  public: "332e4307702ce4ef",
+  state: "6e5111a1e0711e96",
+  public: "e456f3373f987a1c",
 };
 it("seeded play replays identically for the v6 config", () => {
   expect(replayHash(V6_CONFIG.version)).toEqual(V6_PINS);

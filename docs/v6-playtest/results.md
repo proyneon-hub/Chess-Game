@@ -301,3 +301,89 @@ the gap is P5's job.
 npm run playtest -- --games 200 --config 2026-09-23.1 --json true
 npm run playtest -- --games 200 --config 2026-09-23.1 --difficulty easy --json true
 ```
+
+---
+
+# Presence tuning (`V6_CONFIG.encounters`, v6 only)
+
+P4 left `aware` short of the 60% target (56% Normal, 51% Easy) while
+`reckless` already cleared it. Two levers from the plan's candidate list were
+tried on seeds 7000-7199 against Normal, `reckless` style (the row with the
+most headroom to lose, and the one that ended up mattering):
+
+**Lever 1 — longer card windows.** `personalWindow` 3→4 and `petitionWindow`
+4→5 own turns in `V6_CONFIG.encounters`: an unanswered card simply stays on
+screen one turn longer. Isolated (firstPly left at 10): presence 61%→62%,
+games ≥60% 57%→61%. Small, clean, in the expected direction. **Shipped.**
+
+**Lever 5 — earlier start.** `encounters/state.ts`'s `initialEncounters` and
+`encounters/validation.ts` both had `firstPly` hardcoded to `10` independently
+of config (two separate spots — neither read `ENCOUNTER_RULES.firstPly` at
+all, let alone a per-config override), so lowering it in config alone didn't
+even work until both were fixed to read from config. Once wired through and
+set to 9, isolated (windows left unwidened): presence collapsed to 51%,
+games ≥60% to 14% — a large *regression*, not the small gain the lever was
+supposed to be. Combined with lever 1: 53% / 19%, still well under the 61% /
+57% baseline.
+
+That direction is backwards from what the change should do — starting the
+window one ply earlier should only ever add opportunities, and `presence
+>10` (which excludes the un-fillable opening entirely) *also* dropped, from
+75% to 59%, which a genuinely earlier start can't explain either. The likely
+cause: every encounter/stochastic decision in a game shares one seeded RNG
+stream, and moving the director's first eligible ply earlier means it starts
+calling `draw()` one ply sooner than before. That reshuffles the sequence of
+random draws for every later encounter decision in the same game — offer
+timing, acceptance, withdrawals, complaints, plot rolls — for the *entire
+rest of the game*, on top of and unrelated to the one extra opportunity the
+change intended to add. On a fixed seed range that reshuffle can land well
+either direction; here it landed hard against `reckless`/Normal. **Dropped**
+— the risk of an uncontrolled per-seed swing, on real player seeds too, isn't
+worth a lever whose own isolated effect can't be told apart from noise.
+
+`lib/rpg/encounters/state.ts` and `lib/rpg/encounters/validation.ts` keep
+their fix (both now read `firstPly` from config instead of a hardcoded `10`)
+since it's correct regardless of whether any config actually overrides the
+value — `V6_CONFIG` doesn't, so `ENCOUNTER_RULES.firstPly` (10) still applies
+everywhere, unchanged.
+
+## Results (200 games per style, seeds 7000-7199, `2026-09-23.1`)
+
+### Against Normal
+
+| Style    | Presence      | Presence >10 | Core presence | Ambient | Games ≥60%    |
+| -------- | ------------- | ------------ | -------------- | ------- | ------------- |
+| aware    | 56% → 56%     | 67%          | 55%             | 2%      | 25% → 28%     |
+| engine   | —             | 60%          | 55%             | 2%      | 42%           |
+| reckless | 61% → **62%** | 75%          | 61%             | 2%      | 57% → **61%** |
+
+### Against Easy
+
+| Style    | Presence      | Presence >10 | Core presence | Ambient | Games ≥60%    |
+| -------- | ------------- | ------------ | -------------- | ------- | ------------- |
+| aware    | 51% → **52%** | 56%          | 51%             | 1%      | 25% → **29%** |
+| engine   | —             | 64%          | 52%             | 2%      | 25%           |
+| reckless | 69% → **70%** | 80%          | 69%             | 2%      | 71% → **72%** |
+
+(Left arrow values are the P4 result for the same config; `engine` wasn't
+broken out separately in P4's tables, so it has no baseline to compare.) The
+guard rail holds everywhere: core presence (all channels but ambient) stays
+within a point of total presence, so the gain isn't manufactured by ambient
+filler.
+
+**`aware` still doesn't clear 60% on its own (56% Normal, 52% Easy).** The
+plan's remaining levers (2-4: faster cadence, a configurable multi-card slot,
+per-side director clocks) were not attempted — lever 5's outcome is a strong
+signal that any further change to *when* the director acts, not just how
+long a card stays up, needs the same seed-reshuffle scrutiny before being
+trusted, and that's a larger investigation than this PR's scope. `reckless`
+comfortably clears the target against both opponents (62%/70%); `aware`
+landed close but under, same as P4 — closing that remaining gap is left for
+a future PR, not assumed to be worth forcing here.
+
+## Reproduce
+
+```sh
+npm run playtest -- --games 200 --style aware,engine,reckless --config 2026-09-23.1 --json true
+npm run playtest -- --games 200 --style aware,engine,reckless --config 2026-09-23.1 --difficulty easy --json true
+```
