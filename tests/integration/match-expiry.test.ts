@@ -39,6 +39,22 @@ const doc = (overrides: Record<string, unknown>) => ({
   ...overrides,
 });
 
+// A real match's state blob carries its own schemaVersion/configVersion;
+// createServerMatch/submitServerMove also mirror them as top-level fields,
+// but that mirror was added after schemaVersion already existed inside
+// state - see matchExpiry.ts's `legacy` comment.
+const versioned = (
+  schemaVersion: number,
+  configVersion: string,
+  mirrored: boolean,
+  overrides: Record<string, unknown> = {},
+) =>
+  doc({
+    state: { board: [], schemaVersion, configVersion },
+    ...(mirrored ? { schemaVersion, configVersion } : {}),
+    ...overrides,
+  });
+
 it("finds the TTL index the schema declares", async () => {
   expect(await hasTtlIndex(GameMatch.collection)).toBe(true);
 });
@@ -52,19 +68,15 @@ it("reports no TTL index on a collection that never got one", async () => {
 describe("reportMatches", () => {
   it("counts totals, missing expiry, legacy and version breakdowns", async () => {
     await GameMatch.collection.insertMany([
-      doc({
-        schemaVersion: 6,
-        configVersion: "2026-09-23.1",
+      versioned(6, "2026-09-23.1", true, {
         expiresAt: new Date("2027-01-01T00:00:00Z"),
       }),
-      doc({
-        schemaVersion: 5,
-        configVersion: "2026-09-10.1",
+      versioned(5, "2026-09-10.1", true, {
         expiresAt: new Date("2027-01-01T00:00:00Z"),
       }),
-      doc({ schemaVersion: 2, configVersion: "2026-09-07.3", expiresAt: null }),
-      // A true legacy match: no schemaVersion field at all, like a record
-      // saved before the field existed.
+      versioned(2, "2026-09-07.3", true, { expiresAt: null }),
+      // A true legacy match: no schemaVersion anywhere, not even inside
+      // state, like a record saved before the field existed at all.
       doc({ expiresAt: null }),
     ]);
     const report = await reportMatches(GameMatch.collection);
@@ -79,6 +91,26 @@ describe("reportMatches", () => {
     });
     expect(report.byConfigVersion["2026-09-23.1"]).toBe(1);
     expect(report.byConfigVersion["(none)"]).toBe(1);
+  });
+
+  it("does not mistake an old-but-valid match missing only the top-level mirror fields for legacy", async () => {
+    // Predates the top-level schemaVersion/configVersion mirror fields
+    // (added after v2 already existed) but has a perfectly valid state
+    // blob - the exact case matchExpiry.ts's old {schemaVersion: null}
+    // query got wrong.
+    await GameMatch.collection.insertMany([
+      versioned(2, "2026-09-07.3", false, { expiresAt: null }),
+      // A true legacy match, for contrast in the same run.
+      doc({ expiresAt: null }),
+    ]);
+    const report = await reportMatches(GameMatch.collection);
+    expect(report.total).toBe(2);
+    expect(report.legacy).toBe(1);
+    expect(report.bySchemaVersion).toEqual({ "2": 1, "(none)": 1 });
+    expect(report.byConfigVersion).toEqual({
+      "2026-09-07.3": 1,
+      "(none)": 1,
+    });
   });
 });
 
