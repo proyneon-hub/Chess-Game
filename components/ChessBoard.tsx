@@ -66,6 +66,9 @@ export default function ChessBoard() {
           moves={session.moves}
           flipped={kind === "online" && session.side === "black"}
           onSquare={session.onSquare}
+          requested={(visible.encounters ?? NO_ENCOUNTERS)
+            .filter((e) => !e.outcome && e.side === session.side)
+            .flatMap((e) => e.participants.map((p) => p.square))}
         />
         <aside className="flex min-w-0 flex-col gap-4">
           <div className="w-fit rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-stone-200">
@@ -92,7 +95,10 @@ export default function ChessBoard() {
               </span>
             )}
           </div>
-          <EncounterArea encounters={visible.encounters ?? NO_ENCOUNTERS} />
+          <EncounterArea
+            encounters={visible.encounters ?? NO_ENCOUNTERS}
+            quietSide={kind === "computer" ? "black" : undefined}
+          />
           {kind === "online" && online.error && visible.warning && (
             <p role="alert" className="text-sm text-amber-200">
               {online.error}

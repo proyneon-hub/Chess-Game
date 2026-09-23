@@ -33,6 +33,24 @@
     opacity: 1;
   }
 }
+/* A piece that hesitates shakes once; reduced motion turns this off below. */
+.hesitating {
+  animation: hesitate 0.45s ease-in-out;
+}
+@keyframes hesitate {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-3px);
+  }
+  40%,
+  80% {
+    transform: translateX(3px);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

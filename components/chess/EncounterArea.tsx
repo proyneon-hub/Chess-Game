@@ -1,11 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import type { Side } from "@/lib/chess";
 import type { PublicGame } from "@/lib/game/publicState";
 export function EncounterArea({
-  encounters,
+  encounters: all,
+  quietSide,
 }: {
   encounters: NonNullable<PublicGame["encounters"]>;
+  /** A side the viewer does not command (the computer): one summary line. */
+  quietSide?: Side;
 }) {
+  const encounters = all.filter((e) => e.side !== quietSide),
+    quiet = all.filter((e) => e.side === quietSide && !e.outcome).length;
   const seen = useRef(new Set<string>()),
     [announcement, setAnnouncement] = useState("");
   useEffect(() => {
@@ -32,6 +38,12 @@ export function EncounterArea({
       >
         {announcement}
       </span>
+      {quiet > 0 && (
+        <p className="text-xs text-stone-400">
+          The {quietSide === "white" ? "White" : "Black"} court stirs: {quiet}{" "}
+          {quiet === 1 ? "request" : "requests"}.
+        </p>
+      )}
       {encounters.length > 0 && (
         <section aria-label="Piece requests" className="space-y-2 text-sm">
           {encounters.map((e) => (

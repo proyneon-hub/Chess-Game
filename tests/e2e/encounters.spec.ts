@@ -47,7 +47,13 @@ test("normal-start request is visible, fulfilled through a legal move, and resto
     path: "test-results/visible-request.png",
     fullPage: true,
   });
-  if (blackRequest) await move(page, "a2", "a3");
+  // The requesting piece is marked on the board only for the side to move.
+  const requester = page.locator(`[data-square="${origin}"]`);
+  if (blackRequest) {
+    await expect(requester).not.toHaveAttribute("aria-label", /requesting/);
+    await move(page, "a2", "a3");
+  }
+  await expect(requester).toHaveAttribute("aria-label", /requesting piece/);
   await move(page, origin, blackRequest ? "e6" : "e3");
   await expect(region).toContainText("renewed confidence");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
