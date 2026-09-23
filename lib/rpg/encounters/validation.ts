@@ -1,5 +1,6 @@
 import type { GameState } from "@/lib/game/types";
 import { hasEncounters } from "@/lib/rpg/capabilities";
+import { encounterRulesFor } from "@/lib/rpg/config";
 import { MAX_STORED_LOSS } from "./objectives";
 // No defaults or coercion: malformed saved encounters fail closed.
 export function validEncounters(s: GameState): boolean {
@@ -141,7 +142,7 @@ export function validEncounters(s: GameState): boolean {
       !["white", "black"].includes(x.side) ||
       !ids(x.participants, x.side) ||
       !int(x.phase, 1, 5) ||
-      !int(x.createdPly, 10, s.ply) ||
+      !int(x.createdPly, encounterRulesFor(s).firstPly, s.ply) ||
       !int(x.createdOwn, 0, sim.kingdoms[x.side].ownTurnsCompleted) ||
       !int(x.deadline, x.createdOwn + 1) ||
       !int(x.stage, 1, 2) ||
