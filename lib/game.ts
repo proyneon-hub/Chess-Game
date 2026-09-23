@@ -1,4 +1,4 @@
-import { capabilities } from "@/lib/rpg/capabilities";
+import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
 import {
   resolveEncounters,
   closeTerminalEncounters,
@@ -337,7 +337,7 @@ export function submitMove(
       outcome: agencyOutcome,
     });
   const caps = capabilities(s);
-  if (caps.encounters && !deps.classic)
+  if (hasEncounters(s.simulation) && !deps.classic)
     resolveEncounters(state, s, {
       intended: move,
       actual,
@@ -365,7 +365,7 @@ export function submitMove(
       rng,
       isInCheck(state.board, move.side === "white"),
     );
-  if (caps.encounters && !deps.classic) {
+  if (hasEncounters(s.simulation) && !deps.classic) {
     closeTerminalEncounters(s);
     scheduleEncounter(s, move.side);
     capDeltas(state, s);
