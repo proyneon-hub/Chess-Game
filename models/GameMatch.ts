@@ -6,6 +6,10 @@ import {
   type InferSchemaType,
 } from "mongoose";
 
+// Inactive matches are deleted by the expiresAt TTL index below after 30
+// idle days, the same idle lifetime as the sliding guest cookie.
+export const MATCH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
 const gameMatchSchema = new Schema(
   {
     inviteId: { type: String, required: true, unique: true, maxlength: 80 },
