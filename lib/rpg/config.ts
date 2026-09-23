@@ -254,6 +254,13 @@ export const V6_CONFIG: RuleConfig = Object.freeze({
   }),
   encounters: Object.freeze({
     ...PLAYTEST_CONFIG.encounters!,
+    // Cards stay visible a little longer once offered (see
+    // docs/v6-playtest/results.md, "Presence tuning": an earlier firstPly
+    // was also tried but dropped — moving the encounter director's first
+    // eligible ply reshuffles every later RNG draw for the rest of the
+    // game, and measured as a net loss on reckless/Normal, not a gain).
+    personalWindow: 4,
+    petitionWindow: 5,
     strainFear: 18,
     strainDangerTurns: 1,
     withdrawalFear: 18,

@@ -1,4 +1,8 @@
-import { capabilities } from "@/lib/rpg/capabilities";
+import {
+  capabilities,
+  hasEncounters,
+  hasProgression,
+} from "@/lib/rpg/capabilities";
 import { compareIds } from "./order";
 import { encounters } from "./encounters/state";
 import { closeEncounter } from "./encounters/resolve";
@@ -48,7 +52,7 @@ export function guardCount(
   );
 }
 function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
-  if (capabilities(s).progression) count(s, `thwart:${reason}`);
+  if (hasProgression(s.simulation)) count(s, `thwart:${reason}`);
   p.stage = "thwarted";
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
@@ -149,7 +153,7 @@ function advancePlot(c: Court, active: CourtPlot) {
     thwart(s, active, "separation");
     return;
   }
-  if (capabilities(s).encounters && check) {
+  if (hasEncounters(s.simulation) && check) {
     active.stageEnteredOwnTurn++;
     return;
   }
@@ -249,7 +253,7 @@ function startTrackedPlot(c: Court) {
       tracking.pairs[key] = (old[key] ?? 0) + 1;
     }
   const caps = capabilities(s);
-  const complaint = caps.encounters
+  const complaint = hasEncounters(s.simulation)
     ? encounters(s).active.find(
         (e) =>
           e.side === side &&
@@ -261,7 +265,10 @@ function startTrackedPlot(c: Court) {
           ),
       )
     : null;
-  if (caps.encounters && (s.ply <= encounterRulesFor(s).plotPly || !complaint))
+  if (
+    hasEncounters(s.simulation) &&
+    (s.ply <= encounterRulesFor(s).plotPly || !complaint)
+  )
     return;
   const candidates = assessment.pairs.filter(
     ({ a, b }) =>
@@ -274,7 +281,10 @@ function startTrackedPlot(c: Court) {
   count(s, "eligibleKingdomTurns");
   count(s, `eligibleCourt:${side}`);
   if (caps.plotRoll && rng() >= rulesFor(s).plotChance) return;
-  if (caps.encounters || rulesFor(s).responsibility?.preferNearbyLeader) {
+  if (
+    hasEncounters(s.simulation) ||
+    rulesFor(s).responsibility?.preferNearbyLeader
+  ) {
     const king = findKing(s.board, side === "white")!;
     candidates.sort(
       (x, y) =>

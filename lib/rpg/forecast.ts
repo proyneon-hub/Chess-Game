@@ -128,7 +128,7 @@ export function forecastV3(s: GameState, m: MoveAttempt): AgencyForecast {
     assessment.residual < 100
   )
     result.refusal = Math.min(result.refusal, cfg.calmCap);
-  if (capabilities(s).encounters) {
+  if (hasEncounters(s.simulation)) {
     const modifier = refusalModifier(s, m);
     result.contributions.encounter = modifier;
     const without = result.refusal;

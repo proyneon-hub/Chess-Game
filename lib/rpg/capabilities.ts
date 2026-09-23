@@ -6,19 +6,17 @@ import type { EncounterState } from "@/lib/rpg/encounters/types";
  * generation forever, so an existing row must never change; new behavior
  * gets a new generation (and config) instead. Saved-state validators and
  * initializers still branch on schemaVersion because they describe data
- * shape, not behavior.
+ * shape, not behavior. The generation boundaries themselves (progression
+ * from schema 3, encounters from schema 5) are checked with hasProgression()/
+ * hasEncounters() below, not a flag here — a flag exists only for a rule
+ * that can vary independently of those boundaries.
  */
 export type Capabilities = {
-  /** Forecast-based agency, leadership facts, and pressure progression. */
-  progression: boolean;
   /**
    * Responsibility: resolved order facts, tracked hazards, collected
    * observations, and move messages that keep the action beside check.
    */
   responsibility: boolean;
-  /** Piece encounters: requests, modifiers, warned withdrawals, and courts
-   * that need a standing complaint. */
-  encounters: boolean;
   /** The opening grace period includes its final ply. */
   graceInclusive: boolean;
   /** Rival disputes raise refusal odds, add friction, and name the rival. */
@@ -44,12 +42,14 @@ export type Capabilities = {
    * public, not only one that raised a strain request, so ordering it back
    * into danger may make it withdraw. */
   frightenedWithdrawal: boolean;
+  /** Collected trust, neglect and relationship observations appear as
+   * occasional event-log lines when nothing else in the politics spoke
+   * this ply, instead of being computed and discarded every turn. */
+  ambientFlavor: boolean;
 };
 
 const legacy: Capabilities = {
-  progression: false,
   responsibility: false,
-  encounters: false,
   graceInclusive: false,
   disputeRefusals: true,
   riskyMoveFear: true,
@@ -60,12 +60,14 @@ const legacy: Capabilities = {
   soundRequests: false,
   courtComplaints: false,
   frightenedWithdrawal: false,
+  ambientFlavor: false,
 };
+// Generation 5 rule changes (always introduced together, at the same
+// hasEncounters() boundary): the pre-encounters mechanics they replace
+// (disputeRefusals, riskyMoveFear, plotRoll) turn off as these turn on.
 const v5: Capabilities = {
   ...legacy,
-  progression: true,
   responsibility: true,
-  encounters: true,
   graceInclusive: true,
   disputeRefusals: false,
   riskyMoveFear: false,
@@ -75,10 +77,9 @@ const v5: Capabilities = {
 const BY_SCHEMA: Record<number, Capabilities> = {
   1: legacy,
   2: legacy,
-  3: { ...legacy, progression: true },
+  3: legacy,
   4: {
     ...legacy,
-    progression: true,
     responsibility: true,
     observationsAtLeadership: true,
   },
@@ -89,6 +90,7 @@ const BY_SCHEMA: Record<number, Capabilities> = {
     soundRequests: true,
     courtComplaints: true,
     frightenedWithdrawal: true,
+    ambientFlavor: true,
   },
 };
 
@@ -100,6 +102,9 @@ export function capabilities(s: { schemaVersion: number }): Capabilities {
 
 // Type guards for code that also needs the generation's extra state. They
 // accept any simulation-shaped value (including the AI's projected view).
+// These are also the source of truth for the progression/encounters
+// generation boundaries: prefer them over a Capabilities flag for "does this
+// schema have progression/encounters at all."
 type Versioned = Pick<HiddenSimulation, "schemaVersion">;
 export const hasProgression = <T extends Versioned>(
   sim: T | null | undefined,
