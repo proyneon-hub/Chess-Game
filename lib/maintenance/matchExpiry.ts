@@ -17,8 +17,13 @@ export type MatchReport = {
   // {expiresAt: null} matches both a literally-null field and a missing one,
   // which covers every match saved before the field existed.
   missingExpiry: number;
-  // A match with no schemaVersion at all: saved before schemaVersion existed
-  // (the original D20 prototype), never migrated in place.
+  // A match whose saved state has no schemaVersion at all - the field
+  // migrateState() (lib/game/migrate.ts) actually inspects to decide
+  // whether a record is the original D20 prototype. Not the top-level
+  // GameMatch.schemaVersion mirror: that field was added to the schema
+  // after schemaVersion already existed inside state on v2+ matches, so an
+  // old-but-valid v2-v5 match saved before the mirror existed would also
+  // read null there without being legacy at all.
   legacy: number;
   byConfigVersion: Record<string, number>;
   bySchemaVersion: Record<string, number>;
@@ -31,15 +36,15 @@ export async function reportMatches(
     await Promise.all([
       collection.countDocuments({}),
       collection.countDocuments({ expiresAt: null }),
-      collection.countDocuments({ schemaVersion: null }),
+      collection.countDocuments({ "state.schemaVersion": null }),
       collection
         .aggregate<{ _id: string | null; count: number }>([
-          { $group: { _id: "$configVersion", count: { $sum: 1 } } },
+          { $group: { _id: "$state.configVersion", count: { $sum: 1 } } },
         ])
         .toArray(),
       collection
         .aggregate<{ _id: number | null; count: number }>([
-          { $group: { _id: "$schemaVersion", count: { $sum: 1 } } },
+          { $group: { _id: "$state.schemaVersion", count: { $sum: 1 } } },
         ])
         .toArray(),
     ]);
