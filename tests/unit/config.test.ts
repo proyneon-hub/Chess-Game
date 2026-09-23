@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createGameState } from "@/lib/game";
 import { migrateState } from "@/lib/game/migrate";
-import { configFor } from "@/lib/rpg/config";
+import { CONFIG, DEFAULT_CONFIG, configFor } from "@/lib/rpg/config";
 import { refusalProbability } from "@/lib/rpg/agency";
 import { subjectAt } from "../fixtures";
 it("saved configuration versions retain their numeric formula", () => {
@@ -24,13 +24,18 @@ it("saved configuration versions retain their numeric formula", () => {
   expect(configFor("2026-09-07.1")?.coercedRivalGrievance).toBe(0);
   expect(configFor("__proto__")).toBeUndefined();
 });
-it("low-pressure high-loyalty commands stay within two percent", () => {
-  for (let seed = 0; seed < 100; seed++) {
-    const s = createGameState(seed);
-    s.ply = 16;
-    expect(
-      refusalProbability(s, { from: [6, 4], to: [4, 4], side: "white" })
-        .probability,
-    ).toBeLessThanOrEqual(0.02);
-  }
+it("low-pressure high-loyalty commands stay within the calm limit", () => {
+  // v5 kept calm orders under 2%; the playtest config allows its calm cap.
+  for (const [version, limit] of [
+    [CONFIG.version, 0.02],
+    [DEFAULT_CONFIG.version, DEFAULT_CONFIG.progression!.calmCap],
+  ] as const)
+    for (let seed = 0; seed < 100; seed++) {
+      const s = createGameState(seed, version);
+      s.ply = 16;
+      expect(
+        refusalProbability(s, { from: [6, 4], to: [4, 4], side: "white" })
+          .probability,
+      ).toBeLessThanOrEqual(limit);
+    }
 });

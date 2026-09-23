@@ -43,6 +43,8 @@ export type SearchResult = {
   nodes: number;
   elapsedMs: number;
 };
+const CONTEMPT = 15,
+  LEVEL = 50;
 export function searchMoves(
   input: SearchInput,
   random: () => number = Math.random,
@@ -172,7 +174,12 @@ export function searchMoves(
                 rights,
               )
             ] ?? 0) + 1;
-        return seen >= 5 || (seen >= 3 && c.score > 0) ? { ...c, score: 0 } : c;
+        if (seen >= 5 || (seen >= 3 && c.score > 0)) return { ...c, score: 0 };
+        // Contempt: in a level position, prefer an equal move that makes
+        // progress over shuffling back into a position already seen.
+        return seen >= 2 && Math.abs(c.score) < LEVEL
+          ? { ...c, score: c.score - CONTEMPT }
+          : c;
       })
       .sort((a, b) => b.score - a.score);
   }
