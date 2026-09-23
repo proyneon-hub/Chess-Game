@@ -47,6 +47,7 @@ import { DEFAULT_CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
 import { type Draw, draw, freshSeed } from "@/lib/rpg/rng";
 import { count, event } from "@/lib/rpg/events";
 import { leadership } from "@/lib/rpg/leadership";
+import { ambientFlavor } from "@/lib/rpg/observations";
 import { agency } from "@/lib/rpg/agency";
 import { scheduleCourt } from "@/lib/rpg/conspiracy";
 import { finish, sameIntention } from "@/lib/game/core";
@@ -267,6 +268,9 @@ export function submitMove(
   const intention = normalizeIntention(state, action),
     move: MoveAttempt = { ...intention, side: action.side };
   const s = structuredClone(state);
+  // Captured before anything writes a new event, so ambientFlavor (below)
+  // can tell whether this move already produced its own RPG-flavored line.
+  const seqBefore = s.eventSeq;
   const rng: Draw =
     deps.draw ??
     ((stream) => draw((s.simulation?.rngState ?? s.legacyRng)!, stream));
@@ -330,12 +334,14 @@ export function submitMove(
   s.specialSquare = special ? destination : null;
   const next: Side = move.side === "white" ? "black" : "white";
   recordPosition(s, state, next);
-  if (s.simulation && !deps.classic)
-    leadership(state, s, actual, {
-      intended: move,
-      actual,
-      outcome: agencyOutcome,
-    });
+  const observed =
+    s.simulation && !deps.classic
+      ? leadership(state, s, actual, {
+          intended: move,
+          actual,
+          outcome: agencyOutcome,
+        })
+      : [];
   const caps = capabilities(s);
   if (hasEncounters(s.simulation) && !deps.classic)
     resolveEncounters(state, s, {
@@ -370,6 +376,17 @@ export function submitMove(
     scheduleEncounter(s, move.side);
     capDeltas(state, s);
   }
+  // Not state.pendingRefusal: a move that resolves an earlier hesitation is
+  // still on the ply that hesitation started, which already has its own
+  // signal, even though seqBefore (this call's own start) can't see it.
+  if (
+    caps.ambientFlavor &&
+    s.simulation &&
+    !deps.classic &&
+    !s.terminal &&
+    !state.pendingRefusal
+  )
+    ambientFlavor(state, s, move.side, observed, seqBefore);
   message = s.result ?? message;
   s.moves.push({
     number: s.ply,

@@ -1,4 +1,5 @@
 import { hasProgression } from "@/lib/rpg/capabilities";
+import type { Observation } from "./observations";
 import { compareIds } from "./order";
 import { findKing, isInCheck, type Square } from "@/lib/chess";
 import { material, captureSquare, positionKey } from "@/lib/chessRules";
@@ -243,4 +244,5 @@ export function leadership(
   }
   tickRelationships(s, move.side);
   capDeltas(before, s);
+  return [] as Observation[];
 }

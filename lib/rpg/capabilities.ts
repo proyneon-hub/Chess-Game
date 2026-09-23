@@ -42,6 +42,10 @@ export type Capabilities = {
    * public, not only one that raised a strain request, so ordering it back
    * into danger may make it withdraw. */
   frightenedWithdrawal: boolean;
+  /** Collected trust, neglect and relationship observations appear as
+   * occasional event-log lines when nothing else in the politics spoke
+   * this ply, instead of being computed and discarded every turn. */
+  ambientFlavor: boolean;
 };
 
 const legacy: Capabilities = {
@@ -56,6 +60,7 @@ const legacy: Capabilities = {
   soundRequests: false,
   courtComplaints: false,
   frightenedWithdrawal: false,
+  ambientFlavor: false,
 };
 // Generation 5 rule changes (always introduced together, at the same
 // hasEncounters() boundary): the pre-encounters mechanics they replace
@@ -85,6 +90,7 @@ const BY_SCHEMA: Record<number, Capabilities> = {
     soundRequests: true,
     courtComplaints: true,
     frightenedWithdrawal: true,
+    ambientFlavor: true,
   },
 };
 

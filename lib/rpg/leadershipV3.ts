@@ -82,7 +82,7 @@ export function leadershipV3(
     king = findKing(s.board, m.side === "white")!;
   if (before.ply < rules.grace) {
     count(s, "graceObserved");
-    return;
+    return [] as Observation[];
   }
   const context = assessOrder(before, m, s.board);
   const t: Turn = {
@@ -115,6 +115,9 @@ export function leadershipV3(
   ))
     upkeepSubject(t, sub);
   endOfTurn(t);
+  // v6 (see ambientFlavor in game.ts): observationsAtLeadership already
+  // consumed these for v4; v5 and earlier callers ignore the return value.
+  return t.observations;
 }
 
 /** v5 applies each fact at most once per action (encounters share the ledger). */

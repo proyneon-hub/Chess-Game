@@ -19,7 +19,9 @@ const canonical = (v: unknown): string =>
 
 const PINS = {
   count: 19,
-  hash: "bb9a277784bdf5cf",
+  // Moves whenever any registered config's values change, including a
+  // deliberate v6 tuning change (see docs/v6-playtest/results.md).
+  hash: "8189b7bf38cadda9",
 };
 
 it("the registered config count and every value are unchanged", () => {
