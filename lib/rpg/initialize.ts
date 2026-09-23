@@ -138,8 +138,8 @@ export function initializeSimulation(
     },
     privateEvents: [],
     counters: {},
-    ...(rules.generation === 5
-      ? { encounters: initialEncounters(subjects) }
+    ...(rules.generation >= 5
+      ? { encounters: initialEncounters(subjects, rules.encounters!.firstPly) }
       : {}),
     ...(rules.generation >= 3
       ? {

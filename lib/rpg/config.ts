@@ -1,3 +1,4 @@
+import { tuningCandidates, readableCandidates } from "./historicalConfigs";
 // Immutable registry: never alter this entry for an active saved match. Add a
 // new configVersion when balance changes. Values are original design defaults.
 const ORIGINAL = Object.freeze({
@@ -120,7 +121,7 @@ export type ProgressionConfig = {
 export type RuleConfig = {
   readonly [K in keyof typeof ORIGINAL]: K extends "version" ? string : number;
 } & {
-  readonly generation: 2 | 3 | 4 | 5;
+  readonly generation: 2 | 3 | 4 | 5 | 6;
   readonly responsibility?: {
     readonly rivalryWindow: number;
     readonly preferNearbyLeader: boolean;
@@ -131,80 +132,13 @@ export type RuleConfig = {
     readonly [K in keyof typeof ENCOUNTER_RULES]: number;
   };
 };
-export const CANDIDATE_1: RuleConfig = Object.freeze({
-  ...V2_CONFIG,
-  version: "2026-09-08.1",
-  generation: 3,
-  agencyBase: 0.008,
-  refusalMax: 0.18,
-  retreatMax: 0.01,
-  recoveryFear: 2,
-  subjectDeltaCap: 12,
-  kingdomDeltaCap: 6,
-  progression: PROGRESSION,
-});
-export const CANDIDATE_2: RuleConfig = Object.freeze({
-  ...CANDIDATE_1,
-  version: "2026-09-08.2",
-  agencyBase: 0.005,
-  progression: Object.freeze({
-    ...PROGRESSION,
-    calmCap: 0.006,
-    resentmentWeight: 0.07,
-    exposureResentment: 8,
-    exposureLoyalty: -4,
-    repeatedResentment: 4,
-    repeatedLoyalty: -2,
-    neglectResentment: 10,
-    neglectLoyalty: -5,
-    neglectTyranny: 5,
-    neglectLegitimacy: -3,
-    plotTyranny: 30,
-    leaderResentment: 45,
-    accompliceResentment: 35,
-    recoveryResentment: 30,
-    recoveryTyranny: 20,
-  }),
-});
-export const CANDIDATE_3: RuleConfig = Object.freeze({
-  ...CANDIDATE_2,
-  version: "2026-09-08.3",
-  progression: Object.freeze({
-    ...CANDIDATE_2.progression!,
-    graveWindow: 20,
-    leaderResentment: 35,
-    leaderLoyalty: 55,
-    accompliceResentment: 25,
-    accompliceLoyalty: 60,
-    recoveryLoyalty: 65,
-    recoveryResentment: 25,
-    recoveryLegitimacy: 65,
-  }),
-});
-export const CANDIDATE_4: RuleConfig = Object.freeze({
-  ...CANDIDATE_3,
-  version: "2026-09-08.4",
-  progression: Object.freeze({
-    ...CANDIDATE_3.progression!,
-    friction: -20,
-    leaderResentment: 30,
-  }),
-});
-export const CANDIDATE_5: RuleConfig = Object.freeze({
-  ...CANDIDATE_4,
-  version: "2026-09-08.5",
-  progression: Object.freeze({
-    ...CANDIDATE_4.progression!,
-    graveWindow: 32,
-    leaderLoyalty: 60,
-    leaderResentment: 25,
-    leaderAmbition: 55,
-    accompliceLoyalty: 65,
-    accompliceResentment: 20,
-    recoveryLoyalty: 70,
-    recoveryResentment: 15,
-  }),
-});
+export const {
+  CANDIDATE_1,
+  CANDIDATE_2,
+  CANDIDATE_3,
+  CANDIDATE_4,
+  CANDIDATE_5,
+} = tuningCandidates(V2_CONFIG, PROGRESSION);
 export const V3_CONFIG: RuleConfig = Object.freeze({
   ...CANDIDATE_5,
   version: "2026-09-08.6",
@@ -229,60 +163,8 @@ export const V4_CONFIG: RuleConfig = Object.freeze({
     armedDeferrals: 2,
   }),
 });
-// Screened individually first on fixed development subsets; never mutate a
-// tested entry. The default remains the corrected baseline until selection.
-export const READABLE_CANDIDATES: readonly RuleConfig[] = Object.freeze([
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.2",
-    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
-  }),
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.3",
-    responsibility: Object.freeze({
-      ...V4_CONFIG.responsibility!,
-      rivalryWindow: 12,
-    }),
-  }),
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.4",
-    responsibility: Object.freeze({
-      ...V4_CONFIG.responsibility!,
-      preferNearbyLeader: true,
-    }),
-  }),
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.5",
-    responsibility: Object.freeze({
-      ...V4_CONFIG.responsibility!,
-      armedDeferrals: 4,
-    }),
-  }),
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.6",
-    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
-    responsibility: Object.freeze({
-      ...V4_CONFIG.responsibility!,
-      preferNearbyLeader: true,
-      armedDeferrals: 4,
-    }),
-  }),
-  Object.freeze({
-    ...V4_CONFIG,
-    version: "2026-09-09.7",
-    progression: Object.freeze({ ...V4_CONFIG.progression!, retreatFear: 60 }),
-    responsibility: Object.freeze({
-      ...V4_CONFIG.responsibility!,
-      rivalryWindow: 12,
-      preferNearbyLeader: true,
-      armedDeferrals: 4,
-    }),
-  }),
-]);
+export const READABLE_CANDIDATES: readonly RuleConfig[] =
+  readableCandidates(V4_CONFIG);
 export const ENCOUNTER_RULES = Object.freeze({
   firstPly: 10,
   cadence: 6,
@@ -295,11 +177,17 @@ export const ENCOUNTER_RULES = Object.freeze({
   steadyTurns: 2,
   supportTurns: 6,
   modifierCap: 0.06,
+  // Generation 6: an ignored personal request adds this refusal chance to its
+  // piece for restlessTurns own turns.
+  restless: 0.04,
+  restlessTurns: 4,
   steady: -0.03,
   support: -0.03,
   dispute: 0.04,
   physicalFear: 4,
   strainFear: 40,
+  // Recent danger turns (within 6 own turns) before strain can be requested.
+  strainDangerTurns: 2,
   withdrawalFear: 50,
   withdrawalBase: 0.03,
   withdrawalHighFear: 0.02,
@@ -314,6 +202,14 @@ export const ENCOUNTER_RULES = Object.freeze({
   complaintTyranny: 25,
   complaintLegitimacy: 55,
   complaintHarmGap: 3,
+  // Generation 6: harms to the side (distinct turns) within complaintWindow
+  // own turns that let a harsh court hear a complaint.
+  complaintHarms: 3,
+  complaintWindow: 10,
+  // Own turns a complaint stays open (v5 used the petition window).
+  complaintDeadline: 4,
+  // Own turns before continued harm can renew a complaint as a warning.
+  complaintStageTurns: 2,
   // A plot may start only after this ply, from a standing stage-2 complaint.
   plotPly: 64,
 });
@@ -339,8 +235,47 @@ export const PLAYTEST_CONFIG: RuleConfig = Object.freeze({
   }),
   encounters: Object.freeze({ ...ENCOUNTER_RULES, aiAccommodation: 25 }),
 });
+// Generation 6 (docs/v6-playtest): requests carry stakes, strain can be
+// raised after one dangerous turn, and complaints form around the pairs a
+// court needs, so warned withdrawals and conspiracies are reachable.
+export const V6_CONFIG: RuleConfig = Object.freeze({
+  ...PLAYTEST_CONFIG,
+  version: "2026-09-23.1",
+  generation: 6,
+  progression: Object.freeze({
+    ...PLAYTEST_CONFIG.progression!,
+    plotTyranny: 15,
+    plotLegitimacy: 62,
+    // A v6 plot breaks up once the court recovers past these.
+    recoveryTyranny: 8,
+    recoveryLegitimacy: 66,
+    recoveryLoyalty: 85,
+    recoveryResentment: 3,
+  }),
+  encounters: Object.freeze({
+    ...PLAYTEST_CONFIG.encounters!,
+    // Cards stay visible a little longer once offered (see
+    // docs/v6-playtest/results.md, "Presence tuning": an earlier firstPly
+    // was also tried but dropped — moving the encounter director's first
+    // eligible ply reshuffles every later RNG draw for the rest of the
+    // game, and measured as a net loss on reckless/Normal, not a gain).
+    personalWindow: 4,
+    petitionWindow: 5,
+    strainFear: 18,
+    strainDangerTurns: 1,
+    withdrawalFear: 18,
+    withdrawalBase: 0.4,
+    withdrawalMax: 0.5,
+    complaintPhase: 3,
+    complaintDeadline: 7,
+    complaintStageTurns: 1,
+    complaintTyranny: 12,
+    complaintLegitimacy: 62,
+    plotPly: 40,
+  }),
+});
 /** What new games use. CONFIG stays the v5 baseline that reports refer to. */
-export const DEFAULT_CONFIG = PLAYTEST_CONFIG;
+export const DEFAULT_CONFIG = V6_CONFIG;
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -354,6 +289,7 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [V4_CONFIG.version]: V4_CONFIG,
   [CONFIG.version]: CONFIG,
   [PLAYTEST_CONFIG.version]: PLAYTEST_CONFIG,
+  [V6_CONFIG.version]: V6_CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
 export const configFor = (version: string) =>

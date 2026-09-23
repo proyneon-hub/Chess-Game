@@ -41,7 +41,7 @@ test("normal-start request is visible, fulfilled through a legal move, and resto
   const blackRequest = (await region.innerText()).includes("bishop at c8");
   const origin = blackRequest ? "c8" : "c1";
   await expect(region).toContainText(`bishop at ${origin}`);
-  await expect(region).toContainText("3 response turns remaining");
+  await expect(region).toContainText("4 response turns remaining");
   await page.screenshot({
     // The committed docs image is a release record; runs write test-results.
     path: "test-results/visible-request.png",
@@ -52,13 +52,13 @@ test("normal-start request is visible, fulfilled through a legal move, and resto
   await expect(region).toContainText("renewed confidence");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(region).toContainText(`bishop at ${origin}`);
-  await expect(region).toContainText("3 response turns remaining");
+  await expect(region).toContainText("4 response turns remaining");
   await expect(page.locator(`[data-square="${origin}"]`)).toHaveAttribute(
     "aria-label",
     blackRequest ? /Black bishop/ : /White bishop/,
   );
 });
-test("a player can continue another plan and let a request expire neutrally on mobile", async ({
+test("a player can continue another plan and an ignored request leaves its piece restless on mobile", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -70,11 +70,13 @@ test("a player can continue another plan and let a request expire neutrally on m
     ["h7", "h6"],
     ["a3", "a4"],
     ["a6", "a5"],
+    ["h3", "h4"],
+    ["h6", "h5"],
   ])
     await move(page, from, to);
   await expect(
     page.getByRole("region", { name: "Piece requests" }),
-  ).toContainText("request passes without a response");
+  ).toContainText(/grows restless; its next orders may meet hesitation/);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
