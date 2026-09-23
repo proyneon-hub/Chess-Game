@@ -6,8 +6,11 @@ import { sameSquare } from "@/lib/chess";
  * The computer's ranked moves: a search, then (after its own piece refused)
  * the restraint choice between repeating the order and a safer alternative.
  */
-export function computerChoice(input: SearchInput): SearchResult {
-  const result = searchMoves(input);
+export function computerChoice(
+  input: SearchInput,
+  random: () => number = Math.random,
+): SearchResult {
+  const result = searchMoves(input, random);
   const view = input.own?.view;
   const choice = view?.pendingRefusal
     ? chooseAfterRefusal(materializeView(view), result.scores)
