@@ -55,6 +55,25 @@ test("AI completes and restart cancels worker", async ({ page }) => {
   });
   await expect(square(page, "d4")).toHaveAttribute("aria-label", /White pawn/);
 });
+test("an easy computer game replies and survives a reload", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByLabel("Difficulty").selectOption("easy");
+  await page.getByRole("button", { name: /Play computer/ }).click();
+  await move(page, "e2", "e4");
+  await expect(page.getByText("White to Move", { exact: true })).toBeVisible({
+    timeout: 10000,
+  });
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("chess:local-game:v1")!),
+  );
+  expect(saved.difficulty).toBe("easy");
+  expect(saved.game.ply).toBe(2);
+  await page.reload();
+  await expect(page.getByText("Your game has been restored.")).toBeVisible();
+  await expect(square(page, "e4")).toHaveAttribute("aria-label", /White pawn/);
+});
 test("mobile board fits and respects reduced motion", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -21,7 +21,9 @@ export function loadLocalGame(): LocalSave | null {
     if (
       !record(v) ||
       (v.mode !== "local" && v.mode !== "computer") ||
-      (v.difficulty !== "normal" && v.difficulty !== "advanced") ||
+      (v.difficulty !== "easy" &&
+        v.difficulty !== "normal" &&
+        v.difficulty !== "advanced") ||
       !record(v.history) ||
       !Array.isArray(v.history.completed)
     )

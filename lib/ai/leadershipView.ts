@@ -13,7 +13,7 @@ import { progression } from "@/lib/rpg/pressure";
 // hidden attributes, participant identities, pressure episodes or RNG streams.
 export type LeadershipView = Omit<GameState, "simulation"> & {
   simulation: Omit<
-    Extract<HiddenSimulation, { schemaVersion: 3 | 4 | 5 }>,
+    Extract<HiddenSimulation, { schemaVersion: 3 | 4 | 5 | 6 }>,
     "rngState"
   >;
 };
