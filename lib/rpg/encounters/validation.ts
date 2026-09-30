@@ -1,8 +1,11 @@
 import type { GameState } from "@/lib/game/types";
+import { hasEncounters } from "@/lib/rpg/capabilities";
+import { encounterRulesFor } from "@/lib/rpg/config";
 import { MAX_STORED_LOSS } from "./objectives";
 // No defaults or coercion: malformed saved encounters fail closed.
 export function validEncounters(s: GameState): boolean {
-  if (s.simulation?.schemaVersion !== 5) return false;
+  if (!hasEncounters(s.simulation)) return false;
+  const schema = s.simulation.schemaVersion;
   const sim = s.simulation,
     e = sim.encounters;
   const obj = (v: unknown): v is Record<string, unknown> =>
@@ -139,7 +142,7 @@ export function validEncounters(s: GameState): boolean {
       !["white", "black"].includes(x.side) ||
       !ids(x.participants, x.side) ||
       !int(x.phase, 1, 5) ||
-      !int(x.createdPly, 10, s.ply) ||
+      !int(x.createdPly, encounterRulesFor(s).firstPly, s.ply) ||
       !int(x.createdOwn, 0, sim.kingdoms[x.side].ownTurnsCompleted) ||
       !int(x.deadline, x.createdOwn + 1) ||
       !int(x.stage, 1, 2) ||
@@ -225,7 +228,12 @@ export function validEncounters(s: GameState): boolean {
         (sim.subjects[m.helper]?.side === sim.subjects[m.subject].side &&
           m.helper !== m.subject)
       ) ||
-      !["steady", "support", "dispute"].includes(m.kind) ||
+      ![
+        "steady",
+        "support",
+        "dispute",
+        ...(schema === 6 ? ["restless"] : []),
+      ].includes(m.kind) ||
       !int(m.expires) ||
       typeof m.consumed !== "boolean"
     )

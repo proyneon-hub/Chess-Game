@@ -2,6 +2,7 @@ import type { GameState } from "@/lib/game/types";
 import { v4Fixture, constructedV4Court } from "./progression-fixtures";
 import { initializeSimulation } from "@/lib/rpg/initialize";
 import { initialEncounters } from "@/lib/rpg/encounters/state";
+import { V6_CONFIG } from "@/lib/rpg/config";
 // Preloaded fixtures test branch correctness only, never natural frequency.
 export function v5Fixture(...args: Parameters<typeof v4Fixture>): GameState {
   const s = v4Fixture(...args) as GameState;
@@ -41,4 +42,22 @@ export function constructedV5Court(): GameState {
   };
   s.simulation.turnContext.ply = 70;
   return s;
+}
+export function v6Fixture(...args: Parameters<typeof v4Fixture>): GameState {
+  const s = v4Fixture(...args) as GameState;
+  return {
+    ...s,
+    schemaVersion: 6,
+    rulesetVersion: "hidden-kingdom-v6",
+    configVersion: V6_CONFIG.version,
+    simulation: {
+      ...initializeSimulation(s.board, s.pieceIds, 42, V6_CONFIG.version),
+      turnContext: {
+        ply: s.ply,
+        sideToMove: s.sideToMove,
+        refusalUsed: false,
+        pendingRefusal: null,
+      },
+    },
+  } as GameState;
 }

@@ -114,3 +114,80 @@ it("a winning computer avoids claimable and automatic repetitions", async () => 
     top,
   );
 });
+it("easy play chooses among near-best moves but never passes up mate", () => {
+  const mate = boardFixture([
+    ["K", [2, 5]],
+    ["Q", [2, 6]],
+    ["k", [0, 7]],
+  ]);
+  for (const draw of [0, 0.5, 0.99]) {
+    const r = searchMoves(
+      {
+        board: mate.board,
+        rights: mate.rights,
+        side: "white",
+        depth: 1,
+        budgetMs: 1000,
+        own: null,
+        spreadCp: 80,
+      },
+      () => draw,
+    );
+    const result = submitMove(mate, r.moves[0], { classic: true });
+    expect(result.state.terminal?.reason).toBe("checkmate");
+  }
+  const s = createGameState(1);
+  const input = {
+    board: s.board,
+    rights: s.rights,
+    side: "white" as const,
+    depth: 1,
+    budgetMs: 1000,
+    own: null,
+  };
+  const best = searchMoves(input).moves[0];
+  const picks = [0, 0.3, 0.6, 0.99].map(
+    (draw) => searchMoves({ ...input, spreadCp: 80 }, () => draw).moves[0],
+  );
+  const legal = getAllLegalMoves(s.board, "white", s.rights);
+  for (const m of picks)
+    expect(
+      legal.some(
+        (l) =>
+          String(l.from) === String(m.from) && String(l.to) === String(m.to),
+      ),
+    ).toBe(true);
+  // Deterministic for a given draw; the lowest draw keeps the best move.
+  expect(picks[0]).toEqual(best);
+  expect(new Set(picks.map((m) => `${m.from}-${m.to}`)).size).toBeGreaterThan(
+    1,
+  );
+});
+it("in a level position the computer avoids shuffling back into a seen position", async () => {
+  const { nextRights, positionKey } = await import("@/lib/chessRules");
+  const { freshRights } = await import("@/lib/chess");
+  const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+  // Kings and blocked e-pawns: nothing to win, only squares to shuffle.
+  board[0][4] = "k";
+  board[3][4] = "p";
+  board[4][4] = "P";
+  board[7][4] = "K";
+  const rights = { ...freshRights(false), halfmove: 10 };
+  const input = {
+    board,
+    rights,
+    side: "black" as const,
+    depth: 1,
+    budgetMs: 1e6,
+    own: null,
+  };
+  const top = searchMoves(input).moves[0];
+  const key = positionKey(
+    applyMove(board, top.from, top.to),
+    "white",
+    nextRights(board, rights, top),
+  );
+  expect(
+    searchMoves({ ...input, positions: { [key]: 1 } }).moves[0],
+  ).not.toEqual(top);
+});

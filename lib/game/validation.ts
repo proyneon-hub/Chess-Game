@@ -78,7 +78,7 @@ type Simulation = NonNullable<GameState["simulation"]>;
  * established, so the order is part of the contract.
  */
 export function validateState(value: unknown): asserts value is GameState {
-  if (!record(value) || !integer(value.schemaVersion, 1, 5)) fail();
+  if (!record(value) || !integer(value.schemaVersion, 1, 6)) fail();
   const s = value as GameState;
   const ids = checkBoard(s);
   checkRightsAndHistory(s);
@@ -276,7 +276,7 @@ function checkSimulationHeader(s: GameState): Simulation {
     }
   }
   if (sim.schemaVersion === 2 && "progression" in sim) fail();
-  if (sim.schemaVersion === 5) {
+  if (sim.schemaVersion >= 5) {
     try {
       if (!validEncounters(s)) fail();
     } catch {

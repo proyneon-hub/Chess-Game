@@ -1,4 +1,5 @@
-import { capabilities } from "@/lib/rpg/capabilities";
+import { hasProgression } from "@/lib/rpg/capabilities";
+import type { Observation } from "./observations";
 import { compareIds } from "./order";
 import { findKing, isInCheck, type Square } from "@/lib/chess";
 import { material, captureSquare, positionKey } from "@/lib/chessRules";
@@ -26,7 +27,7 @@ export function leadership(
   move: MoveAttempt,
   order?: ResolvedOrder,
 ) {
-  if (capabilities(s).progression) return leadershipV3(before, s, move, order);
+  if (hasProgression(s.simulation)) return leadershipV3(before, s, move, order);
   const sim = s.simulation!,
     kingdom = sim.kingdoms[move.side],
     oldMap = attackMap(before.board),
@@ -243,4 +244,5 @@ export function leadership(
   }
   tickRelationships(s, move.side);
   capDeltas(before, s);
+  return [] as Observation[];
 }

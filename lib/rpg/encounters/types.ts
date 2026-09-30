@@ -61,7 +61,8 @@ export type Modifier = {
   encounterId: string;
   subject: string;
   helper: string | null;
-  kind: "steady" | "support" | "dispute";
+  /** restless: generation 6 only, an ignored request's cost. */
+  kind: "steady" | "support" | "dispute" | "restless";
   expires: number;
   consumed: boolean;
 };

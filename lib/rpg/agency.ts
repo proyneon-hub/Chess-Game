@@ -1,4 +1,8 @@
-import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
+import {
+  capabilities,
+  hasEncounters,
+  hasProgression,
+} from "@/lib/rpg/capabilities";
 import { applicableModifiers } from "./encounters/effects";
 import {
   applyMove,
@@ -25,7 +29,7 @@ import { count } from "@/lib/rpg/events";
 import { forecastV3 } from "./forecast";
 import { progression } from "./pressure";
 export const agencyForecast = (s: GameState, m: MoveAttempt) => {
-  if (capabilities(s).progression) return forecastV3(s, m);
+  if (hasProgression(s.simulation)) return forecastV3(s, m);
   const guaranteed =
     s.ply < rulesFor(s).grace ||
     s.board[m.from[0]][m.from[1]]?.toLowerCase() === "k" ||
@@ -44,7 +48,7 @@ export const agencyForecast = (s: GameState, m: MoveAttempt) => {
   };
 };
 export function refusalProbability(s: GameState, m: MoveAttempt) {
-  if (capabilities(s).progression)
+  if (hasProgression(s.simulation))
     return {
       probability: forecastV3(s, m).refusal,
       context: moveContext(s, m),
@@ -132,7 +136,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
     special: false,
     message: "",
   };
-  if (capabilities(s).progression) {
+  if (hasProgression(sim)) {
     const f = forecastV3(s, m);
     if (f.guaranteed) return normal;
     count(s, "eligibleCommands");
@@ -159,7 +163,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
       const rivalId =
         caps.disputeRefusals && c?.disputeRelevant
           ? c.defenders[0]
-          : caps.encounters
+          : hasEncounters(sim)
             ? applicableModifiers(s, m).find((x) => x.kind === "dispute")
                 ?.helper
             : null;
@@ -185,7 +189,7 @@ export function agency(s: GameState, m: MoveAttempt, rng: Draw) {
         outcome: "retreat" as const,
         destination: f.retreatTo,
         special: true,
-        message: capabilities(s).encounters
+        message: hasEncounters(sim)
           ? `The ${name} withdraws ${exchangeLoss(applyMove(s.board, m.from, f.retreatTo, m.promotion, s.rights), f.retreatTo, m.side) < 100 ? "to safety" : "to reduce the danger"} after its earlier warning.`
           : `The ${name} withdraws from the attack.`,
       };

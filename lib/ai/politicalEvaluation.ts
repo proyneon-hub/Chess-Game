@@ -1,4 +1,4 @@
-import { capabilities, hasEncounters } from "@/lib/rpg/capabilities";
+import { hasEncounters, hasProgression } from "@/lib/rpg/capabilities";
 import {
   evaluateObjective,
   projectBoard,
@@ -46,7 +46,7 @@ export function ownPolitics(s: GameState, side: Side): OwnPolitics | null {
     ownPositions[sub.id] = positions[sub.id];
   }
   return {
-    ...(capabilities(s).progression ? { view: leadershipView(s, side) } : {}),
+    ...(hasProgression(s.simulation) ? { view: leadershipView(s, side) } : {}),
     side,
     kingdom: structuredClone(s.simulation.kingdoms[side]),
     subjects,

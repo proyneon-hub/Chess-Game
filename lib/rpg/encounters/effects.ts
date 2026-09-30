@@ -58,7 +58,9 @@ export function grantModifier(
         own +
         (kind === "steady"
           ? encounterRulesFor(s).steadyTurns
-          : encounterRulesFor(s).supportTurns),
+          : kind === "restless"
+            ? encounterRulesFor(s).restlessTurns
+            : encounterRulesFor(s).supportTurns),
       consumed: false,
     });
     if (pair && kind === "support") state.pairRewards[pair] = own;
@@ -75,6 +77,7 @@ export function applicableModifiers(s: GameState, m: MoveAttempt): Modifier[] {
       !x.consumed &&
       x.expires > own &&
       (x.kind === "steady" ||
+        x.kind === "restless" ||
         (!!x.helper &&
           defenders.includes(x.helper) &&
           (x.kind !== "dispute" || defenders.length === 1))),
@@ -89,7 +92,9 @@ export function refusalModifier(s: GameState, m: MoveAttempt) {
           ? encounterRulesFor(s).dispute
           : x.kind === "steady"
             ? encounterRulesFor(s).steady
-            : encounterRulesFor(s).support),
+            : x.kind === "restless"
+              ? encounterRulesFor(s).restless
+              : encounterRulesFor(s).support),
       0,
     ),
     -encounterRulesFor(s).modifierCap,

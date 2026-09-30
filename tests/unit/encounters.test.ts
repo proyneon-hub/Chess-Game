@@ -36,7 +36,7 @@ it("offers actionable normal-start opportunities, both colors get full windows",
     let s = discovery(seed);
     const initial = encounters(s).active[0];
     expect(initial.createdPly).toBeGreaterThanOrEqual(10);
-    expect(initial.deadline - initial.createdOwn).toBe(3);
+    expect(initial.deadline - initial.createdOwn).toBe(4);
     if (s.sideToMove !== initial.side)
       s = submitMove(s, getAllLegalMoves(s.board, s.sideToMove, s.rights)[0], {
         draw: () => 0.99,
@@ -81,7 +81,11 @@ it("neutral expiry waits for three eligible own moves and creates no card penalt
   }
   const closed = encounters(s).recent.find((e) => e.id === original.id)!;
   expect(["expired", "interrupted"]).toContain(closed.outcome);
-  expect(closed.consumed).toEqual([]);
+  // v6 (requestStakes) grants a "restless" modifier on genuine expiry only
+  // (resolve.ts); an interruption never reaches that branch.
+  expect(closed.consumed).toEqual(
+    closed.outcome === "expired" ? [`${closed.participants[0]}|restless`] : [],
+  );
 });
 it("restores all effects, director clocks and RNG on undo; repeated forecasts are pure", () => {
   const s = discovery(42),

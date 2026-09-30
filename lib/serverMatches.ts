@@ -15,7 +15,7 @@ import {
   validateState,
 } from "@/lib/game/validation";
 import { rulesFor } from "@/lib/rpg/config";
-import { GameMatch } from "@/models/GameMatch";
+import { GameMatch, MATCH_RETENTION_MS } from "@/models/GameMatch";
 export type { PublicMatch } from "@/lib/game/publicState";
 type Receipt = {
   playerId: string;
@@ -34,10 +34,7 @@ type StoredMatch = {
   receipts?: Receipt[];
 };
 const stored = (v: unknown): StoredMatch => v as StoredMatch;
-// Inactive matches are deleted by a TTL index after 30 idle days, the same
-// idle lifetime as the sliding guest cookie.
-const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
-const expiry = () => new Date(Date.now() + RETENTION_MS);
+const expiry = () => new Date(Date.now() + MATCH_RETENTION_MS);
 // A soft cap on unjoined invites per guest per day, against accidental floods.
 const OPEN_INVITE_LIMIT = 20;
 export async function tooManyOpenInvites(playerId: string) {

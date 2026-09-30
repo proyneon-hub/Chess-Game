@@ -5,6 +5,8 @@ import { locations } from "./context";
 import { progression } from "./pressure";
 import { rulesFor } from "./config";
 import { event } from "./events";
+import { hasEncounters } from "./capabilities";
+import { RPG_LINE_CODES } from "./presence";
 export type Observation = {
   kind: "neglect" | "dispute" | "reconciliation" | "trust";
   subjectId: string;
@@ -99,4 +101,38 @@ export function emitObservation(
     square: choice.square,
     subjectId: choice.subjectId,
   });
+}
+
+/**
+ * v6 (ambientFlavor): surfaces the trust/neglect facts leadership already
+ * collected every turn (previously discarded past v4) plus this turn's
+ * relationship transitions, but only to fill an otherwise-silent ply. Never
+ * piles onto a real event, and never speaks for a piece whose own card
+ * already does. emitObservation still applies its side/subject cooldowns and
+ * priority order, so this can only ever add one line.
+ */
+export function ambientFlavor(
+  before: GameState,
+  s: GameState,
+  side: Side,
+  observed: Observation[],
+  sinceSeq: number,
+) {
+  if (!s.simulation) return;
+  const spoke = s.simulation.privateEvents.some(
+    (e) =>
+      e.seq > sinceSeq &&
+      (RPG_LINE_CODES as readonly string[]).includes(e.code),
+  );
+  if (spoke) return;
+  const busy = new Set(
+    hasEncounters(s.simulation)
+      ? s.simulation.encounters.active.flatMap((e) => e.participants)
+      : [],
+  );
+  const candidates = [
+    ...observed,
+    ...relationshipObservations(before, s, side),
+  ].filter((o) => !busy.has(o.subjectId));
+  emitObservation(s, side, candidates);
 }

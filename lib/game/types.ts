@@ -175,6 +175,12 @@ export type HiddenSimulation = {
       progression: ProgressionState;
       encounters: EncounterState;
     }
+  | {
+      schemaVersion: 6;
+      rulesetVersion: "hidden-kingdom-v6";
+      progression: ProgressionState;
+      encounters: EncounterState;
+    }
 );
 export type Terminal = {
   reason:
@@ -232,6 +238,7 @@ export type GameState = {
   | { schemaVersion: 3; rulesetVersion: "hidden-kingdom-v3" }
   | { schemaVersion: 4; rulesetVersion: "hidden-kingdom-v4" }
   | { schemaVersion: 5; rulesetVersion: "hidden-kingdom-v5" }
+  | { schemaVersion: 6; rulesetVersion: "hidden-kingdom-v6" }
 );
 export type MoveResult = ActionOutcome & {
   state: GameState;
