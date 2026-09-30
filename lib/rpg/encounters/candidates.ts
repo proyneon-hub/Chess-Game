@@ -64,7 +64,9 @@ export function candidates(
     occupied = new Set(active.flatMap((x) => x.participants));
   if (active.length >= (phase >= 3 ? 2 : 1))
     return { candidates: [], blockers: ["occupied-slots"] };
-  if (own - e.sides[side].lastStart < encounterRulesFor(s).sideGap)
+  const rules = encounterRulesFor(s),
+    sideGap = phase >= 5 ? rules.lateSideGap : rules.sideGap;
+  if (own - e.sides[side].lastStart < sideGap)
     return { candidates: [], blockers: ["side-cooldown"] };
   const subjects = Object.values(sim.subjects)
     .filter(
