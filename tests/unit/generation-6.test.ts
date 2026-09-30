@@ -4,6 +4,7 @@ import { subjectAt } from "../fixtures";
 import { submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
 import { validateState } from "@/lib/game/validation";
+import { leadershipView, materializeView } from "@/lib/ai/leadershipView";
 import { candidates } from "@/lib/rpg/encounters/candidates";
 import { agencyForecast } from "@/lib/rpg/agency";
 import { encounterPhase, encounters } from "@/lib/rpg/encounters/state";
@@ -204,6 +205,59 @@ it("a renewed v6 complaint under a harsh court becomes a warned plot", () => {
   const plot = r.state.simulation!.plots.find((p) => p.side === "white");
   expect(plot).toMatchObject({ ringleader: knight, accomplice: bishop });
   expect(r.state.warning?.message).toMatch(/turns away from its king/);
+});
+
+it("the computer's projection of a plot whose ringleader was captured thwarts it instead of crashing", () => {
+  const s = v6Fixture(
+    [
+      ["K", [7, 7]],
+      ["k", [0, 0]],
+      ["N", [5, 2]],
+      ["B", [5, 4]],
+      ["P", [6, 0]],
+    ],
+    50,
+  );
+  const sim = s.simulation!;
+  Object.assign(sim.kingdoms.white, {
+    tyranny: 30,
+    legitimacy: 40,
+    ownTurnsCompleted: 10,
+  });
+  const [knight, bishop] = [id(s, [5, 2]), id(s, [5, 4])];
+  for (const sub of [subjectAt(s, [5, 2]), subjectAt(s, [5, 4])])
+    Object.assign(sub, { loyalty: 30, resentment: 60 });
+  offer(
+    s,
+    "complaint",
+    [knight, bishop],
+    { kind: "recover", pair: [knight, bishop], initialLoss: 0, separated: 0 },
+    { own: 9, deadline: 16, stage: 2 },
+  );
+  const next = submitMove(s, {
+    from: [7, 7],
+    to: [6, 7],
+    side: "white",
+  }).state;
+  expect(next.simulation!.plots.some((p) => p.side === "white")).toBe(true);
+  // The ringleader is captured; the projected view holds only pieces still
+  // on the board, so it has no subject for the knight at all.
+  next.simulation!.subjects[knight].status = "captured";
+  next.board[5][2] = null;
+  next.pieceIds[5][2] = null;
+  next.sideToMove = "white";
+  next.simulation!.turnContext.sideToMove = "white";
+  const view = materializeView(leadershipView(next, "white"));
+  expect(view.simulation!.subjects[knight]).toBeUndefined();
+  const r = submitMove(
+    view,
+    { from: [6, 7], to: [7, 7], side: "white" },
+    { draw: () => 0.999999 },
+  );
+  expect(r.requestAccepted).toBe(true);
+  expect(r.state.simulation!.plots.find((p) => p.side === "white")?.stage).toBe(
+    "thwarted",
+  );
 });
 
 it("v6 warns about any frightened piece, and sending it back into danger may make it withdraw", () => {

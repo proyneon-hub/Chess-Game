@@ -57,7 +57,7 @@ function thwart(s: GameState, p: CourtPlot, reason = "recovery") {
   s.warning = null;
   for (const id of [p.ringleader, p.accomplice]) {
     const sub = s.simulation!.subjects[id];
-    if (sub.status === "active") sub.resentment = clamp(sub.resentment - 5);
+    if (sub?.status === "active") sub.resentment = clamp(sub.resentment - 5);
   }
   event(s, "plotThwarted", "The gathering around the king breaks apart.");
 }
@@ -132,19 +132,17 @@ function advancePlot(c: Court, active: CourtPlot) {
     cfg = rulesFor(s).progression;
   const a = sim.subjects[active.ringleader],
     b = sim.subjects[active.accomplice];
+  // The computer's projected view (lib/ai/leadershipView.ts) holds only
+  // pieces still on the board, so a captured plotter is absent there.
+  const captured = a?.status !== "active" || b?.status !== "active";
   if (
-    a.status !== "active" ||
-    b.status !== "active" ||
+    captured ||
     a.loyalty > (cfg?.recoveryLoyalty ?? 45) ||
     a.resentment < (cfg?.recoveryResentment ?? 55) ||
     k.legitimacy > (cfg?.recoveryLegitimacy ?? 50) ||
     k.tyranny < (cfg?.recoveryTyranny ?? 45)
   ) {
-    thwart(
-      s,
-      active,
-      a.status !== "active" || b.status !== "active" ? "capture" : "recovery",
-    );
+    thwart(s, active, captured ? "capture" : "recovery");
     return;
   }
   active.separatedTurns =

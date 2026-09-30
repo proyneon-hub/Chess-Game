@@ -387,3 +387,115 @@ a future PR, not assumed to be worth forcing here.
 npm run playtest -- --games 200 --style aware,engine,reckless --config 2026-09-23.1 --json true
 npm run playtest -- --games 200 --style aware,engine,reckless --config 2026-09-23.1 --difficulty easy --json true
 ```
+
+---
+
+# Per-side cadence (`V6_CONFIG.encounters`, v6 only)
+
+A fresh playtest asked why the politics still read as rare. A per-ply
+diagnostic of the encounter director (aware and reckless vs Normal, 40
+games each) found it was not short of material:
+
+| Director state on a ply                     | aware | reckless |
+| ------------------------------------------- | ----- | -------- |
+| Waiting on the shared 6-ply `cadence` clock | 68%   | 66%      |
+| Before `firstPly`                           | 17%   | 19%      |
+| Check or game over                          | 4%    | 4%       |
+| Due, but no candidate                       | 0%    | 0%       |
+| Offered a card                              | 12%   | 12%      |
+
+Both sides shared one clock (`cadence: 6`, `minimumGap: 4`), and candidates
+are ranked by priority before side, so the computer's requests often took
+the only slot: the player's own cards were on screen on only ~20% of plies.
+Answered cards close fast (average 2.5 plies against aware play), which is
+why the longer windows above only added a point.
+
+v6 now drops the shared clock (`cadence: 0`, `minimumGap: 0`) and lets each
+side's `sideGap` pace its own requests. The results below are with the
+existing gap of 3 own turns (6 plies); "Pacing" further down settles on 4
+(8 plies). No code path changed; `firstPly`, the per-subject cooldowns, the
+slot limits and the check stall (`duePly += 2`) all still apply.
+
+Building this surfaced a latent crash: when the computer re-plans after a
+hesitation it projects moves on `leadershipView`, which holds only pieces
+still on the board. If one of its own plotters had just been captured,
+`advancePlot` read the missing subject and threw. Plots were rare enough
+that no earlier run hit it. `advancePlot` and `thwart` now treat a missing
+plotter as captured (a no-op for real states, which keep captured subjects).
+
+## Results with `sideGap: 3` (200 games per style, seeds 7000–7199)
+
+### Against Normal
+
+| Style    | W/D/L                     | Presence      | Presence >10 | Cards W\|B              | Games ≥60%     | Requests/game W\|B        | Complaints (reach 50) | Plots |
+| -------- | ------------------------- | ------------- | ------------ | ----------------------- | -------------- | ------------------------- | --------------------- | ----- |
+| aware    | 0/1/199 → 0/0/200         | 56% → **77%** | 67% → 92%    | 19%\|36% → 52%\|67%     | 28% → **99%**  | 2.68\|3.67 → 6.99\|7.27   | 18% → 22%             | 3 → 4 |
+| engine   | 67/71/62 → **109/35/56**  | 56% → 85%     | 60% → 93%    | 27%\|31% → 70%\|71%     | 42% → 100%     | 7.92\|8.21 → 16.02\|15.84 | 6% → 4%               | 0 → 0 |
+| reckless | 0/0/200 → 0/0/200         | 62% → **74%** | 75% → 89%    | 21%\|44% → 39%\|68%     | 61% → **96%**  | 1.92\|4.13 → 4.60\|6.60   | 9% → 24%              | 2 → 3 |
+
+### Against Easy
+
+| Style    | W/D/L                      | Presence      | Presence >10 | Cards W\|B              | Games ≥60%    | Requests/game W\|B        | Complaints (reach 50) | Warnings (reach 60) | Plots  |
+| -------- | -------------------------- | ------------- | ------------ | ----------------------- | ------------- | ------------------------- | --------------------- | ------------------- | ------ |
+| aware    | 10/128/62 → **18/144/38**  | 52% → **64%** | 56% → 69%    | 20%\|32% → 42%\|43%     | 29% → **77%** | 6.58\|6.75 → 12.37\|10.04 | 25% → 21%             | 2% → 2%             | 4 → 3  |
+| engine   | 199/0/1 → 200/0/0          | 53% → 78%     | 64% → 94%    | 24%\|29% → 65%\|60%     | 25% → 92%     | 2.85\|2.60 → 6.81\|6.03   | 24% → 22%             | 4% → 2%             | 5 → 4  |
+| reckless | 0/11/189 → 0/5/195         | 70% → **81%** | 80% → 93%    | 15%\|56% → 33%\|75%     | 72% → **84%** | 2.08\|6.75 → 4.81\|9.34   | 27% → **48%**         | 5% → **10%**        | 7 → 13 |
+
+Hesitations, withdrawals and regicides (0 in all 2,400 games) are
+essentially unchanged. `aware` now clears the 60% target against both
+opponents, and the reckless warning target (≥ 10% of games reaching ply 60)
+is met against Easy for the first time.
+
+Two costs to watch:
+
+- **Request rate roughly doubles.** Each side now gets a request about every
+  6–7 plies, so the board sees one every ~3–4 plies in total, above the
+  earlier "about 1 per 6–10 plies" guide.
+- **The computer plays a little weaker.** It answers its own, now more
+  frequent, requests: the Normal-strength `engine` style wins 109 of 200
+  (was 67), and `aware` loses 38 of 200 to Easy (was 62). If that matters,
+  `aiAccommodation` (25) or a longer `sideGap` are the levers.
+
+## Pacing: `sideGap` 3 vs 4 vs 5
+
+Same seeds, 200 games per style. "Main" is the shared 6-ply clock.
+
+### Against Normal
+
+| Style    | Metric             | Main       | Gap 3        | **Gap 4**    | Gap 5       |
+| -------- | ------------------ | ---------- | ------------ | ------------ | ----------- |
+| aware    | Presence           | 56%        | 77%          | **68%**      | 59%         |
+| aware    | Games ≥60%         | 28%        | 99%          | **85%**      | 47%         |
+| aware    | Requests/game W\|B | 2.68\|3.67 | 6.99\|7.27   | 5.13\|5.46   | 4.20\|4.67  |
+| reckless | Presence           | 62%        | 74%          | **68%**      | 64%         |
+| reckless | Games ≥60%         | 61%        | 96%          | **86%**      | 70%         |
+| engine   | W/D/L              | 67/71/62   | 109/35/56    | **81/60/59** | 73/41/86    |
+| engine   | Requests/game W\|B | 7.92\|8.21 | 16.02\|15.84 | 12.82\|12.81 | 11.82\|11.99 |
+
+### Against Easy
+
+| Style    | Metric      | Main      | Gap 3     | **Gap 4**     | Gap 5     |
+| -------- | ----------- | --------- | --------- | ------------- | --------- |
+| aware    | Presence    | 52%       | 64%       | **58%**       | 54%       |
+| aware    | Games ≥60%  | 29%       | 77%       | **61%**       | 44%       |
+| aware    | W/D/L       | 10/128/62 | 18/144/38 | **20/130/50** | 8/129/63  |
+| reckless | Presence    | 70%       | 81%       | **74%**       | 68%       |
+| reckless | Complaints  | 27%       | 48%       | **38%**       | 30%       |
+| reckless | Plots       | 7         | 13        | **7**         | 12        |
+
+**v6 ships gap 4.** It keeps most of the gain (aware 68% against Normal, and
+85–86% of Normal games reach 60%), each side's request rate falls to about
+one per 8–10 plies, and the computer's results move most of the way back
+toward main (the `engine` style's 81 wins are within the spread the gap-5
+row shows, 73 wins but 86 losses, so the matchup is noisy at this sample
+size). Gap 5 gives back almost all of the gain against careful play (aware
+59% Normal, 54% Easy). The one miss at gap 4 is `aware` against Easy, at
+58% overall presence, though 61% of its games individually reach 60%.
+Regicides stay 0 at every gap.
+
+## Reproduce
+
+```sh
+npm run playtest -- --games 200 --json true
+npm run playtest -- --games 200 --difficulty easy --json true
+```
