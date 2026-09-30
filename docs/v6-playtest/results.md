@@ -411,8 +411,9 @@ Answered cards close fast (average 2.5 plies against aware play), which is
 why the longer windows above only added a point.
 
 v6 now drops the shared clock (`cadence: 0`, `minimumGap: 0`) and lets each
-side's existing `sideGap` (3 own turns, i.e. 6 plies) pace its own
-requests. No code path changed; `firstPly`, the per-subject cooldowns, the
+side's `sideGap` pace its own requests. The results below are with the
+existing gap of 3 own turns (6 plies); "Pacing" further down settles on 4
+(8 plies). No code path changed; `firstPly`, the per-subject cooldowns, the
 slot limits and the check stall (`duePly += 2`) all still apply.
 
 Building this surfaced a latent crash: when the computer re-plans after a
@@ -422,7 +423,7 @@ still on the board. If one of its own plotters had just been captured,
 that no earlier run hit it. `advancePlot` and `thwart` now treat a missing
 plotter as captured (a no-op for real states, which keep captured subjects).
 
-## Results (200 games per style, seeds 7000–7199, `2026-09-23.1`)
+## Results with `sideGap: 3` (200 games per style, seeds 7000–7199)
 
 ### Against Normal
 
@@ -454,6 +455,43 @@ Two costs to watch:
   frequent, requests: the Normal-strength `engine` style wins 109 of 200
   (was 67), and `aware` loses 38 of 200 to Easy (was 62). If that matters,
   `aiAccommodation` (25) or a longer `sideGap` are the levers.
+
+## Pacing: `sideGap` 3 vs 4 vs 5
+
+Same seeds, 200 games per style. "Main" is the shared 6-ply clock.
+
+### Against Normal
+
+| Style    | Metric             | Main       | Gap 3        | **Gap 4**    | Gap 5       |
+| -------- | ------------------ | ---------- | ------------ | ------------ | ----------- |
+| aware    | Presence           | 56%        | 77%          | **68%**      | 59%         |
+| aware    | Games ≥60%         | 28%        | 99%          | **85%**      | 47%         |
+| aware    | Requests/game W\|B | 2.68\|3.67 | 6.99\|7.27   | 5.13\|5.46   | 4.20\|4.67  |
+| reckless | Presence           | 62%        | 74%          | **68%**      | 64%         |
+| reckless | Games ≥60%         | 61%        | 96%          | **86%**      | 70%         |
+| engine   | W/D/L              | 67/71/62   | 109/35/56    | **81/60/59** | 73/41/86    |
+| engine   | Requests/game W\|B | 7.92\|8.21 | 16.02\|15.84 | 12.82\|12.81 | 11.82\|11.99 |
+
+### Against Easy
+
+| Style    | Metric      | Main      | Gap 3     | **Gap 4**     | Gap 5     |
+| -------- | ----------- | --------- | --------- | ------------- | --------- |
+| aware    | Presence    | 52%       | 64%       | **58%**       | 54%       |
+| aware    | Games ≥60%  | 29%       | 77%       | **61%**       | 44%       |
+| aware    | W/D/L       | 10/128/62 | 18/144/38 | **20/130/50** | 8/129/63  |
+| reckless | Presence    | 70%       | 81%       | **74%**       | 68%       |
+| reckless | Complaints  | 27%       | 48%       | **38%**       | 30%       |
+| reckless | Plots       | 7         | 13        | **7**         | 12        |
+
+**v6 ships gap 4.** It keeps most of the gain (aware 68% against Normal, and
+85–86% of Normal games reach 60%), each side's request rate falls to about
+one per 8–10 plies, and the computer's results move most of the way back
+toward main (the `engine` style's 81 wins are within the spread the gap-5
+row shows, 73 wins but 86 losses, so the matchup is noisy at this sample
+size). Gap 5 gives back almost all of the gain against careful play (aware
+59% Normal, 54% Easy). The one miss at gap 4 is `aware` against Easy, at
+58% overall presence, though 61% of its games individually reach 60%.
+Regicides stay 0 at every gap.
 
 ## Reproduce
 

@@ -261,12 +261,14 @@ export const V6_CONFIG: RuleConfig = Object.freeze({
     // game, and measured as a net loss on reckless/Normal, not a gain).
     personalWindow: 4,
     petitionWindow: 5,
-    // Each side keeps its own request clock (sideGap: 3 own turns, i.e. 6
+    // Each side keeps its own request clock (sideGap: 4 own turns, i.e. 8
     // plies) instead of both sides sharing one 6-ply clock, where the
     // computer's requests often took the only slot and the player's pieces
-    // spoke about once every 12 plies (docs/v6-playtest, "Per-side cadence").
+    // spoke about once every 12 plies. A 3-turn gap doubled the request rate
+    // and weakened the computer (docs/v6-playtest, "Per-side cadence").
     cadence: 0,
     minimumGap: 0,
+    sideGap: 4,
     strainFear: 18,
     strainDangerTurns: 1,
     withdrawalFear: 18,
