@@ -1,7 +1,7 @@
 import { applyMove } from "../lib/chess";
 import { getAllLegalMoves } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
-import { evaluateBoard } from "../lib/ai";
+import { evaluateBoard } from "../lib/ai/evaluate";
 import { assessOrder } from "../lib/rpg/facts";
 import { exchangeLoss, locations, opposite } from "../lib/rpg/context";
 import { nextRights, positionKey } from "../lib/chessRules";

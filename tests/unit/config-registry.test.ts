@@ -21,7 +21,7 @@ const PINS = {
   count: 19,
   // Moves whenever any registered config's values change, including a
   // deliberate v6 tuning change (see docs/v6-playtest/results.md).
-  hash: "01b3bd3087516b17",
+  hash: "f7d7af79318351b6",
 };
 
 it("the registered config count and every value are unchanged", () => {

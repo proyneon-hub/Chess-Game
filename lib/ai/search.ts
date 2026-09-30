@@ -9,7 +9,6 @@ import {
   type ChessRights,
   type Side,
   applyMove,
-  freshRights,
   hasAnyLegalMoves,
   isInCheck,
 } from "@/lib/chess";
@@ -255,12 +254,3 @@ export function searchMoves(
     elapsedMs: performance.now() - start,
   };
 }
-export const getBestMoves = (board: Board, side: Side, depth: number) =>
-  searchMoves({
-    board,
-    side,
-    rights: freshRights(false),
-    depth,
-    budgetMs: depth > 2 ? 1000 : 250,
-    own: null,
-  }).moves;

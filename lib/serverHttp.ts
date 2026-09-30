@@ -7,7 +7,7 @@ import {
   getGuestSession,
   persistGuestSession,
 } from "@/lib/session";
-export function sameOrigin(request: Request) {
+function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   return (
     !!origin &&
@@ -15,7 +15,7 @@ export function sameOrigin(request: Request) {
     request.headers.get("sec-fetch-site") !== "cross-site"
   );
 }
-export async function readBody(request: Request, max = 1024): Promise<unknown> {
+async function readBody(request: Request, max = 1024): Promise<unknown> {
   if (Number(request.headers.get("content-length")) > max)
     throw Error("Invalid request.");
   if (!request.headers.get("content-type")?.startsWith("application/json"))
@@ -53,7 +53,7 @@ export const noStore = (body: unknown, status = 200) =>
   });
 // Deployed requests arrive over HTTPS (possibly via a proxy); local `next
 // start` uses HTTP even though NODE_ENV is production.
-export const isSecureRequest = (request: Request) =>
+const isSecureRequest = (request: Request) =>
   new URL(request.url).protocol === "https:" ||
   request.headers.get("x-forwarded-proto") === "https";
 /**
@@ -122,7 +122,7 @@ const failure = (error: unknown) =>
  * Maps a failure to its public response and logs one structured line. Only
  * request metadata and the error are logged: never cookies, bodies or state.
  */
-export function genericError(
+function genericError(
   error: unknown,
   context?: { requestId: string; request: Request },
 ) {

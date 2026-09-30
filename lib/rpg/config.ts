@@ -168,7 +168,6 @@ export const READABLE_CANDIDATES: readonly RuleConfig[] =
 export const ENCOUNTER_RULES = Object.freeze({
   firstPly: 10,
   cadence: 6,
-  hardDue: 8,
   minimumGap: 4,
   sideGap: 3,
   // Own turns between a side's requests from encounter phase 5 (ply 65) on.
