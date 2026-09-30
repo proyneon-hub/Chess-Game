@@ -499,3 +499,47 @@ Regicides stay 0 at every gap.
 npm run playtest -- --games 200 --json true
 npm run playtest -- --games 200 --difficulty easy --json true
 ```
+
+---
+
+# Late-game pacing (`lateSideGap`, v6 only)
+
+After per-side cadence, `aware` against Easy was the one target row still
+short (58%). Those games are long and drawn (median 120 plies). Presence
+and the director's state by ply (60 games, `aware` vs Easy):
+
+| Plies  | Presence | What holds the director back                                                          |
+| ------ | -------- | ------------------------------------------------------------------------------------- |
+| 11–30  | 91%      | Side cooldown and occupied slots (working as intended)                                |
+| 31–60  | 80%      | Side cooldown                                                                         |
+| 61–100 | 58%      | Mostly side cooldown (53% White / 36% Black); some no candidate                       |
+| 101+   | 27%      | Mostly **no candidate**: a bare king (40% of Black's plies) or no feasible response   |
+
+A shorter gap can only help plies 61–100; past ply 100 there is usually
+nothing left to ask.
+
+`ENCOUNTER_RULES` gains `lateSideGap`, the own turns between a side's
+requests from encounter phase 5 (ply 65) on. Its base value equals `sideGap`
+(3), so v5 and older configs are unchanged (their replay pins don't move).
+v6 keeps `sideGap: 4` and sets `lateSideGap: 3`.
+
+## Results (200 games per style, seeds 7000–7199)
+
+| Opponent | Style    | Metric             | Before (gap 4 throughout) | **Late gap 3** | Late gap 2    |
+| -------- | -------- | ------------------ | ------------------------- | -------------- | ------------- |
+| Easy     | aware    | Presence           | 58%                       | **62%**        | 64%           |
+| Easy     | aware    | Games ≥60%         | 61%                       | **72%**        | 74%           |
+| Easy     | reckless | Presence           | 74%                       | **77%**        | 78%           |
+| Normal   | aware    | Presence           | 68%                       | **68%**        | 69%           |
+| Normal   | reckless | Presence           | 68%                       | **68%**        | 69%           |
+| Normal   | engine   | Presence           | 76%                       | **79%**        | 81%           |
+| Normal   | engine   | W/D/L              | 81/60/59                  | **95/36/69**   | 95/35/70      |
+| Normal   | engine   | Requests/game W\|B | 12.82\|12.81              | 13.72\|13.99   | 16.89\|16.65  |
+
+**v6 ships late gap 3.** Every target row now clears 60%: `aware` 68%/62%,
+`reckless` 68%/77% (Normal/Easy). `aware` and `reckless` games against
+Normal mostly end before ply 65, so they barely move. The `engine` style's
+games trade draws for decisive results on both sides (+14 wins, +10
+losses), which reads as fewer repetition draws rather than a weaker
+computer. Late gap 2 adds two points at the cost of ~3 more requests per
+side per long game. Regicides stay 0.

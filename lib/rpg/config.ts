@@ -171,6 +171,9 @@ export const ENCOUNTER_RULES = Object.freeze({
   hardDue: 8,
   minimumGap: 4,
   sideGap: 3,
+  // Own turns between a side's requests from encounter phase 5 (ply 65) on.
+  // Equal to sideGap, it changes nothing; v6 shortens it for long games.
+  lateSideGap: 3,
   subjectGap: 6,
   personalWindow: 3,
   petitionWindow: 4,
@@ -269,6 +272,10 @@ export const V6_CONFIG: RuleConfig = Object.freeze({
     cadence: 0,
     minimumGap: 0,
     sideGap: 4,
+    // Long games thin out after ply 60 while the gap, not a lack of
+    // requests, still holds most sides back (docs/v6-playtest, "Late-game
+    // pacing").
+    lateSideGap: 3,
     strainFear: 18,
     strainDangerTurns: 1,
     withdrawalFear: 18,
