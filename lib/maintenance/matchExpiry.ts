@@ -1,11 +1,11 @@
-import type { Collection, Document } from "mongodb";
+import type { mongo } from "mongoose";
+
+type Collection = mongo.Collection<mongo.Document>;
 
 // Checks the TTL index actually exists (not just that the field is declared
 // in the schema): without it, backfilling expiresAt would silently do
 // nothing, since nothing would ever delete the dated documents.
-export async function hasTtlIndex(
-  collection: Collection<Document>,
-): Promise<boolean> {
+export async function hasTtlIndex(collection: Collection): Promise<boolean> {
   const indexes = await collection.indexes();
   return indexes.some(
     (idx) => idx.key?.expiresAt === 1 && idx.expireAfterSeconds === 0,
@@ -30,7 +30,7 @@ export type MatchReport = {
 };
 
 export async function reportMatches(
-  collection: Collection<Document>,
+  collection: Collection,
 ): Promise<MatchReport> {
   const [total, missingExpiry, legacy, configAgg, schemaAgg] =
     await Promise.all([
@@ -66,7 +66,7 @@ export async function reportMatches(
 // already-dated match's expiry is never extended by a later run - safe to
 // re-run with a new date, and a second run always reports 0 modified.
 export async function backfillExpiry(
-  collection: Collection<Document>,
+  collection: Collection,
   expiresAt: Date,
 ): Promise<number> {
   const result = await collection.updateMany(
