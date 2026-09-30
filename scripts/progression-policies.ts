@@ -1,7 +1,7 @@
 import { applyMove, isInCheck } from "../lib/chess";
 import { getAllLegalMoves } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
-import { evaluateBoard } from "../lib/ai";
+import { evaluateBoard } from "../lib/ai/evaluate";
 import {
   attackers,
   exchangeLoss,
@@ -17,12 +17,6 @@ import {
 import { progression } from "../lib/rpg/pressure";
 import { assessOrder } from "../lib/rpg/facts";
 import { draw, type RngState } from "../lib/rpg/rng";
-export const ordinaryPolicies = [
-  "neutral",
-  "protective",
-  "coercive",
-  "ambition",
-];
 export function pressureChoice(
   s: GameState,
   rng: RngState,

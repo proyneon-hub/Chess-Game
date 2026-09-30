@@ -6,7 +6,7 @@ import type { LocalHistory } from "@/lib/game/undo";
 // be missing, full, or blocked, so every access is guarded and a failure
 // simply means the game is not kept. This module stays free of the rules
 // engine; validating a saved game (loadLocalGame) lives in lib/localEngine.
-export const LOCAL_SAVE_KEY = "chess:local-game:v1";
+const LOCAL_SAVE_KEY = "chess:local-game:v1";
 export type LocalSave = {
   mode: "local" | "computer";
   difficulty: Difficulty;

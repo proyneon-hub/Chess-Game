@@ -51,7 +51,7 @@ import { ambientFlavor } from "@/lib/rpg/observations";
 import { agency } from "@/lib/rpg/agency";
 import { scheduleCourt } from "@/lib/rpg/conspiracy";
 import { finish, sameIntention } from "@/lib/game/core";
-export { finish, sameIntention } from "@/lib/game/core";
+export { sameIntention } from "@/lib/game/core";
 export type {
   GameState,
   MoveAttempt,
@@ -99,7 +99,7 @@ export const createGameState = (
     lastAction: null,
   } as GameState;
 };
-export const normalizeIntention = (s: GameState, m: Intention): Intention => ({
+const normalizeIntention = (s: GameState, m: Intention): Intention => ({
   from: [...m.from],
   to: [...m.to],
   ...(s.board[m.from[0]][m.from[1]]?.toLowerCase() === "p" &&

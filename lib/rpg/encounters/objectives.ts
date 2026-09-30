@@ -62,7 +62,7 @@ export function lossOf(s: GameState, id: string): number {
     ? exchangeLoss(s.board, sq, s.simulation!.subjects[id].side)
     : Infinity;
 }
-export function developing(s: GameState, id: string, to: Square): boolean {
+function developing(s: GameState, id: string, to: Square): boolean {
   const sub = s.simulation!.subjects[id];
   const home = sub.side === "white" ? 7 : 0;
   return sub.currentKind === "p"

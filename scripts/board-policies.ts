@@ -2,7 +2,7 @@ import { applyMove, sameSquare } from "../lib/chess";
 import type { PublicGame } from "../lib/game/publicState";
 import { getAllLegalMoves } from "../lib/game";
 import type { GameState, MoveAttempt } from "../lib/game/types";
-import { evaluateBoard } from "../lib/ai";
+import { evaluateBoard } from "../lib/ai/evaluate";
 import { exchangeLoss, opposite } from "../lib/rpg/context";
 import { nextRights, positionKey } from "../lib/chessRules";
 import { draw, type RngState } from "../lib/rpg/rng";

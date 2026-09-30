@@ -5,7 +5,7 @@ import { createGameState, getAllLegalMoves, submitMove } from "../lib/game";
 import { publicState } from "../lib/game/publicState";
 import { validateState } from "../lib/game/validation";
 import { seedRng, draw } from "../lib/rpg/rng";
-import { evaluateBoard } from "../lib/ai";
+import { evaluateBoard } from "../lib/ai/evaluate";
 import { searchMoves } from "../lib/ai/search";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
 import { exchangeLoss } from "../lib/rpg/context";

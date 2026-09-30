@@ -48,7 +48,7 @@ export async function tooManyOpenInvites(playerId: string) {
 }
 const playerSide = (m: StoredMatch, id: string): Side | null =>
   m.whitePlayerId === id ? "white" : m.blackPlayerId === id ? "black" : null;
-export const publicMatch = (m: StoredMatch, id: string): PublicMatch => ({
+const publicMatch = (m: StoredMatch, id: string): PublicMatch => ({
   id: m.inviteId,
   playerSide: playerSide(m, id),
   waitingForOpponent: !m.blackPlayerId,
@@ -113,7 +113,7 @@ export async function joinServerMatch(inviteId: string, playerId: string) {
 // Canonical JSON hash is independent of key order. Promotion normalization is
 // based on the submitted shape: omitted promotion and q are equivalent, while
 // no other request fields (including expected revision) may change on retry.
-export const requestHash = (m: ActionRequest) =>
+const requestHash = (m: ActionRequest) =>
   createHash("sha256")
     .update(
       JSON.stringify(
