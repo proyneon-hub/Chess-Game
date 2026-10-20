@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
+import { readArchived } from "./archived";
 import { join } from "node:path";
 import { V3_CONFIG as CONFIG } from "../lib/rpg/config";
 import type {
@@ -46,7 +47,7 @@ for (const name of [
   "holdout-pressure-6",
 ]) {
   const s: Report = JSON.parse(
-    readFileSync(join("docs/progression", name, "raw.json"), "utf8"),
+    readArchived(join("docs/progression", name, "raw.json")),
   );
   check(
     `${name}: selected rules`,
@@ -180,13 +181,10 @@ for (const name of [
   }
 }
 const archived = JSON.parse(
-  readFileSync("docs/progression/baseline-committed/seeded-games.json", "utf8"),
+  readArchived("docs/progression/baseline-committed/seeded-games.json"),
 );
 const reproduced = JSON.parse(
-  readFileSync(
-    "docs/progression/baseline-post-refactor/seeded-games.json",
-    "utf8",
-  ),
+  readArchived("docs/progression/baseline-post-refactor/seeded-games.json"),
 );
 check(
   "1000 historical v2 trajectories identical",

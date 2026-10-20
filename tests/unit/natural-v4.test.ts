@@ -4,7 +4,7 @@ import { createGameState, submitMove } from "@/lib/game";
 import type { MoveAttempt } from "@/lib/game/types";
 import { validateState } from "@/lib/game/validation";
 const report = JSON.parse(
-  readFileSync("docs/readable-politics/natural-replay-110456/raw.json", "utf8"),
+  readFileSync("tests/goldens/natural-replay-v4.json", "utf8"),
 ) as {
   configVersion: string;
   results: {
