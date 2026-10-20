@@ -61,6 +61,10 @@ test("dropped move response retries the same intent exactly once", async ({
   await expect(
     page.getByRole("button", { name: "Retry connection" }),
   ).toBeVisible();
+  // The browser's own network error text is never shown.
+  await expect(
+    page.getByText("Connection interrupted. Retry the same move."),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Retry connection" }).click();
   await expect(
     page.getByRole("button", { name: "Retry connection" }),
@@ -70,6 +74,54 @@ test("dropped move response retries the same intent exactly once", async ({
   const m = await (await page.request.get(`/api/matches/${id}`)).json();
   expect(m.state.moves).toHaveLength(1);
   expect(m.version).toBe(3);
+  await context.close();
+});
+test("a gateway error page offers a retry with a readable message", async ({
+  page,
+}) => {
+  const { id, context } = await joined(page);
+  let first = true;
+  await page.route(`**/api/matches/${id}`, async (route) => {
+    if (route.request().method() === "POST" && first) {
+      first = false;
+      await route.fulfill({
+        status: 502,
+        contentType: "text/html",
+        body: "<!DOCTYPE html><title>Bad gateway</title>",
+      });
+    } else await route.continue();
+  });
+  await page.locator('[data-square="e2"]').click();
+  await page.locator('[data-square="e4"]').dblclick();
+  await expect(
+    page.getByText("Connection interrupted. Retry the same move."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Retry connection" }).click();
+  await expect(
+    page.getByRole("button", { name: "Retry connection" }),
+  ).toHaveCount(0);
+  const m = await (await page.request.get(`/api/matches/${id}`)).json();
+  expect(m.state.moves).toHaveLength(1);
+  await context.close();
+});
+test("an expired match stops polling and says so", async ({ page }) => {
+  const { id, context } = await joined(page);
+  let polls = 0;
+  await page.route(`**/api/matches/${id}`, async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    polls++;
+    await route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Match not found." }),
+    });
+  });
+  await expect(
+    page.getByText("This match is no longer available."),
+  ).toBeVisible();
+  const seen = polls;
+  await page.waitForTimeout(3500);
+  expect(polls).toBe(seen);
   await context.close();
 });
 test("armed warning survives reconnect and keyboard promotion remains ordinary", async ({

@@ -17,6 +17,12 @@ export const newerMatch = (
 ) =>
   incoming.id === id &&
   (!current || current.id !== id || incoming.version > current.version);
+// Errors carrying a message meant for the player. Anything else (a network
+// failure, a proxy's HTML error page) is shown as the caller's fallback.
+class MatchError extends Error {}
+const messageOf = (e: unknown, fallback: string) =>
+  e instanceof MatchError ? e.message : fallback;
+const POLL_MS = 1500;
 export function useOnlineMatch() {
   const [remote, setRemote] = useState<PublicMatch | null>(null),
     [busy, setBusy] = useState(false),
@@ -69,7 +75,11 @@ export function useOnlineMatch() {
                 : undefined,
           body: body === undefined ? undefined : JSON.stringify(body),
         });
-        const payload = response.status === 304 ? null : await response.json();
+        // A non-JSON body (such as a gateway error page) reads as empty.
+        const payload =
+          response.status === 304
+            ? null
+            : await response.json().catch(() => ({}));
         return { response, payload };
       } finally {
         controllers.current.delete(controller);
@@ -89,8 +99,8 @@ export function useOnlineMatch() {
           id ? undefined : {},
         );
         if (epoch !== generation.current) return;
-        if (!response.ok)
-          throw Error(payload.error ?? "Unable to open the match.");
+        if (!response.ok || !payload.id)
+          throw new MatchError(payload.error ?? "Unable to open the match.");
         active.current = payload.id;
         receive(payload);
         const url = new URL(location.href);
@@ -98,9 +108,7 @@ export function useOnlineMatch() {
         history.replaceState({}, "", url);
       } catch (e) {
         if (epoch === generation.current)
-          setError(
-            e instanceof Error ? e.message : "Unable to open the match.",
-          );
+          setError(messageOf(e, "Unable to open the match."));
       } finally {
         if (epoch === generation.current) setBusy(false);
       }
@@ -112,9 +120,15 @@ export function useOnlineMatch() {
     const id = remote.id,
       epoch = generation.current;
     let timer: ReturnType<typeof setTimeout>;
-    let cancelled = false;
+    let cancelled = false,
+      polling = false;
     const poll = async () => {
+      if (polling) return;
+      polling = true;
+      let stop = false;
       try {
+        // Background tabs skip the request; the board refreshes on return.
+        if (document.visibilityState === "hidden") return;
         // Unchanged matches answer 304 with no body.
         const { response, payload } = await request(
           `/api/matches/${id}`,
@@ -122,18 +136,30 @@ export function useOnlineMatch() {
           undefined,
           latest.current?.id === id ? latest.current.version : undefined,
         );
-        if (response.ok && !cancelled && epoch === generation.current)
-          receive(payload);
+        if (cancelled || epoch !== generation.current) return;
+        if (response.status === 404) {
+          // Expired or removed: polling again cannot bring it back.
+          stop = true;
+          setError("This match is no longer available.");
+        } else if (response.ok) receive(payload);
       } catch {
         /* Next serialized poll recovers. */
       } finally {
-        if (!cancelled) timer = setTimeout(poll, 1500);
+        polling = false;
+        if (!cancelled && !stop) timer = setTimeout(poll, POLL_MS);
       }
     };
-    timer = setTimeout(poll, 1500);
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || polling) return;
+      clearTimeout(timer);
+      void poll();
+    };
+    timer = setTimeout(poll, POLL_MS);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [remote?.id, receive, request]);
   useEffect(
@@ -174,7 +200,7 @@ export function useOnlineMatch() {
         if (payload.id) receive(payload);
         // A received response settles this transport intent, including conflicts.
         if (response.status >= 500)
-          throw Error(
+          throw new MatchError(
             payload.error ?? "Connection interrupted. Retry the same move.",
           );
         pending.current = null;
@@ -185,9 +211,7 @@ export function useOnlineMatch() {
         if (epoch === generation.current) {
           setRetryable(true);
           setError(
-            e instanceof Error
-              ? e.message
-              : "Connection interrupted. Retry the same move.",
+            messageOf(e, "Connection interrupted. Retry the same move."),
           );
         }
       } finally {
@@ -211,12 +235,13 @@ export function useOnlineMatch() {
         {},
       );
       if (epoch !== generation.current) return;
-      if (!response.ok) throw Error(payload.error ?? "Unable to join.");
+      if (!response.ok)
+        throw new MatchError(payload.error ?? "Unable to join.");
       receive(payload);
       setError("");
     } catch (e) {
       if (epoch === generation.current)
-        setError(e instanceof Error ? e.message : "Unable to join.");
+        setError(messageOf(e, "Unable to join."));
     } finally {
       if (epoch === generation.current) {
         inFlight.current = false;
