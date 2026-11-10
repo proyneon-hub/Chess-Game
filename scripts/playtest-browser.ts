@@ -3,7 +3,7 @@
 // each of the player's turns, then compares that with the saved game state.
 // Needs the production build running: `npm run build && npx next start -p 3100`.
 //
-//   npx tsx scripts/playtest-browser.ts --games 6 --shots <dir>
+//   npx tsx scripts/playtest-browser.ts --games 6 [--first 0] [--shots <dir>]
 import { chromium, type Page } from "@playwright/test";
 import { squareName } from "../lib/chess";
 import { createGameState } from "../lib/game";
@@ -16,6 +16,7 @@ const flags: Record<string, string> = {};
 for (let i = 2; i < process.argv.length; i += 2)
   flags[process.argv[i]] = process.argv[i + 1];
 const games = Number(flags["--games"] ?? 6),
+  first = Number(flags["--first"] ?? 0),
   shots = flags["--shots"] ?? null,
   base = flags["--url"] ?? "http://localhost:3100",
   cap = 200,
@@ -57,8 +58,6 @@ const screen = (page: Page) =>
 async function playGame(page: Page, index: number) {
   const level = LEVELS[index % LEVELS.length],
     rng = seedRng(9000 + index);
-  await page.goto(base);
-  await page.evaluate(() => localStorage.clear());
   await page.goto(base);
   await page.getByLabel("Difficulty").selectOption(level);
   await page.getByRole("button", { name: /Play computer/ }).click();
@@ -163,6 +162,7 @@ async function playGame(page: Page, index: number) {
   row.distinctCardTexts = cardTexts.size;
   const counters = game?.simulation?.counters ?? {};
   for (const k of [
+    "eligibleCommands",
     "encounterOffers",
     "encounter:fulfilled",
     "encounter:expired",
@@ -180,11 +180,14 @@ async function playGame(page: Page, index: number) {
 
 async function main() {
   const browser = await chromium.launch();
-  const page = await browser.newPage({
-    viewport: { width: 1280, height: 900 },
-  });
-  for (let i = 0; i < games; i++)
-    console.log(JSON.stringify(await playGame(page, i)));
+  for (let i = first; i < first + games; i++) {
+    // A fresh context per game, so no saved game carries over.
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 900 },
+    });
+    console.log(JSON.stringify(await playGame(await context.newPage(), i)));
+    await context.close();
+  }
   await browser.close();
 }
 void main();
