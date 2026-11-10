@@ -8,8 +8,8 @@ Chess for local pass-and-play, computer opponents, and private online invites, p
 
 - Each piece shows an HP bar on the board. Select a piece to see its HP, attack and defence, and its chance to defeat each enemy it can reach.
 - Moving onto an enemy piece starts a battle. Both sides roll a six-sided die; the attacker adds its attack and the defender its defence.
-- If the attack total is at least the defence total, the defender loses the difference in HP (at least 1). At 0 HP it is defeated and the attacker takes the square. A defender that survives keeps its square, and the attacker stays where it was.
-- Otherwise the attack is repelled and the attacker loses 1 HP. A piece that drops to 0 HP this way is removed.
+- If the attack total beats the defence total, the defender loses the difference in HP (at least 3). At 0 HP it is defeated and the attacker takes the square. A defender that survives keeps its square, and the attacker stays where it was.
+- Otherwise, including on a tie, the attack is repelled and the attacker loses 1 HP. A piece that drops to 0 HP this way is removed.
 - Damage is permanent. A promoted pawn becomes a full-strength piece.
 - There is no check or checkmate. Kings can move into danger and can be attacked; the game ends when a king reaches 0 HP.
 
@@ -49,7 +49,7 @@ Open [localhost:3000](http://localhost:3000). Local and computer games need no d
 ## Play
 
 - **Play here:** two players, one board, with Undo for up to 20 completed turns.
-- **Play computer:** White against a worker-based opponent. Easy searches depth 1 / 150 ms and plays any move within 0.8 pawns of its best; Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
+- **Play computer:** White against a worker-based opponent. In Battle Chess, Easy searches depth 1 and plays any move within 0.8 pawns of its best; Normal searches depth 3; Advanced searches depth 5 within about 1.5 s. Older games use depth 1, 2 and 4. These are soft search budgets.
 - **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity; it renews with activity and expires after 30 days without a visit, like inactive matches.
 - Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
 - A battle always uses the turn, whether it is won or repelled. Undo restores the position before it, and the same attack then rolls the same dice, so Undo cannot be used to re-roll.
@@ -60,7 +60,7 @@ Battle Chess keeps castling (allowed even while the king is attacked), en passan
 
 ## Developer rule notes
 
-New games use schema 7, `battle-v1` (configuration `2026-11-10.1`): the reducer in `lib/battle/resolve.ts`, movement without check in `lib/battle/moves.ts`, the stat table and dice odds in `lib/battle/stats.ts`, and a separate chance-node search in `lib/battle/search.ts`. A battle game has no hidden simulation; its stats and last battle are public, and only piece ids and the dice state stay private. `npx tsx scripts/battle-balance.ts` measures battle frequency with the computer playing itself.
+New games use schema 7, `battle-v1` (configuration `2026-11-10.2`; games begun on `2026-11-10.1` keep that first stat table): the reducer in `lib/battle/resolve.ts`, movement without check in `lib/battle/moves.ts`, the stat table and dice odds in `lib/battle/stats.ts`, and a separate chance-node search in `lib/battle/search.ts`. A battle game has no hidden simulation; its stats and last battle are public, and only piece ids and the dice state stay private. `npx tsx scripts/battle-balance.ts` measures battle frequency with the computer playing itself.
 
 The previous default was schema 6, `hidden-kingdom-v6` (configuration `2026-09-23.1`): ignored requests leave pieces restless, rook pawns are not asked to act, visibly shaken pieces may withdraw when sent back into danger, a harsh court's accumulated harm can raise a complaint that, renewed, becomes a warned conspiracy, and an otherwise quiet turn may carry a brief line about a piece settling or growing tense. See [the playtest results](docs/v6-playtest/results.md). Saved `2026-09-10.1` and `2026-09-22.1` games keep their generation-5 rules. Existing legacy, v2, v3 and v4 saves retain their recorded rules and behavior. What each generation does differently is named in `lib/rpg/capabilities.ts`; a row must never change once saves exist, so new behavior needs a new generation. `tests/unit/replay-fingerprint.test.ts` pins seeded replays across v2–v5, so refactors must leave its hashes unchanged. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
 

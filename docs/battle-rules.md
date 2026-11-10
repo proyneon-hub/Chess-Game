@@ -1,7 +1,8 @@
 # Battle Chess rules (`battle-v1`, schema 7)
 
-New games use configuration `2026-11-10.1`. Games started under Hidden Kingdom
-(schemas 1–6) keep the rules they began with.
+New games use configuration `2026-11-10.2`. Games begun on the first table,
+`2026-11-10.1`, keep it (see "Retuning" below), and games started under
+Hidden Kingdom (schemas 1–6) keep the rules they began with.
 
 ## Why
 
@@ -20,20 +21,21 @@ unmoved king and rook with empty squares between them, nothing more.
 
 | Piece  | HP  | Attack | Defence |
 | ------ | --- | ------ | ------- |
-| Pawn   | 3   | 2      | 1       |
-| Knight | 5   | 4      | 2       |
-| Bishop | 5   | 4      | 2       |
-| Rook   | 7   | 5      | 3       |
-| Queen  | 9   | 6      | 3       |
-| King   | 14  | 4      | 4       |
+| Pawn   | 3   | 3      | 1       |
+| Knight | 5   | 5      | 2       |
+| Bishop | 5   | 5      | 2       |
+| Rook   | 7   | 6      | 3       |
+| Queen  | 9   | 7      | 3       |
+| King   | 16  | 5      | 4       |
 
 **Battle.** Moving onto an enemy piece starts a battle. Each side rolls one
 six-sided die.
 
 - Attack total = roll + Attack. Defence total = roll + Defence.
-- Attack total at least the defence total: the defender loses the difference
-  in HP, and at least 1.
-- Otherwise the attack is repelled and the attacker loses 1 HP.
+- Attack total higher than the defence total: the defender loses the
+  difference in HP, and at least 3.
+- Otherwise, including on equal totals, the attack is repelled and the
+  attacker loses 1 HP.
 - A defender at 0 HP is removed and the attacker takes its square.
 - A defender that survives keeps its square; the attacker stays where it was.
 - An attacker repelled at 1 HP is removed.
