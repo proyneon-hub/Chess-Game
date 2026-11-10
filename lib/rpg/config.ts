@@ -1,5 +1,9 @@
 import { tuningCandidates, readableCandidates } from "./historicalConfigs";
-import { BATTLE_RULES, type BattleRules } from "@/lib/battle/stats";
+import {
+  BATTLE_RULES,
+  BATTLE_RULES_1,
+  type BattleRules,
+} from "@/lib/battle/stats";
 // Immutable registry: never alter this entry for an active saved match. Add a
 // new configVersion when balance changes. Values are original design defaults.
 const ORIGINAL = Object.freeze({
@@ -294,9 +298,16 @@ export const V6_CONFIG: RuleConfig = Object.freeze({
 // Generation 7, Battle Chess (docs/battle-rules.md): no hidden politics. Every
 // capture is a visible dice battle and a king is defeated, not checkmated.
 // Only the shared limits (undo, receipts) are read from the inherited keys.
-export const BATTLE_CONFIG: RuleConfig = Object.freeze({
+export const BATTLE_CONFIG_1: RuleConfig = Object.freeze({
   ...ORIGINAL,
   version: "2026-11-10.1",
+  generation: 7,
+  battle: BATTLE_RULES_1,
+});
+// The retuned table. Games begun on 2026-11-10.1 keep the table above.
+export const BATTLE_CONFIG: RuleConfig = Object.freeze({
+  ...ORIGINAL,
+  version: "2026-11-10.2",
   generation: 7,
   battle: BATTLE_RULES,
 });
@@ -318,6 +329,7 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [CONFIG.version]: CONFIG,
   [PLAYTEST_CONFIG.version]: PLAYTEST_CONFIG,
   [V6_CONFIG.version]: V6_CONFIG,
+  [BATTLE_CONFIG_1.version]: BATTLE_CONFIG_1,
   [BATTLE_CONFIG.version]: BATTLE_CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });

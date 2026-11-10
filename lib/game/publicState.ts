@@ -4,6 +4,8 @@ import type { GameState, Intention, PublicEvent, Side } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
 import { positionKey } from "@/lib/chessRules";
 import { unitGrid } from "@/lib/battle/resolve";
+import { BATTLE_RULES } from "@/lib/battle/stats";
+import { configFor } from "@/lib/rpg/config";
 const square = (s: Square | null): Square | null => (s ? [s[0], s[1]] : null);
 const intention = (m: Intention | null): Intention | null =>
   m
@@ -13,6 +15,16 @@ const intention = (m: Intention | null): Intention | null =>
         ...(m.promotion ? { promotion: m.promotion } : {}),
       }
     : null;
+/** The game's own dice rules, so the browser shows this game's odds. */
+const dice = (s: GameState) => {
+  const r = configFor(s.configVersion)?.battle ?? BATTLE_RULES;
+  return {
+    die: r.die,
+    repel: r.repel,
+    minDamage: r.minDamage ?? 1,
+    defenderWinsTies: r.defenderWinsTies ?? false,
+  };
+};
 export function publicState(s: GameState) {
   // Every nested record is allowlisted too. Future private fields stay private.
   return {
@@ -21,6 +33,7 @@ export function publicState(s: GameState) {
     ...(s.battle
       ? {
           rules: "battle" as const,
+          dice: dice(s),
           units: unitGrid(s),
           battle: s.battle.last
             ? {

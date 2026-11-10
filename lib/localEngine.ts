@@ -12,6 +12,7 @@ export { publicState } from "@/lib/game/publicState";
 export { refusalFallback } from "@/lib/ai/restraint";
 export { ownPolitics } from "@/lib/ai/politicalEvaluation";
 export { unitGrid } from "@/lib/battle/resolve";
+export { rulesFor } from "@/lib/rpg/config";
 
 /** Returns a saved game only if every stored state validates. */
 export function loadLocalGame(): LocalSave | null {

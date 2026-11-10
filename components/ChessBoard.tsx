@@ -419,13 +419,17 @@ export default function ChessBoard() {
               select. Choose a piece when promoting a pawn. Games here are kept
               in this browser if you reload.
             </p>
-            {visible.rules === "battle" && (
+            {visible.dice && (
               <p className="mt-2">
                 Moving onto an enemy piece starts a battle. Both pieces roll a
                 six-sided die: the attacker adds its attack, the defender its
-                defence. If the attack total is at least the defence total, the
-                defender loses the difference in HP (at least 1) and is defeated
-                at 0. Otherwise the attack is repelled and the attacker loses 1
+                defence.{" "}
+                {visible.dice.defenderWinsTies
+                  ? "If the attack total beats the defence total,"
+                  : "If the attack total is at least the defence total,"}{" "}
+                the defender loses the difference in HP (at least{" "}
+                {visible.dice.minDamage}) and is defeated at 0. Otherwise the
+                attack is repelled and the attacker loses {visible.dice.repel}{" "}
                 HP. A piece only takes the square when it defeats the defender.
                 There is no check: defeat the enemy king to win. Select a piece
                 to see its chance against each target.

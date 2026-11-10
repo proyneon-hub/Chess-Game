@@ -72,7 +72,7 @@ export function BattlePanel({
           const foe = t && game.board[t[0]][t[1]],
             foeUnit = t && units[t[0]][t[1]];
           return t && foe && foeUnit
-            ? [{ to, t, foe, foeUnit, o: odds(unit, foeUnit) }]
+            ? [{ to, t, foe, foeUnit, o: odds(unit, foeUnit, game.dice) }]
             : [];
         })
       : [];

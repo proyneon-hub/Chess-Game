@@ -314,7 +314,9 @@ export function Board({
                   }
                   chance={
                     attackerUnit && foeUnit
-                      ? Math.round(100 * odds(attackerUnit, foeUnit).defeat)
+                      ? Math.round(
+                          100 * odds(attackerUnit, foeUnit, game.dice).defeat,
+                        )
                       : null
                   }
                   key={`${r}-${c}`}

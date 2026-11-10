@@ -6,10 +6,20 @@ import { publicState } from "@/lib/game/publicState";
 import { recordTurn, undoTurn } from "@/lib/game/undo";
 import { validateState } from "@/lib/game/validation";
 import { initializePieceIds } from "@/lib/rpgChess";
-import { BATTLE_CONFIG, DEFAULT_CONFIG, V6_CONFIG } from "@/lib/rpg/config";
+import {
+  BATTLE_CONFIG,
+  BATTLE_CONFIG_1,
+  DEFAULT_CONFIG,
+  V6_CONFIG,
+} from "@/lib/rpg/config";
 import { initialUnits, unitGrid } from "@/lib/battle/resolve";
 import { searchBattle } from "@/lib/battle/search";
-import { BATTLE_RULES, freshUnit, odds } from "@/lib/battle/stats";
+import {
+  BATTLE_RULES,
+  BATTLE_RULES_1,
+  freshUnit,
+  odds,
+} from "@/lib/battle/stats";
 import { statusText } from "@/components/chess/statusText";
 
 /** A Battle Chess position with full-strength units and no castling. */
@@ -42,9 +52,19 @@ describe("battle odds", () => {
       rook = freshUnit("r");
     const o = odds(pawn, pawn);
     expect(o.defeat + o.wound + o.repel).toBeCloseTo(1);
-    // Pawn on pawn: totals differ by roll difference + 1; 3 damage defeats.
-    expect(o.defeat).toBeCloseTo(10 / 36);
+    // Pawn on pawn: the attacker is two ahead before the dice, ties go to
+    // the defender, and any hit deals at least a pawn's 3 HP.
+    expect(o.defeat).toBeCloseTo(26 / 36);
+    expect(o.wound).toBe(0);
     expect(o.repel).toBeCloseTo(10 / 36);
+    // The first table: hits on ties, for at least 1.
+    const old = odds(
+      freshUnit("p", BATTLE_RULES_1),
+      freshUnit("p", BATTLE_RULES_1),
+      BATTLE_RULES_1,
+    );
+    expect(old.defeat).toBeCloseTo(10 / 36);
+    expect(old.repel).toBeCloseTo(10 / 36);
     expect(o.fall).toBe(0);
     expect(odds({ ...pawn, hp: 1 }, rook).fall).toBeCloseTo(
       odds(pawn, rook).repel,
@@ -66,6 +86,48 @@ describe("battle resolution", () => {
     expect(() => validateState(structuredClone(s))).not.toThrow();
   });
 
+  it("a game begun on the first table keeps it", () => {
+    const s = createGameState(7, BATTLE_CONFIG_1.version);
+    expect(unitAt(s, [7, 4])).toMatchObject({ maxHp: 14, defence: 4 });
+    expect(unitAt(s, [6, 0]).attack).toBe(2);
+    expect(publicState(s).dice).toMatchObject({
+      minDamage: 1,
+      defenderWinsTies: false,
+    });
+    // An equal total still hits under the first table: 3+2 against 4+1.
+    let t = s;
+    for (const [from, to, side] of [
+      [[6, 4], [4, 4], "white"],
+      [[1, 3], [3, 3], "black"],
+    ] as const)
+      t = submitMove(t, { from: [...from], to: [...to], side }).state;
+    const tie = submitMove(
+      t,
+      { from: [4, 4], to: [3, 3], side: "white" },
+      { draw: rolls(3, 4) },
+    );
+    expect(tie.state.battle!.last).toMatchObject({
+      outcome: "wounded",
+      damage: 1,
+    });
+    expect(() => validateState(structuredClone(tie.state))).not.toThrow();
+  });
+
+  it("an equal total is repelled", () => {
+    const s = fixture([...KINGS, ["N", [4, 4]], ["r", [2, 3]]]);
+    const r = submitMove(
+      s,
+      { from: [4, 4], to: [2, 3], side: "white" },
+      { draw: rolls(1, 3) },
+    );
+    expect(r.state.battle!.last).toMatchObject({
+      outcome: "repelled",
+      attackTotal: 6,
+      defenceTotal: 6,
+    });
+    expect(unitAt(r.state, [4, 4]).hp).toBe(4);
+  });
+
   it("a defeated defender is removed and the attacker takes the square", () => {
     const s = fixture([...KINGS, ["N", [4, 4]], ["p", [2, 3]]]);
     const r = submitMove(
@@ -83,9 +145,9 @@ describe("battle resolution", () => {
     expect(Object.keys(r.state.battle!.units)).toHaveLength(3);
     expect(r.state.battle!.last).toMatchObject({
       outcome: "defeated",
-      attackTotal: 10,
+      attackTotal: 11,
       defenceTotal: 2,
-      damage: 8,
+      damage: 9,
       defenderHp: 0,
     });
     expect(r.state.sideToMove).toBe("black");
@@ -102,7 +164,8 @@ describe("battle resolution", () => {
     );
     expect(r.state.board[4][4]).toBe("N");
     expect(r.state.board[2][3]).toBe("r");
-    expect(unitAt(r.state, [2, 3]).hp).toBe(6);
+    // 1+5 against 1+3 is a difference of 2, raised to the minimum of 3.
+    expect(unitAt(r.state, [2, 3]).hp).toBe(4);
     expect(r.state.battle!.last!.outcome).toBe("wounded");
     expect([r.turnConsumed, r.state.sideToMove, r.state.ply]).toEqual([
       true,
@@ -289,10 +352,16 @@ describe("battle state outside the reducer", () => {
     const view = publicState(r.state);
     expect(view.rules).toBe("battle");
     expect(view.units![2][3]).toEqual({
-      hp: 5,
+      hp: 4,
       maxHp: 7,
-      attack: 5,
+      attack: 6,
       defence: 3,
+    });
+    expect(view.dice).toEqual({
+      die: 6,
+      repel: 1,
+      minDamage: 3,
+      defenderWinsTies: true,
     });
     expect(view.battle).toMatchObject({ attackRoll: 2, defenceRoll: 1 });
     const json = JSON.stringify(view);

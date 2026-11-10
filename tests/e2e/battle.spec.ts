@@ -35,25 +35,25 @@ test("pieces show HP, a selection shows odds, and a battle shows its dice", asyn
   await page.getByRole("button", { name: /Play here/ }).click();
   await expect(square(page, "e2")).toHaveAttribute(
     "aria-label",
-    /White pawn, 3 of 3 HP, attack 2, defence 1/,
+    /White pawn, 3 of 3 HP, attack 3, defence 1/,
   );
   const panel = page.getByRole("region", { name: "Battle" });
   await expect(
     panel.getByRole("meter", { name: "White king HP" }),
-  ).toHaveAttribute("aria-valuenow", "14");
+  ).toHaveAttribute("aria-valuenow", "16");
   await move(page, "e2", "e4");
   await move(page, "d7", "d5");
   await square(page, "e4").click();
   await expect(square(page, "d5")).toHaveAttribute(
     "aria-label",
-    /Black pawn, legal destination, .*28% to defeat/,
+    /Black pawn, legal destination, .*72% to defeat/,
   );
   await expect(panel).toContainText(
-    "Black pawn on d5 (3 HP): 28% defeat, 44% wound, 28% repelled; 1–6 damage.",
+    "Black pawn on d5 (3 HP): 72% defeat, 0% wound, 28% repelled; 3–7 damage.",
   );
   await square(page, "d5").click();
   await expect(panel).toContainText("White pawn attacks Black pawn on d5");
-  await expect(panel).toContainText(/Attack: rolled [1-6] \+ 2 = \d/);
+  await expect(panel).toContainText(/Attack: rolled [1-6] \+ 3 = \d/);
   await expect(panel).toContainText(
     /Defender (defeated|wounded)|Attack repelled/,
   );
@@ -111,7 +111,7 @@ test("defeating the king ends the game, on a phone-sized screen", async ({
   await expect(page.getByText("Your game has been restored.")).toBeVisible();
   await expect(square(page, "e8")).toHaveAttribute(
     "aria-label",
-    /Black king, 1 of 14 HP/,
+    /Black king, 1 of 16 HP/,
   );
   await move(page, "e7", "e8");
   await expect(page.getByText("Game Over", { exact: true })).toBeVisible();

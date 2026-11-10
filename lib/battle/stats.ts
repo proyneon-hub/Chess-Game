@@ -23,7 +23,13 @@ export type BattleRules = {
     Record<string, { hp: number; attack: number; defence: number }>
   >;
 };
-export const BATTLE_RULES: BattleRules = Object.freeze({
+/** What the dice need; a game's public state carries exactly this. */
+export type DiceRules = Pick<
+  BattleRules,
+  "die" | "repel" | "minDamage" | "defenderWinsTies"
+>;
+/** Configuration 2026-11-10.1: the first table, kept for games begun on it. */
+export const BATTLE_RULES_1: BattleRules = Object.freeze({
   die: 6,
   repel: 1,
   stats: Object.freeze({
@@ -33,6 +39,25 @@ export const BATTLE_RULES: BattleRules = Object.freeze({
     r: Object.freeze({ hp: 7, attack: 5, defence: 3 }),
     q: Object.freeze({ hp: 9, attack: 6, defence: 3 }),
     k: Object.freeze({ hp: 14, attack: 4, defence: 4 }),
+  }),
+});
+/**
+ * Configuration 2026-11-10.2 (docs/battle-rules.md, "Retuning"): harder
+ * hits and a sturdier king, so half of all battles defeat the defender while
+ * one attack in seven is still repelled.
+ */
+export const BATTLE_RULES: BattleRules = Object.freeze({
+  die: 6,
+  repel: 1,
+  minDamage: 3,
+  defenderWinsTies: true,
+  stats: Object.freeze({
+    p: Object.freeze({ hp: 3, attack: 3, defence: 1 }),
+    n: Object.freeze({ hp: 5, attack: 5, defence: 2 }),
+    b: Object.freeze({ hp: 5, attack: 5, defence: 2 }),
+    r: Object.freeze({ hp: 7, attack: 6, defence: 3 }),
+    q: Object.freeze({ hp: 9, attack: 7, defence: 3 }),
+    k: Object.freeze({ hp: 16, attack: 5, defence: 4 }),
   }),
 });
 export const freshUnit = (
@@ -50,16 +75,16 @@ export const freshUnit = (
   return { hp, maxHp: hp, attack: s.attack, defence: s.defence };
 };
 /**
- * One exchange. The attacker hits when its total at least matches the
- * defender's, for the difference (minimum 1); otherwise it is repelled and
- * takes `rules.repel` itself.
+ * One exchange. The attacker hits when its total beats the defender's (or
+ * matches it, unless ties go to the defender), for the difference but never
+ * less than the minimum; otherwise it is repelled and takes `rules.repel`.
  */
 export function strike(
   attacker: BattleUnit,
   defender: BattleUnit,
   attackRoll: number,
   defenceRoll: number,
-  rules: BattleRules = BATTLE_RULES,
+  rules: DiceRules = BATTLE_RULES,
 ) {
   const attackTotal = attackRoll + attacker.attack,
     defenceTotal = defenceRoll + defender.defence;
@@ -101,7 +126,7 @@ export type Odds = {
 export function odds(
   attacker: BattleUnit,
   defender: BattleUnit,
-  rules: BattleRules = BATTLE_RULES,
+  rules: DiceRules = BATTLE_RULES,
 ): Odds {
   let defeat = 0,
     wound = 0,

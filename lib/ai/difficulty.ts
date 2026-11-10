@@ -17,6 +17,6 @@ export const DIFFICULTY: Record<
  */
 export const BATTLE_DIFFICULTY: typeof DIFFICULTY = {
   easy: { depth: 1, budgetMs: 150, watchdogMs: 1500, spreadCp: 80 },
-  normal: { depth: 2, budgetMs: 250, watchdogMs: 2000 },
-  advanced: { depth: 4, budgetMs: 1000, watchdogMs: 4000 },
+  normal: { depth: 3, budgetMs: 400, watchdogMs: 2500 },
+  advanced: { depth: 5, budgetMs: 1500, watchdogMs: 5000 },
 };
