@@ -2,7 +2,7 @@
 
 Rules `2026-09-23.1` (Hidden Kingdom generation 6, the default for new games).
 Measured on 2026-11-10 over 1,380 seeded games against the computer (100,748
-plies), plus 6 games played through the browser UI.
+plies), plus 34 games played through the browser UI.
 
 ## Summary
 
@@ -80,7 +80,7 @@ npm run build && npx next start -p 3100
 ```
 
 ```bash
-npx tsx scripts/playtest-browser.ts --games 6
+npx tsx scripts/playtest-browser.ts --games 18
 ```
 
 ## Results
@@ -284,6 +284,61 @@ The conspiracy and regicide endgame is effectively never seen in ordinary
 play. A player would need roughly 50 games to see one conspiracy warning, and
 the sample contains no attempt at all.
 
+## Browser cross-check
+
+The headless numbers come from the rules engine alone, so 34 further games
+were played through the real UI in headless Chromium, by clicking squares
+against the computer.
+
+![A request card for each side, as shown beside the board](request-card.png)
+
+![A hesitation: the order is held and "Repeat order" appears](hesitation.png)
+
+### What was on screen (20 games)
+
+At each of the player's 883 turns the script read the page and compared it
+with the saved game.
+
+| Opponent | Games | Player turns | Turns with RPG content on screen | Headless figure (aware style) |
+| -------- | ----- | ------------ | -------------------------------- | ----------------------------- |
+| Easy     | 8     | 521          | 64%                              | 63%                           |
+| Normal   | 6     | 207          | 67%                              | 70%                           |
+| Advanced | 6     | 155          | 70%                              | 68%                           |
+
+- **The page matched the saved state on all 883 turns**: the number of
+  request cards, whether "Repeat order" was showing, and whether a warning
+  square was marked.
+- **First contact** was at ply 10 in 17 games, ply 12 in two and ply 14 in
+  one.
+- **Request cards** were the only thing on screen in almost every case, as in
+  the headless runs.
+- **No withdrawal, overrun or conspiracy warning appeared** in any of the 20
+  games. The headless rates predict about one withdrawal or overrun in 20
+  games of this style, so this is expected.
+
+### Hesitations in the browser
+
+The 20 games contained 13 hesitations (9 by the player's pieces, seen as
+"Repeat order"; 4 by the computer's). That is 0.65 per game, below the
+headless figure of 1.1–2.5 per game for this style.
+
+To check whether the browser game behaves differently, 14 more browser games
+(6 against Normal, 8 against Easy) were played and the saved hesitation rolls
+were read back:
+
+| Source                | Rolls | Mean refusal probability | Refusals | Refusal rate |
+| --------------------- | ----- | ------------------------ | -------- | ------------ |
+| Browser, Normal (6)   | 213   | 3.6%                     | 9        | 4.2%         |
+| Headless, Normal (40) | 1,450 | 3.2%                     | 43       | 3.0%         |
+| Browser, Easy (8)     | 426   | 3.6%                     | 13       | 3.1%         |
+| Headless, Easy (40)   | 2,573 | 4.0%                     | 105      | 4.1%         |
+
+The browser applies the same probabilities and the rolls land as often as
+they should. The low count in the first 20 games looks like sampling luck;
+the cause was not isolated further. Long games save only their most recent
+256 private events, so the browser rows cover the later part of the longest
+games.
+
 ## Comparison with the earlier baseline
 
 `docs/v6-playtest/results.md` gives final v6 "presence" figures on the same
@@ -317,6 +372,9 @@ all six Easy and Normal cells. Advanced had no earlier baseline.
   Normal finish their search well inside the budget; a repeat of the
   Normal/aware cell reproduced the output byte for byte.
 - **Games are capped at 200 plies.** 47 of 1,380 games hit the cap.
+- **The browser sample is small** (34 games) and used only the careful
+  style. It confirms that the UI shows what the engine reports; it does not
+  re-measure the frequencies.
 - **Online play was not tested.** The two online-match integration test files
   could not run here because the in-memory MongoDB download was blocked. The
   other 36 test files pass.
