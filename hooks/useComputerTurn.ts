@@ -94,8 +94,11 @@ export function useComputerTurn(
           depth: DIFFICULTY[difficulty].depth,
           budgetMs: DIFFICULTY[difficulty].budgetMs,
           spreadCp: DIFFICULTY[difficulty].spreadCp,
-          own: engine.ownPolitics(game, "black"),
           positions: game.positions,
+          // Battle Chess searches over the visible stats instead of politics.
+          ...(game.battle
+            ? { rules: "battle", units: engine.unitGrid(game) }
+            : { own: engine.ownPolitics(game, "black") }),
         },
       });
     } catch {

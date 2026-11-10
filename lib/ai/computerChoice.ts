@@ -2,14 +2,17 @@ import { searchMoves, type SearchInput, type SearchResult } from "./search";
 import { chooseAfterRefusal } from "./restraint";
 import { materializeView } from "./leadershipView";
 import { sameSquare } from "@/lib/chess";
+import { type BattleSearchInput, searchBattle } from "@/lib/battle/search";
 /**
  * The computer's ranked moves: a search, then (after its own piece refused)
  * the restraint choice between repeating the order and a safer alternative.
  */
 export function computerChoice(
-  input: SearchInput,
+  input: SearchInput | BattleSearchInput,
   random: () => number = Math.random,
 ): SearchResult {
+  // Battle Chess has its own search and no politics to weigh afterwards.
+  if ("units" in input) return searchBattle(input, random);
   const result = searchMoves(input, random);
   const view = input.own?.view;
   const choice = view?.pendingRefusal

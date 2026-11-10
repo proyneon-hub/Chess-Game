@@ -11,6 +11,7 @@ export { recordTurn, undoTurn } from "@/lib/game/undo";
 export { publicState } from "@/lib/game/publicState";
 export { refusalFallback } from "@/lib/ai/restraint";
 export { ownPolitics } from "@/lib/ai/politicalEvaluation";
+export { unitGrid } from "@/lib/battle/resolve";
 
 /** Returns a saved game only if every stored state validates. */
 export function loadLocalGame(): LocalSave | null {

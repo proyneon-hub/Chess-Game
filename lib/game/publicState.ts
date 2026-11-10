@@ -3,6 +3,7 @@ import { publicEncounters } from "@/lib/rpg/encounters/publicView";
 import type { GameState, Intention, PublicEvent, Side } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
 import { positionKey } from "@/lib/chessRules";
+import { unitGrid } from "@/lib/battle/resolve";
 const square = (s: Square | null): Square | null => (s ? [s[0], s[1]] : null);
 const intention = (m: Intention | null): Intention | null =>
   m
@@ -16,6 +17,30 @@ export function publicState(s: GameState) {
   // Every nested record is allowlisted too. Future private fields stay private.
   return {
     ...(hasEncounters(s.simulation) ? { encounters: publicEncounters(s) } : {}),
+    // Battle Chess only, so older games' public shape is unchanged.
+    ...(s.battle
+      ? {
+          rules: "battle" as const,
+          units: unitGrid(s),
+          battle: s.battle.last
+            ? {
+                ply: s.battle.last.ply,
+                from: square(s.battle.last.from)!,
+                target: square(s.battle.last.target)!,
+                attacker: s.battle.last.attacker,
+                defender: s.battle.last.defender,
+                attackRoll: s.battle.last.attackRoll,
+                defenceRoll: s.battle.last.defenceRoll,
+                attackTotal: s.battle.last.attackTotal,
+                defenceTotal: s.battle.last.defenceTotal,
+                damage: s.battle.last.damage,
+                attackerHp: s.battle.last.attackerHp,
+                defenderHp: s.battle.last.defenderHp,
+                outcome: s.battle.last.outcome,
+              }
+            : null,
+        }
+      : {}),
     board: s.board.map((r) => r.map((p) => p)),
     sideToMove: s.sideToMove,
     status: s.status,

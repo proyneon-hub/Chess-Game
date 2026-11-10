@@ -8,6 +8,7 @@ import type {
 } from "@/lib/chess";
 import type { RpgState, PieceIdBoard } from "@/lib/rpgChess";
 import type { RngState } from "@/lib/rpg/rng";
+import type { BattleOutcome, BattleUnit } from "@/lib/battle/stats";
 export type { Side, PromotionKind } from "@/lib/chess";
 export type PieceKind = "k" | "q" | "r" | "b" | "n" | "p";
 export type Personality =
@@ -191,7 +192,8 @@ export type Terminal = {
     | "seventy-five-move"
     | "threefold"
     | "fifty-move"
-    | "regicide";
+    | "regicide"
+    | "king-defeated";
   winner: Side | null;
   terminalPly: number;
 };
@@ -209,6 +211,29 @@ export type ActionOutcome = {
   message: string;
   special: boolean;
 };
+/** One resolved battle, as shown to both players. */
+export type BattleRecord = {
+  ply: number;
+  from: Square;
+  target: Square;
+  attacker: string;
+  defender: string;
+  attackRoll: number;
+  defenceRoll: number;
+  attackTotal: number;
+  defenceTotal: number;
+  damage: number;
+  attackerHp: number;
+  defenderHp: number;
+  outcome: BattleOutcome;
+};
+/** Battle Chess (schema 7) state: visible stats by piece id, and the dice. */
+export type BattleState = {
+  rngState: RngState;
+  units: Record<string, BattleUnit>;
+  last: BattleRecord | null;
+  count: number;
+};
 export type GameState = {
   configVersion: string;
   board: Board;
@@ -216,6 +241,7 @@ export type GameState = {
   simulation: HiddenSimulation | null;
   rpgState?: RpgState;
   legacyRng?: RngState;
+  battle?: BattleState;
   sideToMove: Side;
   status: "waiting" | "active" | "finished";
   result: string | null;
@@ -239,6 +265,7 @@ export type GameState = {
   | { schemaVersion: 4; rulesetVersion: "hidden-kingdom-v4" }
   | { schemaVersion: 5; rulesetVersion: "hidden-kingdom-v5" }
   | { schemaVersion: 6; rulesetVersion: "hidden-kingdom-v6" }
+  | { schemaVersion: 7; rulesetVersion: "battle-v1" }
 );
 export type MoveResult = ActionOutcome & {
   state: GameState;
