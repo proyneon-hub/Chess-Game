@@ -1,10 +1,11 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState, submitMove } from "@/lib/game";
 import { boardFixture, scripted, subjectAt } from "../fixtures";
 import { refusalProbability } from "@/lib/rpg/agency";
 import { recordTurn, undoTurn } from "@/lib/game/undo";
 it("opening suppression consumes no gameplay draws for eight plies", () => {
-  let s = createGameState(3);
+  let s = createGameState(3, V6_CONFIG.version);
   const moves = [
     [
       [6, 4],
@@ -59,7 +60,7 @@ it("opening suppression consumes no gameplay draws for eight plies", () => {
   expect(s.ply).toBe(8);
 });
 it("one refusal changes revision but not ply; repeat executes without a roll", () => {
-  const s = createGameState(2);
+  const s = createGameState(2, V6_CONFIG.version);
   s.ply = 16;
   const sub = subjectAt(s, [6, 4]);
   sub.loyalty = 0;
@@ -149,7 +150,7 @@ it("king and check escape orders are guaranteed", () => {
   expect(r.turnConsumed).toBe(true);
 });
 it("undo cancels pending refusal first and replay preserves RNG and outcomes", () => {
-  const s = createGameState(1);
+  const s = createGameState(1, V6_CONFIG.version);
   s.ply = 16;
   subjectAt(s, [6, 4]).loyalty = 0;
   subjectAt(s, [6, 4]).resentment = 100;

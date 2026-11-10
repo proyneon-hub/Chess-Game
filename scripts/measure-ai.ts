@@ -1,10 +1,11 @@
+import { V6_CONFIG } from "../lib/rpg/config";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createGameState, getAllLegalMoves, submitMove } from "../lib/game";
 import { searchMoves } from "../lib/ai/search";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
 import { draw, seedRng } from "../lib/rpg/rng";
 const samples: ReturnType<typeof createGameState>[] = [];
-let s = createGameState(731),
+let s = createGameState(731, V6_CONFIG.version),
   rng = seedRng(910);
 for (let n = 0; n < 30; n++) {
   if (n % 5 === 0) samples.push(s);

@@ -5,7 +5,7 @@ import { createGameState, submitMove } from "@/lib/game";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
 import { validateState } from "@/lib/game/validation";
 import { publicState } from "@/lib/game/publicState";
-import { CONFIG, DEFAULT_CONFIG } from "@/lib/rpg/config";
+import { CONFIG, V6_CONFIG } from "@/lib/rpg/config";
 for (const [i, record] of records.entries())
   it(`v4 pre-v5 golden ${i}`, () => {
     let s = structuredClone(record.initial) as unknown as GameState;
@@ -20,7 +20,7 @@ for (const [i, record] of records.entries())
 it("creates v5 and v6 without exposing unencountered state", () => {
   for (const [version, schema] of [
     [CONFIG.version, 5],
-    [DEFAULT_CONFIG.version, 6],
+    [V6_CONFIG.version, 6],
   ] as const) {
     const s = createGameState(1, version);
     expect(s.schemaVersion).toBe(schema);
@@ -30,5 +30,5 @@ it("creates v5 and v6 without exposing unencountered state", () => {
       /modifiers|dangerTurns|pairRewards|loyalty|rngState/,
     );
   }
-  expect(createGameState(1).schemaVersion).toBe(6);
+  expect(createGameState(1, V6_CONFIG.version).schemaVersion).toBe(6);
 });

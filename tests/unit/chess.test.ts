@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { describe, expect, it } from "vitest";
 import {
   type Board,
@@ -128,7 +129,7 @@ describe("ordinary chess foundation", () => {
     expect(insufficientMaterial(b)).toBe(false);
   });
   it("fool's mate is terminal and immutable", () => {
-    let s = createGameState(1);
+    let s = createGameState(1, V6_CONFIG.version);
     for (const [from, to] of [
       [
         [6, 5],
@@ -159,8 +160,8 @@ describe("ordinary chess foundation", () => {
     ).toBe(s);
   });
   it("same seed and actions reproduce all state, invalid action consumes nothing", () => {
-    const a = createGameState(123),
-      b = createGameState(123);
+    const a = createGameState(123, V6_CONFIG.version),
+      b = createGameState(123, V6_CONFIG.version);
     const m = { from: [6, 4], to: [4, 4], side: "white" } as const;
     expect(submitMove(a, { ...m, from: [...m.from], to: [...m.to] })).toEqual(
       submitMove(b, { ...m, from: [...m.from], to: [...m.to] }),

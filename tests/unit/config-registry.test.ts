@@ -18,10 +18,11 @@ const canonical = (v: unknown): string =>
   );
 
 const PINS = {
-  count: 19,
+  count: 20,
   // Moves whenever any registered config's values change, including a
-  // deliberate v6 tuning change (see docs/v6-playtest/results.md).
-  hash: "f7d7af79318351b6",
+  // deliberate tuning change (docs/v6-playtest/results.md for v6,
+  // docs/battle-rules.md for the Battle Chess stat table).
+  hash: "cf7d41c8d2145814",
 };
 
 it("the registered config count and every value are unchanged", () => {

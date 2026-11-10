@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it, vi, afterEach } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
@@ -8,7 +9,7 @@ import { remember } from "@/lib/rpg/subjects";
 import { seedRng, draw } from "@/lib/rpg/rng";
 afterEach(() => vi.restoreAllMocks());
 it("threefold claims and fivefold automatic draws use visible positions", () => {
-  let s = createGameState(1);
+  let s = createGameState(1, V6_CONFIG.version);
   const cycle = [
     [
       [7, 6],
@@ -210,7 +211,7 @@ it("heroism cannot exceed its side budget or expose its king", () => {
   expect(capped.state.lastMove?.[1]).toEqual([5, 4]);
 });
 it("older polls and responses to departed matches are ignored", () => {
-  const state = publicState(createGameState(1)),
+  const state = publicState(createGameState(1, V6_CONFIG.version)),
     m = {
       id: "a",
       state,
@@ -225,7 +226,7 @@ it("older polls and responses to departed matches are ignored", () => {
 });
 it("seeded randomized legal sequences preserve invariants and cannot deadlock", () => {
   for (let seed = 0; seed < 10; seed++) {
-    let s = createGameState(seed),
+    let s = createGameState(seed, V6_CONFIG.version),
       rng = seedRng(seed);
     for (let ply = 0; ply < 80 && s.status === "active"; ply++) {
       const moves = getAllLegalMoves(s.board, s.sideToMove, s.rights),
@@ -239,7 +240,7 @@ it("seeded randomized legal sequences preserve invariants and cannot deadlock", 
   }
 });
 it("coercion memory expires on own turns only and never on refused/invalid actions", () => {
-  const s = createGameState(1);
+  const s = createGameState(1, V6_CONFIG.version);
   s.ply = 16;
   s.simulation!.turnContext.ply = 16;
   const sub = subjectAt(s, [6, 4]);

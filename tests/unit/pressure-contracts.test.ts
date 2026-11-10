@@ -10,7 +10,7 @@ import { derivePoliticalFacts } from "@/lib/rpg/facts";
 import { numericSubjectFields, remember } from "@/lib/rpg/subjects";
 import { recordTurn, undoTurn } from "@/lib/game/undo";
 import { agencyForecast } from "@/lib/rpg/agency";
-import { CONFIG, DEFAULT_CONFIG, configFor } from "@/lib/rpg/config";
+import { CONFIG, V6_CONFIG, configFor } from "@/lib/rpg/config";
 import { ownPolitics } from "@/lib/ai/politicalEvaluation";
 import { materializeView } from "@/lib/ai/leadershipView";
 
@@ -223,7 +223,7 @@ it("AI and resolver share non-guaranteed forecasts, calm caps and check guarante
     ["r", [7, 0]],
   ]);
   expect(agencyForecast(check, { ...m, to: [7, 3] }).guaranteed).toBe(true);
-  for (const version of [CONFIG.version, DEFAULT_CONFIG.version]) {
+  for (const version of [CONFIG.version, V6_CONFIG.version]) {
     const calm = createGameState(1, version);
     calm.ply = 16;
     calm.simulation!.turnContext.ply = 16;

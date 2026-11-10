@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { submitMove, createGameState } from "@/lib/game";
 import { assessOrder, derivePoliticalFacts } from "@/lib/rpg/facts";
@@ -110,7 +111,7 @@ it("quick danger/rescue oscillation yields no rescue reward and facts are pure",
   expect(JSON.stringify(initial)).toBe(before);
 });
 it("all combined action deltas stay within v3 caps and opening has no adverse accumulation", () => {
-  let s = createGameState(3);
+  let s = createGameState(3, V6_CONFIG.version);
   const initial = structuredClone(s);
   const moves = [
     [

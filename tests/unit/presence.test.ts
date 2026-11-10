@@ -5,7 +5,7 @@ import { v4Fixture } from "../progression-fixtures";
 import { v6Fixture } from "../encounter-fixtures";
 import { encounters, encounterPhase } from "@/lib/rpg/encounters/state";
 import { presence, RPG_LINE_CODES } from "@/lib/rpg/presence";
-import { V2_CONFIG, V4_CONFIG } from "@/lib/rpg/config";
+import { V2_CONFIG, V4_CONFIG, V6_CONFIG } from "@/lib/rpg/config";
 import type { Encounter, Objective } from "@/lib/rpg/encounters/types";
 import type { GameState } from "@/lib/game/types";
 
@@ -89,7 +89,7 @@ it("a refusal gives hesitation, and so does the move that resolves it", () => {
 });
 
 it("a plain early move gives an empty channel set", () => {
-  const s = createGameState(1);
+  const s = createGameState(1, V6_CONFIG.version);
   const before = structuredClone(s);
   const r = submitMove(s, { from: [6, 4], to: [4, 4], side: "white" });
   expect(presence(before, r.state).channels.size).toBe(0);

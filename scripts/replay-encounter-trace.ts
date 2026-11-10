@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "../lib/rpg/config";
 import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { createGameState, submitMove } from "../lib/game";
@@ -11,7 +12,7 @@ if (!path)
 const { record, trace } = JSON.parse(
   gunzipSync(readFileSync(path)).toString("utf8"),
 );
-let state = createGameState(record.seed);
+let state = createGameState(record.seed, V6_CONFIG.version);
 const observed: { ply: number; text: string }[] = [];
 for (const step of trace) {
   const result = submitMove(state, step.move);

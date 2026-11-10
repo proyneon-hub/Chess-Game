@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
-import { CONFIGS } from "@/lib/rpg/config";
+import { CONFIGS, V6_CONFIG } from "@/lib/rpg/config";
 import { seedRng, draw } from "@/lib/rpg/rng";
 import { submitWithFallback } from "@/hooks/useComputerTurn";
 import type { MoveAttempt, MoveResult } from "@/lib/game/types";
@@ -25,7 +25,7 @@ it("a rejected computer move falls back instead of stalling the turn", () => {
 it("public event numbers stay contiguous around hidden agency events", () => {
   let hiddenGaps = 0;
   for (let seed = 0; seed < 10; seed++) {
-    let s = createGameState(seed);
+    let s = createGameState(seed, V6_CONFIG.version);
     const rng = seedRng(seed);
     for (let ply = 0; ply < 80 && s.status === "active"; ply++) {
       const moves = getAllLegalMoves(s.board, s.sideToMove, s.rights),
