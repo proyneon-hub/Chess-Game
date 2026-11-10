@@ -11,6 +11,8 @@ import {
   squareName,
 } from "@/lib/chess";
 import type { PublicGame } from "@/lib/game/publicState";
+import { battleTarget } from "@/lib/battle/moves";
+import { odds } from "@/lib/battle/stats";
 type Marks = {
   chosen: boolean;
   legal: boolean;
@@ -19,6 +21,9 @@ type Marks = {
   checked: boolean;
   warning: boolean;
   intended: boolean;
+  /** Battle Chess: hit in the last battle / the attacker that was repelled. */
+  struck: boolean;
+  repelled: boolean;
 };
 const ARROWS: Record<string, Square> = {
   ArrowUp: [-1, 0],
@@ -27,7 +32,13 @@ const ARROWS: Record<string, Square> = {
   ArrowRight: [0, 1],
 };
 // The label carries everything the highlights show.
-const label = (sq: Square, p: string | null, m: Marks) =>
+const label = (
+  sq: Square,
+  p: string | null,
+  m: Marks,
+  stats: string | null,
+  chance: number | null,
+) =>
   [
     `${squareName(sq)} ${p ? pieceName(p) : "empty"}`,
     m.checked && "check",
@@ -36,6 +47,10 @@ const label = (sq: Square, p: string | null, m: Marks) =>
     m.special && "unexpected destination",
     m.warning && "warning",
     m.intended && "ordered destination",
+    m.struck && "hit in the last battle",
+    m.repelled && "repelled in the last battle",
+    stats,
+    chance !== null && `${chance}% to defeat`,
   ]
     .filter(Boolean)
     .join(", ");
@@ -44,6 +59,12 @@ type SquareProps = {
   c: number;
   piece: string | null;
   marks: Marks;
+  /** Battle Chess: remaining and full HP, a spoken stat line, and the
+   * selected piece's chance (percent) to defeat the piece here. */
+  hp: number | null;
+  maxHp: number | null;
+  stats: string | null;
+  chance: number | null;
   focusable: boolean;
   flipped: boolean;
   onSquare: (s: Square) => void;
@@ -57,6 +78,10 @@ type SquareProps = {
 };
 const sameProps = (a: SquareProps, b: SquareProps) =>
   a.piece === b.piece &&
+  a.hp === b.hp &&
+  a.maxHp === b.maxHp &&
+  a.stats === b.stats &&
+  a.chance === b.chance &&
   a.focusable === b.focusable &&
   a.flipped === b.flipped &&
   a.onSquare === b.onSquare &&
@@ -69,6 +94,10 @@ const BoardSquare = memo(function BoardSquare({
   c,
   piece: p,
   marks: m,
+  hp,
+  maxHp,
+  stats,
+  chance,
   focusable,
   flipped,
   onSquare,
@@ -82,7 +111,7 @@ const BoardSquare = memo(function BoardSquare({
       type="button"
       tabIndex={focusable ? 0 : -1}
       data-square={squareName(sq)}
-      aria-label={label(sq, p, m)}
+      aria-label={label(sq, p, m, stats, chance)}
       aria-pressed={m.chosen}
       onClick={() => onSquare(sq)}
       onKeyDown={(e) => onNavigate(e, r, c, flipped)}
@@ -122,6 +151,12 @@ const BoardSquare = memo(function BoardSquare({
           </span>
         </span>
       )}
+      {m.struck && (
+        <span className="battle-hit absolute inset-0 border-4 border-red-700 ring-2 ring-inset ring-white/80" />
+      )}
+      {m.repelled && (
+        <span className="battle-repel absolute inset-0 border-4 border-double border-sky-900 ring-2 ring-inset ring-white/80" />
+      )}
       {p && (
         <span
           aria-hidden="true"
@@ -135,6 +170,44 @@ const BoardSquare = memo(function BoardSquare({
           }}
         >
           {PIECE_SYMBOLS[p] + "︎"}
+        </span>
+      )}
+      {p && hp !== null && maxHp !== null && (
+        <>
+          <span
+            aria-hidden="true"
+            data-hp={hp}
+            className="absolute inset-x-[8%] bottom-[4%] h-[9%] min-h-[4px] overflow-hidden rounded-sm border border-black/80 bg-black/70"
+          >
+            <span
+              className="block h-full"
+              style={{
+                width: `${(100 * hp) / maxHp}%`,
+                background:
+                  hp * 3 <= maxHp
+                    ? "#f87171"
+                    : hp * 3 <= maxHp * 2
+                      ? "#fbbf24"
+                      : "#4ade80",
+              }}
+            />
+          </span>
+          {hp < maxHp && (
+            <span
+              aria-hidden="true"
+              className="absolute right-0 top-0 rounded-bl bg-black/80 px-1 text-[10px] font-bold leading-4 text-white"
+            >
+              {hp}
+            </span>
+          )}
+        </>
+      )}
+      {chance !== null && (
+        <span
+          aria-hidden="true"
+          className="absolute left-0 top-0 rounded-br bg-red-900 px-1 text-[10px] font-bold leading-4 text-white"
+        >
+          {chance}%
         </span>
       )}
     </button>
@@ -154,9 +227,15 @@ export function Board({
   onSquare: (s: Square) => void;
 }) {
   const indices = Array.from({ length: 8 }, (_, i) => (flipped ? 7 - i : i)),
-    check = isInCheck(game.board, game.sideToMove === "white")
-      ? findKing(game.board, game.sideToMove === "white")
-      : null;
+    // Battle Chess has no check; its kings are simply attacked.
+    check =
+      !game.rules && isInCheck(game.board, game.sideToMove === "white")
+        ? findKing(game.board, game.sideToMove === "white")
+        : null;
+  // The battle that the latest ply fought, if it fought one.
+  const fought =
+    game.battle && game.battle.ply === game.moves.length ? game.battle : null;
+  const attackerUnit = selected && game.units?.[selected[0]][selected[1]];
   const lastEvent = game.events.findLast((e) => e.actual),
     deviated =
       lastEvent?.intended &&
@@ -217,8 +296,27 @@ export function Board({
           {indices.flatMap((r) =>
             indices.map((c) => {
               const sq: Square = [r, c];
+              const unit = game.units?.[r][c] ?? null;
+              // Odds sit on the destination square (en passant included).
+              const foe =
+                selected && attackerUnit && moves.some((m) => sameSquare(m, sq))
+                  ? battleTarget(game.board, selected, sq)
+                  : null;
+              const foeUnit = foe && game.units?.[foe[0]][foe[1]];
               return (
                 <BoardSquare
+                  hp={unit?.hp ?? null}
+                  maxHp={unit?.maxHp ?? null}
+                  stats={
+                    unit
+                      ? `${unit.hp} of ${unit.maxHp} HP, attack ${unit.attack}, defence ${unit.defence}`
+                      : null
+                  }
+                  chance={
+                    attackerUnit && foeUnit
+                      ? Math.round(100 * odds(attackerUnit, foeUnit).defeat)
+                      : null
+                  }
                   key={`${r}-${c}`}
                   r={r}
                   c={c}
@@ -240,6 +338,21 @@ export function Board({
                       !!game.warning?.square &&
                       sameSquare(game.warning.square, sq),
                     intended: !!deviated && sameSquare(lastEvent.intended!, sq),
+                    struck:
+                      !!fought &&
+                      fought.damage > 0 &&
+                      sameSquare(
+                        fought.outcome === "defeated" &&
+                          game.lastMove &&
+                          !game.board[fought.target[0]][fought.target[1]]
+                          ? game.lastMove[1]
+                          : fought.target,
+                        sq,
+                      ),
+                    repelled:
+                      !!fought &&
+                      fought.outcome === "repelled" &&
+                      sameSquare(fought.from, sq),
                   }}
                 />
               );

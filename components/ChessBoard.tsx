@@ -20,6 +20,8 @@ import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
 import { clearLocalGame, readLocalSave } from "@/hooks/localSave";
 import { statusText } from "@/components/chess/statusText";
+import { BattlePanel } from "@/components/chess/BattlePanel";
+import { battleMoves } from "@/lib/battle/moves";
 const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
@@ -69,7 +71,7 @@ export default function ChessBoard() {
   const moves = useMemo(
     () =>
       selected && side && visible
-        ? getLegalMoves(
+        ? (visible.rules === "battle" ? battleMoves : getLegalMoves)(
             visible.board,
             ...selected,
             side === "white",
@@ -286,6 +288,9 @@ export default function ChessBoard() {
               </span>
             )}
           </div>
+          {visible.rules === "battle" && (
+            <BattlePanel game={visible} selected={selected} moves={moves} />
+          )}
           <EncounterArea encounters={visible.encounters ?? NO_ENCOUNTERS} />
           {kind === "online" && online.error && visible.warning && (
             <p role="alert" className="text-sm text-amber-200">
@@ -414,6 +419,18 @@ export default function ChessBoard() {
               select. Choose a piece when promoting a pawn. Games here are kept
               in this browser if you reload.
             </p>
+            {visible.rules === "battle" && (
+              <p className="mt-2">
+                Moving onto an enemy piece starts a battle. Both pieces roll a
+                six-sided die: the attacker adds its attack, the defender its
+                defence. If the attack total is at least the defence total, the
+                defender loses the difference in HP (at least 1) and is defeated
+                at 0. Otherwise the attack is repelled and the attacker loses 1
+                HP. A piece only takes the square when it defeats the defender.
+                There is no check: defeat the enemy king to win. Select a piece
+                to see its chance against each target.
+              </p>
+            )}
             {visible.events.some((e) => e.message.includes("hesitates")) && (
               <p className="mt-2">
                 After hesitation, repeat the order or select a different legal
