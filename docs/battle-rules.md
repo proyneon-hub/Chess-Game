@@ -76,38 +76,90 @@ the same attack rolls the same dice.
 `lib/battle/search.ts` is separate from the Hidden Kingdom search. An attack
 is a chance node weighed by the exact dice odds over three outcomes: defender
 defeated, attacker fallen, or everyone surviving with averaged HP loss. The
-evaluation is the chess evaluation less what each side's wounds cost, with
-king HP weighted heavily.
+outcomes of a battle cannot share a search window, so each is searched one
+ply shallower than a quiet move. The evaluation is the chess evaluation less
+what each side's wounds cost, with king HP weighted heavily.
+
+| Level    | Depth | Time budget | Notes                                            |
+| -------- | ----- | ----------- | ------------------------------------------------ |
+| Easy     | 1     | 150 ms      | Plays any move within 0.8 pawns of its best      |
+| Normal   | 3     | 400 ms      | About 12 ms per move in the balance runs         |
+| Advanced | 5     | 1.5 s       | About 500 ms per move; reached depth 5 (least 4) |
+
+In the browser, Advanced replied in a median of 0.2 s and at most 1.5 s over
+45 moves, including the one-second pause after a player's battle.
 
 ## Measurements
 
-`npx tsx scripts/battle-balance.ts --games N --white LEVEL --black LEVEL`
-plays the computer against itself through the real reducer (seeds from 7000,
-300-ply cap). Run on 2026-11-10:
+`npx tsx scripts/battle-balance.ts` plays the computer against itself through
+the real reducer (300-ply cap). The runs below used `--nodes 5000000`, which
+stops searches on a node count so the figures repeat exactly; a repeat of the
+first row reproduced every number. Run on 2026-11-10 with configuration
+`2026-11-10.2`.
 
-| White    | Black    | Games | White / Black / Draw | Median plies | Battles per game | Fewest in a game | Plies with a battle | First battle (median / latest) |
-| -------- | -------- | ----- | -------------------- | ------------ | ---------------- | ---------------- | ------------------- | ------------------------------ |
-| Normal   | Normal   | 100   | 59 / 39 / 2          | 49           | 31.4             | 5                | 45%                 | ply 8 / ply 13                 |
-| Advanced | Normal   | 24    | 15 / 7 / 2           | 69           | 36.7             | 9                | 38%                 | ply 7 / ply 15                 |
-| Normal   | Advanced | 24    | 14 / 9 / 1           | 57           | 32.5             | 11               | 38%                 | ply 8 / ply 15                 |
-| Normal   | Easy     | 30    | 25 / 5 / 0           | 59           | 32.9             | 10               | 46%                 | ply 8 / ply 15                 |
+**Normal against Normal** (300 games: seeds 7000–7149 and 9000–9149)
 
-Across the four runs, 34–38% of battles defeated the defender, 46–49%
-wounded it, 14–16% were repelled and about 1% cost the attacker its life. A
-king fell after a median of 5–6 hits.
+| Measure                           | Seeds 7000–7149 | Seeds 9000–9149 |
+| --------------------------------- | --------------- | --------------- |
+| White / Black / Draw              | 72 / 67 / 11    | 68 / 67 / 15    |
+| Median plies                      | 61              | 94              |
+| Battles per game (fewest)         | 33.1 (9)        | 36.0 (10)       |
+| Plies with a battle               | 32%             | 29%             |
+| First battle, median / latest ply | 8 / 18          | 8 / 15          |
+| Defeated / wounded / repelled     | 49% / 35% / 15% | 50% / 33% / 15% |
+| Hits to defeat a king (median)    | 4               | 4               |
 
-For comparison, the Hidden Kingdom playtest measured 0.6–1.5 player
-hesitations per game, the only event there that interrupted play.
+White won 140 of the 274 decisive games, 51%.
+
+**Between levels** (every seed played twice with colours swapped)
+
+| Pairing            | Games | Stronger level wins | Weaker level wins | Draws |
+| ------------------ | ----- | ------------------- | ----------------- | ----- |
+| Advanced v. Normal | 100   | 62                  | 23                | 15    |
+| Normal v. Easy     | 60    | 51                  | 3                 | 6     |
+
+## Retuning (`2026-11-10.1` to `2026-11-10.2`)
+
+The first table (pawn attack 2, knight and bishop 4, rook 5, queen 6, king
+14 HP with attack 4; equal totals hit; minimum damage 1) left three gaps:
+
+- only 35% of battles defeated the defender, and 48% only wounded it;
+- Advanced was not measurably stronger than Normal;
+- White won 59 of the first 100 mirror games. A 300-game rerun put that at
+  54% of decisive games, so part of it was noise.
+
+Candidates were tried with `--rules` at 100 mirror games each:
+
+| Change from the first table                             | Defeated | Wounded | Repelled | Median plies |
+| ------------------------------------------------------- | -------- | ------- | -------- | ------------ |
+| None                                                    | 36%      | 48%     | 15%      | 46           |
+| Attack +1                                               | 44%      | 46%     | 9%       | 48           |
+| Minimum damage 2                                        | 40%      | 44%     | 14%      | 63           |
+| Lower HP for knight, bishop, rook, queen                | 41%      | 43%     | 15%      | 101          |
+| Attack +1, minimum damage 2, king 16 HP                 | 46%      | 45%     | 8%       | 62           |
+| Attack +1, minimum damage 3, king 16 HP                 | 52%      | 38%     | 9%       | 62           |
+| **Attack +1, minimum damage 3, ties repel, king 16 HP** | **50%**  | **34%** | **15%**  | **55–91**    |
+
+Raising attack alone made hits more deadly but nearly removed the risk of
+being repelled. Sending ties to the defender restored it. Lower HP produced
+long endgames with too few pieces left to finish a king. Raising the repel
+damage to 2 changed little and was dropped.
+
+Advanced's strength came from the search, not the table: with battle
+outcomes searched a ply shallower, depth 3 costs what depth 2 did, so Normal
+moved to depth 3 and Advanced to depth 5.
 
 ## Known gaps
 
-- **White wins more than Black.** 59 of 100 Normal mirror games went to
-  White. Moving first appears to matter more than in chess.
-- **Advanced is not clearly stronger than Normal.** In the two 24-game
-  pairings the side playing White won both, whichever level it was. The
-  samples are small, and the Advanced search has a one-second budget, so it
-  often does not finish its full depth.
-- **Most battles wound, not defeat.** The stat table has had one tuning pass
-  (the king was raised from 10 HP and 3 defence, which gave 36-ply games).
 - **Online play is untested here.** The integration and browser tests that
   need MongoDB could not run in the environment this was built in.
+- **Some games run long.** One of the two 150-game mirror runs had a median
+  of 94 plies, and 7–10% of mirror games ended at the 300-ply cap or on a
+  move-count draw.
+- **A slow start is possible.** The first battle came as late as ply 18 in
+  one game of 300; the median is ply 8.
+- **Easy is very weak against Normal** (3 wins in 60). That is against the
+  computer, not a person, but the step from Easy to Normal is large.
+- **Black won more often in the Advanced v. Normal pairing** (55 games to
+  White's 30 over 100 colour-swapped games), although Normal mirror games
+  are even. The cause was not investigated.
