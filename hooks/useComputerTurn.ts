@@ -43,11 +43,21 @@ export function useComputerTurn(
       settled = false;
     const revision = game.revision;
     const fallback = engine.refusalFallback(game);
-    const commit = (move: MoveAttempt | undefined) => {
+    const apply = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
       const result = submitWithFallback(submit, move, fallback);
       settled = result.requestAccepted;
       onMessage(result.message);
+    };
+    // When the player has just fought a battle, hold the reply briefly so
+    // its dice and result can be read before the computer's move replaces
+    // them. A cancelled turn ignores the late call.
+    const readyAt =
+      performance.now() + (game.battle?.last?.ply === game.ply ? 1200 : 0);
+    const commit = (move: MoveAttempt | undefined) => {
+      const wait = readyAt - performance.now();
+      if (wait > 0) setTimeout(() => apply(move), wait);
+      else apply(move);
     };
     // After refusal, the same legal command completes with no search or roll.
     if (game.pendingRefusal && game.schemaVersion < 3) {
