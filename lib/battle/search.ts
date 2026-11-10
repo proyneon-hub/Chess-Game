@@ -43,6 +43,21 @@ export type BattleSearchResult = {
   elapsedMs: number;
 };
 type Node = { board: Board; units: UnitGrid; rights: ChessRights };
+type Odds = ReturnType<typeof odds>;
+/** Dice odds depend on four small integers; a search asks for them often. */
+function oddsCache(rules: BattleRules) {
+  const seen = new Map<number, Odds>();
+  return (a: BattleUnit, d: BattleUnit): Odds => {
+    const key =
+      a.attack * 100000 +
+      d.defence * 1000 +
+      d.hp * 10 +
+      (a.hp <= rules.repel ? 1 : 0);
+    let o = seen.get(key);
+    if (!o) seen.set(key, (o = odds(a, d, rules)));
+    return o;
+  };
+}
 const WIN = 99000,
   KING_HP = 220,
   WOUND = 0.6;
@@ -70,14 +85,19 @@ const worth = (p: string, u: BattleUnit) =>
     ? KING_HP * u.maxHp
     : material[p.toLowerCase()] * (1 - WOUND + (WOUND * u.hp) / u.maxHp);
 /** Expected material swing of one attack, for ordering and the leaf bonus. */
-function expectedGain(n: Node, m: BattleMove, rules: BattleRules): number {
+function expectedGain(
+  n: Node,
+  m: BattleMove,
+  rules: BattleRules,
+  chances: (a: BattleUnit, d: BattleUnit) => Odds,
+): number {
   const t = battleTarget(n.board, m.from, m.to);
   if (!t) return 0;
   const a = n.units[m.from[0]][m.from[1]]!,
     d = n.units[t[0]][t[1]]!,
     attacker = n.board[m.from[0]][m.from[1]]!,
     defender = n.board[t[0]][t[1]]!,
-    o = odds(a, d, rules),
+    o = chances(a, d),
     perHp = (p: string, u: BattleUnit) =>
       p.toLowerCase() === "k"
         ? KING_HP
@@ -124,12 +144,13 @@ function outcomes(
   n: Node,
   m: BattleMove,
   rules: BattleRules,
+  chances: (a: BattleUnit, d: BattleUnit) => Odds,
 ): { p: number; node: Node }[] {
   const t = battleTarget(n.board, m.from, m.to);
   if (!t) return [{ p: 1, node: advance(n, m, rules) }];
   const a = n.units[m.from[0]][m.from[1]]!,
     d = n.units[t[0]][t[1]]!,
-    o = odds(a, d, rules),
+    o = chances(a, d),
     rights: ChessRights = { ...n.rights, enPassant: null, halfmove: 0 },
     out: { p: number; node: Node }[] = [];
   if (o.defeat) out.push({ p: o.defeat, node: advance(n, m, rules) });
@@ -146,11 +167,14 @@ function outcomes(
     const units = cloneUnits(n.units);
     units[t[0]][t[1]] = {
       ...d,
-      hp: Math.max(0.5, d.hp - (o.wound * o.woundDamage) / stay),
+      hp: Math.max(1, Math.round(d.hp - (o.wound * o.woundDamage) / stay)),
     };
     units[m.from[0]][m.from[1]] = {
       ...a,
-      hp: Math.max(0.5, a.hp - ((o.repel - o.fall) * rules.repel) / stay),
+      hp: Math.max(
+        1,
+        Math.round(a.hp - ((o.repel - o.fall) * rules.repel) / stay),
+      ),
     };
     out.push({ p: stay, node: { board: n.board, units, rights } });
   }
@@ -169,13 +193,14 @@ export function searchBattle(
   const start = performance.now(),
     deadline = start + input.budgetMs,
     rules = input.battle ?? BATTLE_RULES,
+    chances = oddsCache(rules),
     timeout = {};
   let nodes = 0,
     completedDepth = 0;
   const opposite = (s: Side): Side => (s === "white" ? "black" : "white");
   const ordered = (n: Node, side: Side) =>
     allBattleMoves(n.board, side, n.rights)
-      .map((m) => ({ m, gain: expectedGain(n, m, rules) }))
+      .map((m) => ({ m, gain: expectedGain(n, m, rules, chances) }))
       .sort((x, y) => y.gain - x.gain);
   function negamax(
     n: Node,
@@ -194,17 +219,21 @@ export function searchBattle(
     const white = side === "white";
     if (!hasKing(n.board, white)) return -WIN + ply;
     if (!hasKing(n.board, !white)) return WIN - ply;
+    if (depth <= 0) {
+      // The side to move may still strike: credit its best attack.
+      let best = 0;
+      for (const m of allBattleMoves(n.board, side, n.rights))
+        if (n.board[m.to[0]][m.to[1]] || m.from[1] !== m.to[1]) {
+          const gain = expectedGain(n, m, rules, chances);
+          if (gain > best) best = gain;
+        }
+      return (white ? 1 : -1) * evaluateBattle(n.board, n.units) + best * 0.5;
+    }
     const moves = ordered(n, side);
     if (!moves.length) return 0;
-    if (depth <= 0)
-      // The side to move may still strike: credit its best attack.
-      return (
-        (white ? 1 : -1) * evaluateBattle(n.board, n.units) +
-        Math.max(0, moves[0].gain) * 0.5
-      );
     let best = -Infinity;
     for (const { m } of moves) {
-      const outs = outcomes(n, m, rules);
+      const outs = outcomes(n, m, rules, chances);
       let value = 0;
       if (outs.length === 1 && outs[0].p === 1)
         value = -negamax(
@@ -216,13 +245,15 @@ export function searchBattle(
           ply + 1,
         );
       else
+        // A battle's outcomes cannot share a search window, so each is
+        // searched one ply shallower to keep the tree affordable.
         for (const o of outs)
           value +=
             o.p *
             -negamax(
               o.node,
               opposite(side),
-              depth - 1,
+              depth - 2,
               -Infinity,
               Infinity,
               ply + 1,
@@ -243,17 +274,22 @@ export function searchBattle(
   try {
     for (let depth = 1; depth <= input.depth; depth++) {
       const scored: typeof ranked = [];
+      // Moves that cannot come within the spread of the best need no exact
+      // score, so quiet moves are searched against that bound.
+      let floor = -Infinity;
       for (const { move } of ranked) {
         let score = 0;
-        for (const o of outcomes(root, move, rules)) {
+        const outs = outcomes(root, move, rules, chances),
+          quiet = outs.length === 1 && outs[0].p === 1;
+        for (const o of outs) {
           score +=
             o.p *
             -negamax(
               o.node,
               opposite(input.side),
-              depth - 1,
+              quiet ? depth - 1 : depth - 2,
               -Infinity,
-              Infinity,
+              quiet ? -floor : Infinity,
               1,
             );
           // A quiet move back into a repeated position is mildly unwelcome.
@@ -265,6 +301,7 @@ export function searchBattle(
               ] ?? 0);
         }
         scored.push({ move, score });
+        floor = Math.max(floor, score - (input.spreadCp ?? 0) - 1);
       }
       ranked = scored.sort((x, y) => y.score - x.score);
       completedDepth = depth;

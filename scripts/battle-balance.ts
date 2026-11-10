@@ -45,7 +45,9 @@ const base = DEFAULT_CONFIG.battle ?? BATTLE_RULES,
       ]),
     ),
   };
-const level = (name: string) =>
+const level = (
+  name: string,
+): { depth: number; budgetMs: number; spreadCp?: number } =>
   /^d\d+$/.test(name)
     ? { depth: Number(name.slice(1)), budgetMs: 1000 }
     : BATTLE_DIFFICULTY[name as Difficulty];
