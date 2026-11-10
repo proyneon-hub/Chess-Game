@@ -13,6 +13,12 @@ export type BattleRules = {
   readonly die: number;
   /** HP an attacker loses when its attack is repelled. */
   readonly repel: number;
+  /** Least damage a successful hit deals (default 1). */
+  readonly minDamage?: number;
+  /** Equal totals repel the attack instead of hitting (default false). */
+  readonly defenderWinsTies?: boolean;
+  /** Extra starting HP for a side's king (default none). */
+  readonly kingBonus?: Readonly<Partial<Record<"white" | "black", number>>>;
   readonly stats: Readonly<
     Record<string, { hp: number; attack: number; defence: number }>
   >;
@@ -34,7 +40,14 @@ export const freshUnit = (
   rules: BattleRules = BATTLE_RULES,
 ): BattleUnit => {
   const s = rules.stats[piece.toLowerCase()];
-  return { hp: s.hp, maxHp: s.hp, attack: s.attack, defence: s.defence };
+  const hp =
+    s.hp +
+    (piece === "K"
+      ? (rules.kingBonus?.white ?? 0)
+      : piece === "k"
+        ? (rules.kingBonus?.black ?? 0)
+        : 0);
+  return { hp, maxHp: hp, attack: s.attack, defence: s.defence };
 };
 /**
  * One exchange. The attacker hits when its total at least matches the
@@ -50,7 +63,10 @@ export function strike(
 ) {
   const attackTotal = attackRoll + attacker.attack,
     defenceTotal = defenceRoll + defender.defence;
-  if (attackTotal < defenceTotal) {
+  if (
+    attackTotal < defenceTotal ||
+    (rules.defenderWinsTies && attackTotal === defenceTotal)
+  ) {
     const attackerHp = Math.max(0, attacker.hp - rules.repel);
     return {
       attackTotal,
@@ -61,7 +77,7 @@ export function strike(
       outcome: (attackerHp > 0 ? "repelled" : "fell") as BattleOutcome,
     };
   }
-  const damage = Math.max(1, attackTotal - defenceTotal),
+  const damage = Math.max(rules.minDamage ?? 1, attackTotal - defenceTotal),
     defenderHp = Math.max(0, defender.hp - damage);
   return {
     attackTotal,

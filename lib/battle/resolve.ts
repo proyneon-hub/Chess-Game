@@ -25,6 +25,7 @@ import { type Draw, draw } from "@/lib/rpg/rng";
 import { allBattleMoves, battleMoves, battleTarget } from "./moves";
 import {
   BATTLE_RULES,
+  type BattleRules,
   type BattleUnit,
   type UnitGrid,
   freshUnit,
@@ -70,7 +71,7 @@ const lower = (p: string) => pieceName(p).toLowerCase();
 export function submitBattleMove(
   state: GameState,
   action: MoveAttempt,
-  deps: { draw?: Draw } = {},
+  deps: { draw?: Draw; rules?: BattleRules } = {},
 ): MoveResult {
   if (
     !state.battle ||
@@ -93,7 +94,7 @@ export function submitBattleMove(
     piece.toLowerCase() === "p" && (action.to[0] === 0 || action.to[0] === 7);
   if (action.promotion && !promotes)
     return reject(state, "Promotion is not available here.");
-  const rules = rulesFor(state).battle ?? BATTLE_RULES;
+  const rules = deps.rules ?? rulesFor(state).battle ?? BATTLE_RULES;
   const from: [number, number] = [...action.from],
     to: [number, number] = [...action.to],
     promotion = promotes ? (action.promotion ?? "q") : undefined,

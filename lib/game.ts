@@ -51,6 +51,7 @@ import {
 } from "@/lib/rpg/config";
 import { initialUnits, submitBattleMove } from "@/lib/battle/resolve";
 import { allBattleMoves } from "@/lib/battle/moves";
+import type { BattleRules } from "@/lib/battle/stats";
 import { seedRng } from "@/lib/rpg/rng";
 import { type Draw, draw, freshSeed } from "@/lib/rpg/rng";
 import { count, event } from "@/lib/rpg/events";
@@ -256,6 +257,8 @@ function moveMessage(s: GameState, next: Side, message: string): string {
 export type ResolverDependencies = {
   /** Test dependency, never accepted from transport. */ draw?: Draw;
   classic?: boolean;
+  /** Battle Chess measurement only: try a stat table without a config. */
+  rules?: BattleRules;
 };
 export function submitMove(
   state: GameState,

@@ -1,27 +1,56 @@
 // Battle Chess balance run: the computer plays itself through the real
-// reducer on seeded games, and the script reports how often battles happen
-// and how they end. Prints only.
+// reducer on seeded games, and the script reports how often battles happen,
+// how they end and who wins. Prints only.
 //
 //   npx tsx scripts/battle-balance.ts --games 100 --white normal --black normal
+//
+// --white/--black  easy | normal | advanced, or dN for a bare depth (d3)
+// --nodes N        stop each search on a node count instead of the clock, so
+//                  results repeat exactly whatever else the machine is doing
+// --swap true      play every seed twice, with the two levels trading colours
+// --rules '{...}'  try a stat table without registering a config, e.g.
+//                  '{"minDamage":2,"stats":{"k":{"hp":16}}}'
 import { createGameState, submitMove, movesFor } from "../lib/game";
 import { computerChoice } from "../lib/ai/computerChoice";
-import { DIFFICULTY } from "../lib/ai/difficulty";
-import { unitGrid } from "../lib/battle/resolve";
-import { BATTLE_CONFIG } from "../lib/rpg/config";
+import { BATTLE_DIFFICULTY } from "../lib/ai/difficulty";
+import { initialUnits, unitGrid } from "../lib/battle/resolve";
+import { DEFAULT_CONFIG } from "../lib/rpg/config";
 import { seedRng, draw } from "../lib/rpg/rng";
 import type { Difficulty } from "../lib/game";
-import type { BattleOutcome } from "../lib/battle/stats";
+import {
+  BATTLE_RULES,
+  type BattleOutcome,
+  type BattleRules,
+} from "../lib/battle/stats";
+import type { Side } from "../lib/chess";
 
 const flags: Record<string, string> = {};
 for (let i = 2; i < process.argv.length; i += 2)
   flags[process.argv[i]] = process.argv[i + 1];
 const games = Number(flags["--games"] ?? 50),
   seedStart = Number(flags["--seed-start"] ?? 7000),
-  levels = {
-    white: (flags["--white"] ?? "normal") as Difficulty,
-    black: (flags["--black"] ?? "normal") as Difficulty,
-  },
+  nodes = flags["--nodes"] ? Number(flags["--nodes"]) : undefined,
+  swap = flags["--swap"] === "true",
+  names = [flags["--white"] ?? "normal", flags["--black"] ?? "normal"],
   cap = 300;
+const base = DEFAULT_CONFIG.battle ?? BATTLE_RULES,
+  override = JSON.parse(flags["--rules"] ?? "{}") as Partial<BattleRules>,
+  rules: BattleRules = {
+    ...base,
+    ...override,
+    stats: Object.fromEntries(
+      Object.entries(base.stats).map(([k, v]) => [
+        k,
+        { ...v, ...override.stats?.[k] },
+      ]),
+    ),
+  };
+const level = (name: string) =>
+  /^d\d+$/.test(name)
+    ? { depth: Number(name.slice(1)), budgetMs: 1000 }
+    : BATTLE_DIFFICULTY[name as Difficulty];
+if (names.some((n) => !level(n))) throw Error("Unknown level.");
+
 const median = (xs: number[]) =>
   xs.length ? [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] : 0;
 const outcomes: Record<BattleOutcome, number> = {
@@ -31,22 +60,27 @@ const outcomes: Record<BattleOutcome, number> = {
     fell: 0,
   },
   endings: Record<string, number> = {},
-  wins = { white: 0, black: 0, draw: 0 },
+  byColour = { white: 0, black: 0, draw: 0 },
+  byLevel: Record<string, number> = {},
+  depths: Record<string, number[]> = {},
   plies: number[] = [],
   battles: number[] = [],
   firstBattle: number[] = [],
   kingHits: number[] = [],
   longestQuiet: number[] = [];
-for (let g = 0; g < games; g++) {
-  const seed = seedStart + g,
-    ai = seedRng(seed * 13 + 5);
-  let s = createGameState(seed, BATTLE_CONFIG.version),
+let searchMs = 0,
+  searches = 0;
+function play(seed: number, players: Record<Side, string>) {
+  const ai = seedRng(seed * 13 + 5);
+  let s = createGameState(seed, DEFAULT_CONFIG.version),
     first = 0,
     quiet = 0,
     worst = 0;
+  s.battle!.units = initialUnits(s.board, s.pieceIds, rules);
   const hits = { K: 0, k: 0 };
   while (s.status === "active" && s.ply < cap) {
-    const { depth, budgetMs, spreadCp } = DIFFICULTY[levels[s.sideToMove]];
+    const name = players[s.sideToMove],
+      l = level(name);
     const choice = computerChoice(
       {
         rules: "battle",
@@ -54,15 +88,20 @@ for (let g = 0; g < games; g++) {
         rights: s.rights,
         side: s.sideToMove,
         units: unitGrid(s),
-        depth,
-        budgetMs,
+        depth: l.depth,
+        budgetMs: nodes ? 600000 : l.budgetMs,
+        maxNodes: nodes,
         // A little spread keeps mirror games from repeating each other.
-        spreadCp: spreadCp ?? 15,
+        spreadCp: l.spreadCp ?? 15,
         positions: s.positions,
+        battle: rules,
       },
       () => draw(ai),
     );
-    const r = submitMove(s, choice.moves[0] ?? movesFor(s)[0]);
+    (depths[name] ??= []).push(choice.completedDepth);
+    searchMs += choice.elapsedMs;
+    searches++;
+    const r = submitMove(s, choice.moves[0] ?? movesFor(s)[0], { rules });
     if (!r.requestAccepted) throw Error("Search chose an unavailable move.");
     s = r.state;
     const b = s.battle!.last;
@@ -74,40 +113,57 @@ for (let g = 0; g < games; g++) {
       quiet = 0;
     } else worst = Math.max(worst, ++quiet);
   }
-  const reason = s.terminal?.reason ?? "cap";
+  const reason = s.terminal?.reason ?? "cap",
+    winner = s.terminal?.winner ?? null;
   endings[reason] = (endings[reason] ?? 0) + 1;
-  wins[s.terminal?.winner ?? "draw"]++;
+  byColour[winner ?? "draw"]++;
+  const key = winner ? players[winner] : "draw";
+  byLevel[key] = (byLevel[key] ?? 0) + 1;
   plies.push(s.ply);
   battles.push(s.battle!.count);
   firstBattle.push(first);
   longestQuiet.push(worst);
   if (reason === "king-defeated")
-    kingHits.push(hits[s.terminal!.winner === "white" ? "k" : "K"]);
+    kingHits.push(hits[winner === "white" ? "k" : "K"]);
+}
+for (let g = 0; g < games; g++) {
+  play(seedStart + g, { white: names[0], black: names[1] });
+  if (swap) play(seedStart + g, { white: names[1], black: names[0] });
 }
 const total = Object.values(outcomes).reduce((a, b) => a + b, 0),
+  played = plies.length,
   sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0),
-  pct = (n: number, d: number) => `${((100 * n) / d).toFixed(0)}%`;
+  pct = (n: number, d: number) => `${((100 * n) / d).toFixed(0)}%`,
+  decisive = byColour.white + byColour.black;
 console.log(
-  JSON.stringify(
-    {
-      config: BATTLE_CONFIG.version,
-      games,
-      levels,
-      wins,
-      endings,
-      medianPlies: median(plies),
-      battlesPerGame: (total / games).toFixed(1),
-      fewestBattles: Math.min(...battles),
-      battleShareOfPlies: pct(total, sum(plies)),
-      medianFirstBattlePly: median(firstBattle),
-      latestFirstBattlePly: Math.max(...firstBattle),
-      medianLongestQuietStretch: median(longestQuiet),
-      outcomes: Object.fromEntries(
-        Object.entries(outcomes).map(([k, v]) => [k, pct(v, total)]),
-      ),
-      medianHitsToDefeatKing: median(kingHits),
-    },
-    null,
-    1,
-  ),
+  JSON.stringify({
+    config: DEFAULT_CONFIG.version,
+    rules: flags["--rules"] ?? "default",
+    games: played,
+    white: names[0],
+    black: names[1],
+    swap,
+    nodes: nodes ?? "clock",
+    byColour,
+    whiteShareOfDecisive: pct(byColour.white, decisive),
+    ...(names[0] !== names[1] ? { byLevel } : {}),
+    endings,
+    medianPlies: median(plies),
+    battlesPerGame: (total / played).toFixed(1),
+    fewestBattles: Math.min(...battles),
+    battleShareOfPlies: pct(total, sum(plies)),
+    firstBattlePly: `${median(firstBattle)} median, ${Math.max(...firstBattle)} latest`,
+    medianLongestQuietStretch: median(longestQuiet),
+    outcomes: Object.fromEntries(
+      Object.entries(outcomes).map(([k, v]) => [k, pct(v, total)]),
+    ),
+    medianHitsToDefeatKing: median(kingHits),
+    depthReached: Object.fromEntries(
+      Object.entries(depths).map(([k, v]) => [
+        k,
+        `${median(v)} median, ${Math.min(...v)} least`,
+      ]),
+    ),
+    meanSearchMs: (searchMs / searches).toFixed(0),
+  }),
 );
