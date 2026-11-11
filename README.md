@@ -1,12 +1,12 @@
 # Chess
 
-Chess for local pass-and-play, computer opponents, and private online invites, played as **Battle Chess**: pieces move as in chess, but every piece has HP, attack and defence, every capture is a dice battle, and you win by defeating the enemy king. The same rules run in every mode.
+**Battle Chess** for local pass-and-play, computer opponents, and private online invites. Pieces move as in chess, but every piece has HP, attack and defence, every capture is a dice battle, and you win by defeating the enemy king. The same rules run in every mode.
 
 [Play Chess — no sign-in required](https://test-chess-game-roy-kappa-five.vercel.app)
 
-## Battle Chess (new games)
+## Rules in brief
 
-- Each piece shows an HP bar on the board. Select a piece to see its HP, attack and defence, and its chance to defeat each enemy it can reach.
+- Select a piece to see its HP, attack and defence, and its chance to defeat each enemy it can reach. A wounded piece shows its remaining HP on the board.
 - Moving onto an enemy piece starts a battle. Both sides roll a six-sided die; the attacker adds its attack and the defender its defence.
 - If the attack total beats the defence total, the defender loses the difference in HP (at least 3). At 0 HP it is defeated and the attacker takes the square. A defender that survives keeps its square, and the attacker stays where it was.
 - Otherwise, including on a tie, the attack is repelled and the attacker loses 1 HP. A piece that drops to 0 HP this way is removed.
@@ -14,26 +14,6 @@ Chess for local pass-and-play, computer opponents, and private online invites, p
 - There is no check or checkmate. Kings can move into danger and can be attacked; the game ends when a king reaches 0 HP.
 
 The full rules, the stat table and the balance measurements are in [docs/battle-rules.md](docs/battle-rules.md).
-
-## Hidden Kingdom (older saved games)
-
-Games started before Battle Chess keep the rules they began with. The rest of this section, and the hesitation and conspiracy notes below, describe those older games.
-
-The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
-
-V5 adds piece requests, protection and relief, disputes,
-petitions, supportive courts, and complaint-gated conspiracies. Requests appear
-below move status and are answered through ordinary moves. New matches use v5;
-older saved matches keep their recorded rules and responsibility behavior.
-Early encounters work in browser tests, but deeper pressure-progression
-acceptance remains unresolved. The verification reports record the pre-publication
-snapshot; production deployment of v5 has not been verified. See the
-[v5 checklist](docs/v5-encounters-checklist.md),
-[implementation notes](docs/v5-encounters/implementation.md), and
-[tuning ledger](docs/v5-encounters/tuning-ledger.md). The
-[frozen results](docs/v5-encounters/results.md) and
-[reviewer notes](docs/v5-encounters/reviewer-notes.md) distinguish passing technical
-checks from unresolved product acceptance and remaining implementation work.
 
 ## Run
 
@@ -49,85 +29,49 @@ Open [localhost:3000](http://localhost:3000). Local and computer games need no d
 ## Play
 
 - **Play here:** two players, one board, with Undo for up to 20 completed turns.
-- **Play computer:** White against a worker-based opponent. In Battle Chess, Easy searches depth 1 and plays any move within 0.8 pawns of its best; Normal searches depth 3; Advanced searches depth 5 within about 1.5 s. Older games use depth 1, 2 and 4. These are soft search budgets.
+- **Play computer:** White against a worker-based opponent. Easy searches depth 1 and plays any move within 0.8 pawns of its best; Normal searches depth 3; Advanced searches depth 5 within about 1.5 s. These are soft search budgets.
 - **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity; it renews with activity and expires after 30 days without a visit, like inactive matches.
-- Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
+- Select a piece and a highlighted destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
 - A battle always uses the turn, whether it is won or repelled. Undo restores the position before it, and the same attack then rolls the same dice, so Undo cannot be used to re-roll.
 - **Retry connection** resends the same network request. New Game resets the seed; Leave cancels online work and clears the invite URL.
-- In an older Hidden Kingdom game, **Repeat order** executes a hesitated command (a different legal order also completes the turn), and Undo during a pending hesitation restores the start of that turn first.
 
-Battle Chess keeps castling (allowed even while the king is attacked), en passant (as a battle against the pawn), promotion choice, threefold/50-move claims and fivefold/75-move automatic draws. A battle resets the draw counters, because lost HP never returns. Older games also keep checkmate, stalemate and insufficient material. This is an intentional chess variant, not a claim of certified tournament compliance.
+Castling is allowed even while the king is attacked, en passant is a battle against the pawn, and promotion offers a choice. Threefold and 50-move draws can be claimed; fivefold repetition and 75 quiet moves end the game. A battle resets the draw counters, because lost HP never returns. This is an intentional chess variant, not a claim of tournament compliance.
 
-## Developer rule notes
+## Developer notes
 
-New games use schema 7, `battle-v1` (configuration `2026-11-10.2`; games begun on `2026-11-10.1` keep that first stat table): the reducer in `lib/battle/resolve.ts`, movement without check in `lib/battle/moves.ts`, the stat table and dice odds in `lib/battle/stats.ts`, and a separate chance-node search in `lib/battle/search.ts`. A battle game has no hidden simulation; its stats and last battle are public, and only piece ids and the dice state stay private. `npx tsx scripts/battle-balance.ts` measures battle frequency with the computer playing itself.
+A game is schema 7, ruleset `battle-v1`, and records the configuration it began with (currently `2026-11-10.2`, in `lib/battle/config.ts`). Never alter a released configuration; add a new version when the rules or the stat table change. Games saved under the rules that preceded Battle Chess are refused as incompatible: a local save is discarded and an online match reports the error.
 
-The previous default was schema 6, `hidden-kingdom-v6` (configuration `2026-09-23.1`): ignored requests leave pieces restless, rook pawns are not asked to act, visibly shaken pieces may withdraw when sent back into danger, a harsh court's accumulated harm can raise a complaint that, renewed, becomes a warned conspiracy, and an otherwise quiet turn may carry a brief line about a piece settling or growing tense. See [the playtest results](docs/v6-playtest/results.md). Saved `2026-09-10.1` and `2026-09-22.1` games keep their generation-5 rules. Existing legacy, v2, v3 and v4 saves retain their recorded rules and behavior. What each generation does differently is named in `lib/rpg/capabilities.ts`; a row must never change once saves exist, so new behavior needs a new generation. `tests/unit/replay-fingerprint.test.ts` pins seeded replays across v2–v5, so refactors must leave its hashes unchanged. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
+`tests/unit/battle-replay.test.ts` pins seeded games played through the real reducer, so a refactor must leave its hashes unchanged. `npm run balance` plays the computer against itself and reports how often battles happen and who wins; `--nodes` makes a run repeat exactly.
 
-A late-game conspiracy needs strict causal prerequisites, two eligible own turns, three persistent warning stages, and three response turns before an attempt. Guards, separation, leadership recovery, or king movement provide counterplay. Regicide retains the king on the board and creates an explicit terminal result. Ordinary chess results take precedence.
-
-For Hidden Kingdom games the UI has no RPG selector, hidden statistics, or diagnostics panel. `?debug=1` does not reveal them. Local/computer concealment is experiential: browser source and memory can be inspected. Online RNG, subjects, political values, and internal plot objects remain server-private behind a nested public allowlist.
+A game's stats, dice rules and last battle are public. Piece ids and the dice state stay private: in an online match they never leave the server, behind a nested public allowlist. In local and computer games the concealment is experiential only, since browser memory can be inspected.
 
 ## Online persistence
 
-MongoDB stores the complete match in one document. Every submitted intent has a UUID and expected match version. A compare-and-swap commit writes the board, politics, RNG, events, revision, and receipt together. Rejections do not advance RNG. Concurrent losers reload and check receipts; they never reroll automatically.
+MongoDB stores the complete match in one document. Every submitted intent has a UUID and expected match version. A compare-and-swap commit writes the board, HP, dice state, events, revision, and receipt together. Rejections do not advance the dice. Concurrent losers reload and check receipts; they never reroll automatically.
 
 The latest 64 `(player, actionId)` receipts are retained. An identical retry returns a duplicate acknowledgement and current public state. Reusing an id with changed payload returns 409. After a receipt ages out, its old expected revision still blocks replay; reusing that aged id with a new revision is a new intent. Polls are serialized and gated by match identity and revision; leaving aborts in-flight work.
 
 Unchanged polls answer `304` (`If-None-Match` carries the last version). Opening a match link does not create a guest identity; the first join or move does. Inactive matches expire after 30 days, as do unused guest identities. The app caps each guest at 20 unjoined invites per day, but a new cookie gets around that. For real abuse protection, add Vercel Firewall rate-limit rules on `POST /api/matches` and `POST /api/matches/*` (for example, per IP per minute). `GET /api/health` reports database reachability for uptime checks.
 
-Unversioned matches use an idempotent legacy adapter. Their D20 behavior continues with king-safety, promotion, bounded-refusal, and deterministic future-RNG fixes; they do not gain new subjects or conspiracies. The original prototype did not save its `Math.random` history, so past draws cannot be reconstructed. Unknown future schemas/configurations return a controlled incompatibility response without rewriting the match.
+## Layout
 
-## Verify
-
-```sh
-npm run lint
-npm run typecheck
-npm run format:check
-npm test
-npm run build
-npx playwright install chromium
-npm run test:e2e
-npm run simulate
-```
-
-`npm test` includes behavioral fixtures and real MongoDB concurrency tests using an isolated `mongodb-memory-server` process. `npm run test:e2e` starts the **production build** on port 3100 with another isolated MongoDB database. It verifies separate browser sessions, transport retry, persistent warnings, promotion, keyboard controls, mobile layout, and lifecycle cancellation. Neither suite uses the database in `.env.local`. Initial runs download test browser/MongoDB binaries and need network access. On restricted Windows hosts, child-process creation may need sandbox approval.
-
-`npm run simulate -- --config 2026-09-08.6 --games 1000 --seed-start 90000 --out docs/progression/my-run` writes 1,000 seeded games (500 color-swapped pairs), raw JSON, a summary and a Markdown report. Use `--suite pressure` for the causal pressure policy or `--suite holdout` for the ordinary policy mix. Existing output directories are rejected. The fixed 240-ply harness cap is reported as truncation, not a gameplay draw. Optional `SIM_GAMES` is for shorter diagnostics. The tests follow the [Vitest guide](https://vitest.dev/guide/) and [Playwright web-server workflow](https://playwright.dev/docs/test-webserver).
-
-The measurement documents preserve the pre-publication verification snapshot; Git history records subsequent publication. The readable-agency changes separate player commands from autonomous consequences, preserve action explanations during check and terminal history, and add sparse causal relationship feedback. See the [implementation checklist](docs/readable-politics-checklist.md), [tuning ledger](docs/readable-politics/tuning-ledger.md), [results](docs/readable-politics/results.md), and [natural replay / human playtest protocol](docs/readable-politics/replay-and-playtest.md). Deeper progression remains measurement-gated; human testing is pending. The six bounded candidate configurations remain available for reproducible CLI experiments and are not selectable in the game UI.
-
-The political progression release is documented in the [phase checklist](docs/political-progression-implementation.md), [final results](docs/political-progression-results.md), [progression rules and replay walkthrough](docs/political-progression-rules.md), and [measurement index](docs/progression/measurement-index.md). Raw reports distinguish constructed rare-event tests, cooperative causal replays, natural seeded pressure play, and independent holdouts. The implementation was verified before promotion to main; the reports distinguish local verification from live deployment checks.
-
-Read the historical [implementation checklist and verification report](docs/hidden-kingdom-implementation.md), [balance measurements](docs/hidden-kingdom-balancing.md), and [rule decisions](docs/hidden-kingdom-rules.md). Historical design plans are retained as context and superseded by these documents.
-
-## Layout and deployment compatibility
-
-| Path                                | Responsibility                                                      |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| `app/`                              | Canonical Next.js page and online API routes                        |
-| `components/chess/`, `hooks/`       | Board, promotion, history, local undo, online polling, AI lifecycle |
-| `lib/chess.ts`, `lib/chessRules.ts` | Ordinary movement, attack maps, special rights and draws            |
-| `lib/game.ts`, `lib/game/`          | Shared reducer, versioned types, validation, public DTO, migration  |
-| `lib/battle/`                       | Battle Chess: stats and odds, movement, reducer, computer search    |
-| `lib/rpg/`                          | Hidden Kingdom: subjects, leadership, agency, court scheduler       |
-| `lib/rpgChess.ts`                   | Legacy-only D20 compatibility resolver                              |
-| `lib/ai/`                           | Iterative worker search and own-side political evaluation           |
-| `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                            |
-| `tests/`, `scripts/`                | Behavioral, database and browser tests; reproducible measurements   |
+| Path                                | Responsibility                                                        |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `app/`                              | Next.js page and online API routes                                    |
+| `components/chess/`, `hooks/`       | Board, battle panel, promotion, history, undo, polling, computer turn |
+| `lib/chess.ts`, `lib/chessRules.ts` | Piece movement, castling and en passant rights, repetition keys       |
+| `lib/battle/`                       | Stats and odds, movement, the battle reducer, computer search, config |
+| `lib/game.ts`, `lib/game/`          | Game shell, types, validation, public state, undo, dice state         |
+| `lib/ai/`                           | Difficulty budgets, board evaluation, the search worker               |
+| `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                              |
+| `tests/`, `scripts/`                | Unit, database and browser tests; the balance run                     |
 
 The repository root is the application and deployment root.
 
-## Previously deployed release
+## Deployment
 
-Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Play at the public production domain, [test-chess-game-roy-kappa-five.vercel.app](https://test-chess-game-roy-kappa-five.vercel.app), or manage the project in its [Vercel dashboard](https://vercel.com/pramits-projects-ce654619/chess-game). The project uses the repository root and Node 24; `vercel.json` explicitly selects the Next.js framework.
+Vercel builds the connected GitHub repository. Pushes to `main` trigger Production deployments; feature branches receive preview deployments. Play at the public production domain, [test-chess-game-roy-kappa-five.vercel.app](https://test-chess-game-roy-kappa-five.vercel.app). Vercel's generated deployment and team URLs are sign-in protected; share the public production domain. The project uses the repository root and Node 24; `vercel.json` explicitly selects the Next.js framework.
 
-Public access was verified on 2026-09-07 against production commit `0e73af7`: HTTP 200 without Vercel sign-in, ordinary chess controls, local moves and undo, a computer reply, and online invites between two independent guest sessions. Online checks covered Black orientation, synchronized moves in both directions, reconnect, hidden-state privacy, and Leave. Both smoke checks reported zero browser page errors. Online verification created one new test match and did not modify existing matches.
-
-Vercel's generated deployment/team URLs remain sign-in protected; share the public production domain above. The historical `chess-game-six-zeta.vercel.app` address returns `DEPLOYMENT_NOT_FOUND`. No deployment-protection change was needed once the configured public domain was identified.
-
-Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. To rotate it, move the old value to `CHESS_AUTH_SECRET_PREVIOUS`; guests are re-signed on their next request, and the previous secret can be removed after 30 days. Existing unversioned matches continue through the legacy adapter; new matches use Battle Chess rules. No destructive database migration is required.
-
-The release passed lint, TypeScript, formatting, the production build, **62 unit/integration tests**, and **9 production-browser tests**. The recorded 1,000-game simulation had zero invalid states, stalls, errors, or opening anomalies. See the [verification report](docs/hidden-kingdom-implementation.md) for coverage and numerical tuning. Nine high dependency findings remain documented in the retained Next.js 14/eslint stack.
+Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. To rotate it, move the old value to `CHESS_AUTH_SECRET_PREVIOUS`; guests are re-signed on their next request, and the previous secret can be removed after 30 days.
 
 After a production push, verify the Vercel deployment status for that exact commit before treating the release as live. Local tests use isolated databases; they do not certify the production database configuration.
