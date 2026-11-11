@@ -19,7 +19,7 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
-    "mongoose": "^8.9.5",
+    "mongoose": "^8.24.7",
     "next": "^15.5.28",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
