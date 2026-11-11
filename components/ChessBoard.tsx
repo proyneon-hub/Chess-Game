@@ -3,10 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type Square,
   type PromotionKind,
-  getLegalMoves,
   isWhite,
   sameSquare,
-  squareName,
 } from "@/lib/chess";
 import { type Difficulty, type GameKind } from "@/lib/game";
 import type { Intention } from "@/lib/game/types";
@@ -14,7 +12,6 @@ import type { PublicGame } from "@/lib/game/publicState";
 import { useLocalGame } from "@/hooks/useLocalGame";
 import { useOnlineMatch } from "@/hooks/useOnlineMatch";
 import { useComputerTurn } from "@/hooks/useComputerTurn";
-import { EncounterArea } from "@/components/chess/EncounterArea";
 import { Board } from "@/components/chess/Board";
 import { Promotion } from "@/components/chess/Promotion";
 import { GameHistory } from "@/components/chess/GameHistory";
@@ -22,7 +19,6 @@ import { clearLocalGame, readLocalSave } from "@/hooks/localSave";
 import { statusText } from "@/components/chess/statusText";
 import { BattlePanel } from "@/components/chess/BattlePanel";
 import { battleMoves } from "@/lib/battle/moves";
-const NO_ENCOUNTERS: NonNullable<PublicGame["encounters"]> = [];
 const button =
   "rounded border border-stone-600 px-4 py-2 text-sm text-stone-200 hover:bg-stone-900 disabled:opacity-40";
 export default function ChessBoard() {
@@ -71,7 +67,7 @@ export default function ChessBoard() {
   const moves = useMemo(
     () =>
       selected && side && visible
-        ? (visible.rules === "battle" ? battleMoves : getLegalMoves)(
+        ? battleMoves(
             visible.board,
             ...selected,
             side === "white",
@@ -288,15 +284,7 @@ export default function ChessBoard() {
               </span>
             )}
           </div>
-          {visible.rules === "battle" && (
-            <BattlePanel game={visible} selected={selected} moves={moves} />
-          )}
-          <EncounterArea encounters={visible.encounters ?? NO_ENCOUNTERS} />
-          {kind === "online" && online.error && visible.warning && (
-            <p role="alert" className="text-sm text-amber-200">
-              {online.error}
-            </p>
-          )}
+          <BattlePanel game={visible} selected={selected} moves={moves} />
           {kind === "online" &&
             online.remote?.playerSide === "white" &&
             online.remote.waitingForOpponent && (
@@ -335,21 +323,6 @@ export default function ChessBoard() {
             >
               Retry connection
             </button>
-          )}
-          {visible.pendingRefusal && (
-            <div className="text-sm text-stone-300">
-              <p>
-                Order: {squareName(visible.pendingRefusal.from)} to{" "}
-                {squareName(visible.pendingRefusal.to)}.
-              </p>
-              <button
-                disabled={!myTurn}
-                className={button + " mt-2"}
-                onClick={() => send(visible.pendingRefusal!)}
-              >
-                Repeat order
-              </button>
-            </div>
           )}
           {(visible.drawClaims.threefold || visible.drawClaims.fiftyMove) &&
             visible.status === "active" && (
@@ -419,28 +392,20 @@ export default function ChessBoard() {
               select. Choose a piece when promoting a pawn. Games here are kept
               in this browser if you reload.
             </p>
-            {visible.dice && (
-              <p className="mt-2">
-                Moving onto an enemy piece starts a battle. Both pieces roll a
-                six-sided die: the attacker adds its attack, the defender its
-                defence.{" "}
-                {visible.dice.defenderWinsTies
-                  ? "If the attack total beats the defence total,"
-                  : "If the attack total is at least the defence total,"}{" "}
-                the defender loses the difference in HP (at least{" "}
-                {visible.dice.minDamage}) and is defeated at 0. Otherwise the
-                attack is repelled and the attacker loses {visible.dice.repel}{" "}
-                HP. A piece only takes the square when it defeats the defender.
-                There is no check: defeat the enemy king to win. Select a piece
-                to see its chance against each target.
-              </p>
-            )}
-            {visible.events.some((e) => e.message.includes("hesitates")) && (
-              <p className="mt-2">
-                After hesitation, repeat the order or select a different legal
-                move. Inspect the event log for earlier observations.
-              </p>
-            )}
+            <p className="mt-2">
+              Moving onto an enemy piece starts a battle. Both pieces roll a
+              six-sided die: the attacker adds its attack, the defender its
+              defence.{" "}
+              {visible.dice.defenderWinsTies
+                ? "If the attack total beats the defence total,"
+                : "If the attack total is at least the defence total,"}{" "}
+              the defender loses the difference in HP (at least{" "}
+              {visible.dice.minDamage}) and is defeated at 0. Otherwise the
+              attack is repelled and the attacker loses {visible.dice.repel} HP.
+              A piece only takes the square when it defeats the defender. There
+              is no check: defeat the enemy king to win. Select a piece to see
+              its chance against each target.
+            </p>
           </details>
         </aside>
       </div>

@@ -1,11 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { type Board, freshRights } from "@/lib/chess";
-import { positionKey } from "@/lib/chessRules";
 import { createGameState, submitMove } from "@/lib/game";
 import type { GameState } from "@/lib/game/types";
-import { initializePieceIds } from "@/lib/rpgChess";
-import { initialUnits } from "@/lib/battle/resolve";
+import { KINGS, boardFixture, unitAt } from "../fixtures";
 
 const square = (page: Page, name: string) =>
   page.locator(`[data-square="${name}"]`);
@@ -70,7 +67,7 @@ test("pieces show HP, a selection shows odds, and a battle shows its dice", asyn
     );
   const before = await saved();
   expect(JSON.stringify(before)).not.toBe(
-    JSON.stringify(createGameState(1).battle!.units),
+    JSON.stringify(createGameState(1).battle.units),
   );
   await page.reload();
   await expect(page.getByText("Your game has been restored.")).toBeVisible();
@@ -92,16 +89,8 @@ test("defeating the king ends the game, on a phone-sized screen", async ({
   // A queen beside a king on its last HP; pick a seed whose dice land.
   let game: GameState | undefined;
   for (let seed = 1; !game; seed++) {
-    const s = createGameState(seed);
-    s.board = Array.from({ length: 8 }, () => Array(8).fill(null)) as Board;
-    s.board[7][4] = "K";
-    s.board[0][4] = "k";
-    s.board[1][4] = "Q";
-    s.pieceIds = initializePieceIds(s.board);
-    s.battle!.units = initialUnits(s.board, s.pieceIds);
-    s.battle!.units[s.pieceIds[0][4]!].hp = 1;
-    s.rights = freshRights(false);
-    s.positions = { [positionKey(s.board, "white", s.rights)]: 1 };
+    const s = boardFixture([...KINGS, ["Q", [1, 4]]], "white", seed);
+    unitAt(s, [0, 4]).hp = 1;
     if (
       submitMove(s, { from: [1, 4], to: [0, 4], side: "white" }).state.terminal
     )

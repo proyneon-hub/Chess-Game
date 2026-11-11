@@ -11,17 +11,13 @@
 // --rules '{...}'  try a stat table without registering a config, e.g.
 //                  '{"minDamage":2,"stats":{"k":{"hp":16}}}'
 import { createGameState, submitMove, movesFor } from "../lib/game";
-import { computerChoice } from "../lib/ai/computerChoice";
-import { BATTLE_DIFFICULTY } from "../lib/ai/difficulty";
+import { DIFFICULTY } from "../lib/ai/difficulty";
+import { DEFAULT_CONFIG } from "../lib/battle/config";
 import { initialUnits, unitGrid } from "../lib/battle/resolve";
-import { DEFAULT_CONFIG } from "../lib/rpg/config";
-import { seedRng, draw } from "../lib/rpg/rng";
+import { searchBattle } from "../lib/battle/search";
+import { seedRng, draw } from "../lib/game/rng";
 import type { Difficulty } from "../lib/game";
-import {
-  BATTLE_RULES,
-  type BattleOutcome,
-  type BattleRules,
-} from "../lib/battle/stats";
+import { type BattleOutcome, type BattleRules } from "../lib/battle/stats";
 import type { Side } from "../lib/chess";
 
 const flags: Record<string, string> = {};
@@ -33,7 +29,7 @@ const games = Number(flags["--games"] ?? 50),
   swap = flags["--swap"] === "true",
   names = [flags["--white"] ?? "normal", flags["--black"] ?? "normal"],
   cap = 300;
-const base = DEFAULT_CONFIG.battle ?? BATTLE_RULES,
+const base = DEFAULT_CONFIG.battle,
   override = JSON.parse(flags["--rules"] ?? "{}") as Partial<BattleRules>,
   rules: BattleRules = {
     ...base,
@@ -50,7 +46,7 @@ const level = (
 ): { depth: number; budgetMs: number; spreadCp?: number } =>
   /^d\d+$/.test(name)
     ? { depth: Number(name.slice(1)), budgetMs: 1000 }
-    : BATTLE_DIFFICULTY[name as Difficulty];
+    : DIFFICULTY[name as Difficulty];
 if (names.some((n) => !level(n))) throw Error("Unknown level.");
 
 const median = (xs: number[]) =>
@@ -78,12 +74,12 @@ function play(seed: number, players: Record<Side, string>) {
     first = 0,
     quiet = 0,
     worst = 0;
-  s.battle!.units = initialUnits(s.board, s.pieceIds, rules);
+  s.battle.units = initialUnits(s.board, s.pieceIds, rules);
   const hits = { K: 0, k: 0 };
   while (s.status === "active" && s.ply < cap) {
     const name = players[s.sideToMove],
       l = level(name);
-    const choice = computerChoice(
+    const choice = searchBattle(
       {
         rules: "battle",
         board: s.board,
@@ -106,7 +102,7 @@ function play(seed: number, players: Record<Side, string>) {
     const r = submitMove(s, choice.moves[0] ?? movesFor(s)[0], { rules });
     if (!r.requestAccepted) throw Error("Search chose an unavailable move.");
     s = r.state;
-    const b = s.battle!.last;
+    const b = s.battle.last;
     if (b?.ply === s.ply) {
       outcomes[b.outcome]++;
       if (!first) first = s.ply;
@@ -122,7 +118,7 @@ function play(seed: number, players: Record<Side, string>) {
   const key = winner ? players[winner] : "draw";
   byLevel[key] = (byLevel[key] ?? 0) + 1;
   plies.push(s.ply);
-  battles.push(s.battle!.count);
+  battles.push(s.battle.count);
   firstBattle.push(first);
   longestQuiet.push(worst);
   if (reason === "king-defeated")

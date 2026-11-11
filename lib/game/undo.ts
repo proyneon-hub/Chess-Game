@@ -1,5 +1,5 @@
 import type { GameState, MoveResult } from "@/lib/game/types";
-import { rulesFor } from "@/lib/rpg/config";
+import { rulesFor } from "@/lib/battle/config";
 export type LocalHistory = { start: GameState; completed: GameState[] };
 export const recordTurn = (
   h: LocalHistory,
@@ -17,12 +17,6 @@ export const undoTurn = (
   h: LocalHistory,
   current: GameState,
 ): { game: GameState; history: LocalHistory; message: string } => {
-  if (current.pendingRefusal)
-    return {
-      game: h.start,
-      history: h,
-      message: "Pending order cancelled. The turn has been restored.",
-    };
   const game = h.completed.at(-1);
   return game
     ? {

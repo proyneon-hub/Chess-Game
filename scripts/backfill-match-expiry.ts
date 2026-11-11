@@ -1,6 +1,6 @@
 // One-time backfill: dates every GameMatch saved before the expiresAt TTL
 // index existed (2026-09-21), so it ages out on the same 30-day idle clock
-// as everything written since. See docs/v1-sunset.md.
+// as everything written since.
 //
 // Dry run (default, no writes):
 //   npm run backfill:match-expiry

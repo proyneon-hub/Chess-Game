@@ -1,4 +1,3 @@
-import { isInCheck } from "@/lib/chess";
 import type { GameKind } from "@/lib/game";
 import type { PublicGame, PublicMatch } from "@/lib/game/publicState";
 
@@ -10,7 +9,7 @@ export type StatusInput = {
   message: string;
 };
 
-/** The single status line: results and check first, then mode-specific. */
+/** The single status line: the result first, then mode-specific. */
 export function statusText({
   game,
   kind,
@@ -19,10 +18,6 @@ export function statusText({
   message,
 }: StatusInput): string {
   if (game.result) return game.result;
-  // Battle Chess has no check: a king is attacked like any other piece.
-  if (!game.rules && isInCheck(game.board, game.sideToMove === "white"))
-    return "Check!";
-  if (game.warning) return game.warning.message;
   if (kind === "online") {
     if (online.error) return online.error;
     if (!online.remote) return "Opening the match…";

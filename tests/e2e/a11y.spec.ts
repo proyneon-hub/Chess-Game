@@ -53,14 +53,11 @@ test("online waiting screen and promotion dialog", async ({ page }) => {
     { inviteId: id },
     {
       $set: {
-        state: boardFixture(
-          [
-            ["K", [7, 7]],
-            ["k", [0, 7]],
-            ["P", [1, 0]],
-          ],
-          0,
-        ),
+        state: boardFixture([
+          ["K", [7, 7]],
+          ["k", [0, 7]],
+          ["P", [1, 0]],
+        ]),
       },
       $inc: { version: 1 },
     },

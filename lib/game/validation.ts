@@ -1,10 +1,10 @@
-import { validEncounters } from "@/lib/rpg/encounters/validation";
 import { validSquare } from "@/lib/chess";
-import { kingsValid, sideOf } from "@/lib/chessRules";
-import { configFor } from "@/lib/rpg/config";
-import { numericSubjectFields } from "@/lib/rpg/subjects";
+import {
+  RULESET_VERSION,
+  SCHEMA_VERSION,
+  configFor,
+} from "@/lib/battle/config";
 import type { GameState, Intention } from "@/lib/game/types";
-import { validProgression } from "./validateProgression";
 export const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export type ActionRequest = (Intention | { type: "claim-draw" }) & {
@@ -70,25 +70,22 @@ export class IncompatibleStateError extends Error {
 const fail = (): never => {
   throw new IncompatibleStateError();
 };
-type Simulation = NonNullable<GameState["simulation"]>;
 
 /**
- * Fails closed on any saved state this code cannot faithfully continue.
- * Sections run in order; later checks rely on the shapes earlier ones
- * established, so the order is part of the contract.
+ * Fails closed on any saved state this code cannot faithfully continue,
+ * including every game begun under rules older than Battle Chess.
  */
 export function validateState(value: unknown): asserts value is GameState {
-  if (!record(value) || !integer(value.schemaVersion, 1, 7)) fail();
+  if (!record(value) || value.schemaVersion !== SCHEMA_VERSION) fail();
   const s = value as GameState;
   const ids = checkBoard(s);
   checkRightsAndHistory(s);
-  if (s.schemaVersion === 1) return checkLegacy(s, ids);
-  if (s.schemaVersion === 7) return checkBattle(s, ids);
-  const sim = checkSimulationHeader(s);
-  checkKingdoms(sim);
-  checkSubjects(s, sim, ids);
-  checkPlots(s, sim);
-  checkLogs(sim);
+  checkBattle(s, ids);
+}
+/** A validated private copy of a stored game. */
+export function loadState(value: unknown): GameState {
+  validateState(value);
+  return structuredClone(value);
 }
 
 /** Board, piece ids, and their agreement; returns the ids on the board. */
@@ -107,12 +104,11 @@ function checkBoard(s: GameState): Set<string> {
             p === null || (typeof p === "string" && /^[kqrbnpKQRBNP]$/.test(p)),
         ),
     ) ||
-    // Battle Chess ends with a king defeated, so a finished game has one.
-    !(s.schemaVersion === 7 && s.status === "finished"
-      ? ["K", "k"].every(
-          (k) => s.board.flat().filter((p) => p === k).length <= 1,
-        )
-      : kingsValid(s.board))
+    // A finished game may have lost a king; an active one has both.
+    !["K", "k"].every((k) => {
+      const n = s.board.flat().filter((p) => p === k).length;
+      return s.status === "finished" ? n <= 1 : n === 1;
+    })
   )
     fail();
   if (
@@ -172,17 +168,14 @@ function checkRightsAndHistory(s: GameState) {
         (i === 0 || e.seq > s.events[i - 1].seq) &&
         integer(e.ply) &&
         typeof e.message === "string" &&
-        [e.square, e.intended, e.actual].every(
-          (x) => x === null || validSquare(x),
-        ),
+        (e.square === null || validSquare(e.square)),
     ) ||
     !s.moves.every(
       (m) =>
         record(m) &&
         integer(m.number, 1) &&
         typeof m.text === "string" &&
-        typeof m.message === "string" &&
-        typeof m.special === "boolean",
+        typeof m.message === "string",
     )
   )
     fail();
@@ -190,36 +183,25 @@ function checkRightsAndHistory(s: GameState) {
     (s.status === "finished") !== !!s.terminal ||
     (s.terminal &&
       (![
-        "checkmate",
+        "king-defeated",
         "stalemate",
-        "insufficient-material",
         "fivefold",
         "seventy-five-move",
         "threefold",
         "fifty-move",
-        "regicide",
-        "king-defeated",
       ].includes(s.terminal.reason) ||
         ![null, "white", "black"].includes(s.terminal.winner) ||
         !integer(s.terminal.terminalPly)))
   )
     fail();
-  if (
-    s.pendingRefusal &&
-    (!validSquare(s.pendingRefusal.from) || !validSquare(s.pendingRefusal.to))
-  )
-    fail();
 }
 
-/** Battle Chess (schema 7): no simulation; one visible unit per piece. */
+/** The ruleset, the dice state, and one visible unit per piece. */
 function checkBattle(s: GameState, ids: Set<string>) {
   const b = s.battle;
   if (
-    s.rulesetVersion !== "battle-v1" ||
-    configFor(s.configVersion)?.generation !== 7 ||
-    s.simulation !== null ||
-    s.pendingRefusal !== null ||
-    s.warning !== null ||
+    s.rulesetVersion !== RULESET_VERSION ||
+    !configFor(s.configVersion) ||
     !record(b) ||
     !record(b.rngState) ||
     b.rngState.algorithm !== "mulberry32-v1" ||
@@ -241,7 +223,7 @@ function checkBattle(s: GameState, ids: Set<string>) {
     })
   )
     fail();
-  const l = b!.last;
+  const l = b.last;
   if (
     l !== null &&
     (!record(l) ||
@@ -261,247 +243,6 @@ function checkBattle(s: GameState, ids: Set<string>) {
         l.defenderHp,
       ].every((n) => integer(n, 0, 999)) ||
       !["defeated", "wounded", "repelled", "fell"].includes(l.outcome))
-  )
-    fail();
-}
-
-/** Legacy (schema 1) saves: D20 piece state and the legacy RNG, no simulation. */
-function checkLegacy(s: GameState, ids: Set<string>) {
-  if (
-    s.rulesetVersion !== "legacy-v1" ||
-    s.configVersion !== "legacy-safety-1" ||
-    s.simulation !== null ||
-    !record(s.rpgState) ||
-    !record(s.rpgState.pieces) ||
-    !record(s.rpgState.kings) ||
-    !s.legacyRng
-  )
-    fail();
-  if (!s.rpgState || !s.legacyRng) return fail();
-  if (
-    s.legacyRng.algorithm !== "mulberry32-v1" ||
-    ![
-      s.legacyRng.initialization,
-      s.legacyRng.gameplay,
-      s.legacyRng.narrative,
-    ].every((n) => integer(n, 0, 4294967295))
-  )
-    fail();
-  for (const side of ["white", "black"] as const) {
-    const k = s.rpgState.kings[side];
-    if (
-      !record(k) ||
-      !integer(k.baseStrength, 1, 20) ||
-      !integer(k.auraRadius, 0, 8) ||
-      !integer(k.auraBonus, -1, 3)
-    )
-      fail();
-  }
-  for (const id of Array.from(ids)) {
-    const p = s.rpgState.pieces[id];
-    if (
-      !record(p) ||
-      p.id !== id ||
-      !["white", "black"].includes(p.side) ||
-      !["king", "queen", "rook", "bishop", "knight", "pawn"].includes(p.kind) ||
-      !record(p.stats) ||
-      !Object.values(p.stats).every((n) => integer(n, 0, 5)) ||
-      !integer(p.morale, 0, 6) ||
-      !integer(p.fatigue, 0, 4)
-    )
-      fail();
-  }
-}
-
-/**
- * Version agreement, the generation's extra state (progression, encounters),
- * the RNG, and the containers later sections walk.
- */
-function checkSimulationHeader(s: GameState): Simulation {
-  const sim = s.simulation;
-  if (
-    s.rulesetVersion !== `hidden-kingdom-v${s.schemaVersion}` ||
-    configFor(s.configVersion)?.generation !== s.schemaVersion ||
-    !sim ||
-    sim.schemaVersion !== s.schemaVersion ||
-    sim.configVersion !== s.configVersion ||
-    sim.rulesetVersion !== s.rulesetVersion
-  )
-    fail();
-  if (!sim) return fail();
-  if (sim.schemaVersion >= 3) {
-    try {
-      if (!validProgression(s)) fail();
-    } catch {
-      fail();
-    }
-  }
-  if (sim.schemaVersion === 2 && "progression" in sim) fail();
-  if (sim.schemaVersion >= 5) {
-    try {
-      if (!validEncounters(s)) fail();
-    } catch {
-      fail();
-    }
-  } else if ("encounters" in sim) fail();
-  if (
-    !record(sim.rngState) ||
-    sim.rngState.algorithm !== "mulberry32-v1" ||
-    ![
-      sim.rngState.initialization,
-      sim.rngState.gameplay,
-      sim.rngState.narrative,
-    ].every((n) => integer(n, 0, 4294967295))
-  )
-    fail();
-  if (
-    !record(sim.subjects) ||
-    Object.keys(sim.subjects).length > 32 ||
-    !record(sim.kingdoms) ||
-    !record(sim.turnContext) ||
-    sim.turnContext.ply !== s.ply ||
-    sim.turnContext.sideToMove !== s.sideToMove ||
-    sim.turnContext.refusalUsed !== !!s.pendingRefusal
-  )
-    fail();
-  return sim;
-}
-
-function checkKingdoms(sim: Simulation) {
-  for (const side of ["white", "black"] as const) {
-    const k = sim.kingdoms[side];
-    if (
-      !record(k) ||
-      ![k.legitimacy, k.tyranny, k.cohesion, k.prestige].every((n) =>
-        integer(n, 0, 100),
-      ) ||
-      !integer(k.kingStrength, 1, 20) ||
-      !integer(k.ownTurnsCompleted) ||
-      !integer(k.extensionsUsed, 0, 1) ||
-      typeof k.plotAttemptUsed !== "boolean"
-    )
-      fail();
-  }
-}
-
-/** Every subject's fields, memories, and relationships, and the board. */
-function checkSubjects(s: GameState, sim: Simulation, ids: Set<string>) {
-  for (const [id, sub] of Object.entries(sim.subjects)) {
-    if (
-      !record(sub) ||
-      id !== sub.id ||
-      !["white", "black"].includes(sub.side) ||
-      !["active", "captured"].includes(sub.status) ||
-      !numericSubjectFields.every((k) => integer(sub[k], 0, 100)) ||
-      ![
-        "steadfast",
-        "timid",
-        "proud",
-        "ambitious",
-        "protective",
-        "pragmatic",
-      ].includes(sub.personality) ||
-      !/^[kqrbnp]$/.test(sub.currentKind) ||
-      !/^[kqrbnp]$/.test(sub.originalKind) ||
-      !integer(sub.skill, 1, 5) ||
-      !integer(sub.power, 1, 5) ||
-      !Array.isArray(sub.memories) ||
-      sub.memories.length > 12 ||
-      !sub.memories.every(
-        (m) =>
-          record(m) &&
-          typeof m.type === "string" &&
-          typeof m.source === "string" &&
-          m.target === id &&
-          integer(m.createdOwnTurn) &&
-          integer(m.expiryOwnTurn) &&
-          integer(m.action),
-      )
-    )
-      fail();
-    if (
-      !record(sub.relationships) ||
-      Object.keys(sub.relationships).length > 4 ||
-      !Object.entries(sub.relationships).every(
-        ([other, r]) =>
-          record(r) &&
-          !!sim.subjects[other] &&
-          integer(r.score, -100, 100) &&
-          typeof r.disputed === "boolean" &&
-          integer(r.separatedTurns),
-      )
-    )
-      fail();
-    if ((sub.status === "active") !== ids.has(id)) fail();
-  }
-  for (let r = 0; r < 8; r++)
-    for (let c = 0; c < 8; c++) {
-      const p = s.board[r][c],
-        id = s.pieceIds[r][c];
-      if (p && id) {
-        const sub = sim.subjects[id];
-        if (
-          !sub ||
-          sub.currentKind !== p.toLowerCase() ||
-          sub.side !== sideOf(p)
-        )
-          fail();
-      }
-    }
-}
-
-/** At most one live plot; stages, members, and warning history agree. */
-function checkPlots(s: GameState, sim: Simulation) {
-  if (
-    !Array.isArray(sim.plots) ||
-    sim.plots.length > 2 ||
-    !sim.plots.every(record) ||
-    sim.plots.filter((p) => !["resolved", "thwarted"].includes(p.stage))
-      .length > 1 ||
-    !sim.plots.every(
-      (p) =>
-        ["white", "black"].includes(p.side) &&
-        ["gathering", "preparing", "armed", "resolved", "thwarted"].includes(
-          p.stage,
-        ) &&
-        p.ringleader !== p.accomplice &&
-        [p.ringleader, p.accomplice].every(
-          (id) =>
-            sim.subjects[id]?.side === p.side &&
-            sim.subjects[id]?.currentKind !== "k",
-        ) &&
-        Array.isArray(p.warningEventIds) &&
-        p.warningEventIds.length <= 3 &&
-        p.warningEventIds.every((n) => integer(n, 1)) &&
-        Array.isArray(p.warningOwnTurns) &&
-        p.warningOwnTurns.length === p.warningEventIds.length &&
-        p.warningOwnTurns.every((n) => integer(n)) &&
-        integer(p.stageEnteredOwnTurn) &&
-        integer(
-          p.deferredTurns,
-          0,
-          configFor(s.configVersion)?.responsibility?.armedDeferrals ?? 2,
-        ) &&
-        integer(p.separatedTurns),
-    )
-  )
-    fail();
-}
-
-function checkLogs(sim: Simulation) {
-  if (
-    !Array.isArray(sim.privateEvents) ||
-    sim.privateEvents.length > 256 ||
-    !sim.privateEvents.every(
-      (e) =>
-        record(e) &&
-        integer(e.seq, 1) &&
-        typeof e.code === "string" &&
-        record(e.details),
-    ) ||
-    !record(sim.counters) ||
-    Object.keys(sim.counters).length > 256 ||
-    !Object.values(sim.counters).every((n) => integer(n))
   )
     fail();
 }

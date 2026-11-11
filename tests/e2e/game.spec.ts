@@ -119,7 +119,7 @@ test("MongoDB invite, separate sessions, Black orientation, retries and leave", 
       new URL(url).searchParams.get("match"),
   );
   expect(await response.text()).not.toMatch(
-    /"(?:rngState|subjects|pieceIds|kingdoms|loyalty|personality|privateEvents|rpgState)"/,
+    /"(?:rngState|pieceIds|configVersion|positions)"/,
   );
   await guest.getByRole("button", { name: "Leave", exact: true }).click();
   await guest.waitForTimeout(1700);
@@ -346,7 +346,7 @@ test("the rules engine loads only for local and computer play", async ({
   let engineLoaded = false;
   page.on("response", async (r) => {
     if (r.request().resourceType() === "script" && r.ok())
-      if ((await r.text()).includes("V3 pressure state required."))
+      if ((await r.text()).includes("Unsupported rules configuration."))
         engineLoaded = true;
   });
   await page.goto("/");

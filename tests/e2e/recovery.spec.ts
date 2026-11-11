@@ -1,17 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import mongoose from "mongoose";
-import { boardFixture } from "../fixtures";
-import { lateCourt, courtTurn } from "../scenarios";
+import { KINGS, boardFixture } from "../fixtures";
 import type { GameState } from "@/lib/game/types";
-import {
-  constructedV3Court,
-  v3Fixture,
-  constructedV4Court,
-  v4Fixture,
-} from "../progression-fixtures";
-import { submitMove } from "@/lib/game";
-import { scheduleCourt } from "@/lib/rpg/conspiracy";
 async function joined(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: /Play online/ }).click();
@@ -72,36 +63,16 @@ test("dropped move response retries the same intent exactly once", async ({
   expect(m.version).toBe(3);
   await context.close();
 });
-test("armed warning survives reconnect and keyboard promotion remains ordinary", async ({
+test("keyboard promotion works online and returns focus to the board", async ({
   page,
 }) => {
   const { id, context } = await joined(page);
-  let s = lateCourt();
-  for (let n = 0; n < 4; n++) {
-    s = courtTurn(s, "white").state;
-    s = courtTurn(s, "black").state;
-  }
-  expect(s.warning?.message).toContain("turning against");
-  await fixture(id, s);
-  await page.reload();
-  await expect(
-    page
-      .getByRole("status")
-      .filter({ hasText: "The king's own court is turning against him." }),
-  ).toBeVisible();
-  await page.waitForTimeout(1800);
-  await expect(
-    page.getByRole("status").filter({ hasText: "turning against" }),
-  ).toBeVisible();
-  const promotion = boardFixture(
-    [
-      ["K", [7, 7]],
-      ["k", [0, 7]],
-      ["P", [1, 0]],
-      ["r", [4, 4]],
-    ],
-    0,
-  );
+  const promotion = boardFixture([
+    ["K", [7, 7]],
+    ["k", [0, 7]],
+    ["P", [1, 0]],
+    ["r", [4, 4]],
+  ]);
   await fixture(id, promotion);
   await page.reload();
   await page.locator('[data-square="a7"]').click();
@@ -148,62 +119,48 @@ test("leaving during an in-flight poll cannot restore the old match", async ({
   await context.close();
 });
 
-for (const generation of [3, 4])
-  test(`two sessions reconnect to identical v${generation} public refusal and warning history`, async ({
-    page,
-  }) => {
-    const { id, context, guest } = await joined(page);
-    let s = (generation === 4 ? v4Fixture : v3Fixture)([
-      ["K", [7, 7]],
-      ["k", [0, 7]],
-      ["Q", [4, 3]],
-      ["r", [0, 0]],
-    ]);
-    const refused = submitMove(
-      s,
-      { from: [4, 3], to: [4, 0], side: "white" },
-      { draw: () => 0 },
+test("both players see the same battle, dice and HP online", async ({
+  page,
+}) => {
+  const { id, context, guest } = await joined(page);
+  await fixture(id, boardFixture([...KINGS, ["N", [4, 4]], ["r", [2, 3]]]));
+  await Promise.all([page.reload(), guest.reload()]);
+  // The odds are worked out in the browser from the public stats alone.
+  await page.locator('[data-square="e4"]').click();
+  await expect(page.locator('[data-square="d6"]')).toHaveAttribute(
+    "aria-label",
+    /Black rook, legal destination, 7 of 7 HP, attack 6, defence 3, 3% to defeat/,
+  );
+  await page.locator('[data-square="d6"]').click();
+  for (const client of [page, guest]) {
+    const panel = client.getByRole("region", { name: "Battle" });
+    await expect(panel).toContainText("White knight attacks Black rook on d6");
+    await expect(panel).toContainText(
+      /Defender (wounded|defeated)|Attack repelled/,
     );
-    expect(refused.resolution).toBe("refused");
-    await fixture(id, refused.state);
-    await Promise.all([page.reload(), guest.reload()]);
+    await expect(
+      client.getByText("Black to Move", { exact: true }),
+    ).toBeVisible();
+  }
+  const [a, b] = await Promise.all(
+    [page, guest].map(
+      async (client) =>
+        (await (await client.request.get(`/api/matches/${id}`)).json()).state,
+    ),
+  );
+  expect(a).toEqual(b);
+  expect(a.battle).toMatchObject({ from: [4, 4], target: [2, 3] });
+  expect(a.events).toHaveLength(1);
+  expect(JSON.stringify(a)).not.toMatch(/rngState|pieceIds|configVersion/);
+  // Whoever lost HP shows it on both boards.
+  const hurt = { wounded: "d6", repelled: "e4" }[a.battle.outcome as string];
+  if (hurt)
     for (const client of [page, guest])
       await expect(
-        client.getByText(refused.message, { exact: true }).first(),
+        client.locator(`[data-square="${hurt}"] [data-hp]`),
       ).toBeVisible();
-    const whiteState = (
-      await (await page.request.get(`/api/matches/${id}`)).json()
-    ).state;
-    const blackState = (
-      await (await guest.request.get(`/api/matches/${id}`)).json()
-    ).state;
-    expect(whiteState).toEqual(blackState);
-    s = generation === 4 ? constructedV4Court() : constructedV3Court();
-    for (let n = 0; n < 4; n++) {
-      s.ply += 2;
-      s.revision++;
-      s.simulation!.turnContext.ply = s.ply;
-      s.simulation!.kingdoms.white.ownTurnsCompleted++;
-      scheduleCourt(s, "white", () => 0, false);
-    }
-    expect(s.warning?.message).toContain("turning against");
-    await fixture(id, s);
-    await Promise.all([page.reload(), guest.reload()]);
-    for (const client of [page, guest])
-      await expect(
-        client.getByRole("status").filter({ hasText: "turning against" }),
-      ).toBeVisible();
-    const a = (await (await page.request.get(`/api/matches/${id}`)).json())
-      .state;
-    const b = (await (await guest.request.get(`/api/matches/${id}`)).json())
-      .state;
-    expect(a.events).toEqual(b.events);
-    expect(a.events).toHaveLength(3);
-    expect(JSON.stringify(a)).not.toMatch(
-      /episodes|rngState|ringleader|accomplice|configVersion/,
-    );
-    await context.close();
-  });
+  await context.close();
+});
 
 test("unchanged polls answer 304 and a move still reaches the opponent", async ({
   page,

@@ -1,15 +1,10 @@
-import type { SearchInput } from "@/lib/ai/search";
-import type { BattleSearchInput } from "@/lib/battle/search";
-import { computerChoice } from "./computerChoice";
+import { type BattleSearchInput, searchBattle } from "@/lib/battle/search";
 self.onmessage = (
-  event: MessageEvent<{
-    revision: number;
-    input: SearchInput | BattleSearchInput;
-  }>,
+  event: MessageEvent<{ revision: number; input: BattleSearchInput }>,
 ) => {
   const { revision, input } = event.data;
   try {
-    self.postMessage({ revision, result: computerChoice(input) });
+    self.postMessage({ revision, result: searchBattle(input) });
   } catch {
     self.postMessage({ revision, error: "Search unavailable." });
   }

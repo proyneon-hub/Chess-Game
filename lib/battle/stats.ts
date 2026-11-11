@@ -28,23 +28,9 @@ export type DiceRules = Pick<
   BattleRules,
   "die" | "repel" | "minDamage" | "defenderWinsTies"
 >;
-/** Configuration 2026-11-10.1: the first table, kept for games begun on it. */
-export const BATTLE_RULES_1: BattleRules = Object.freeze({
-  die: 6,
-  repel: 1,
-  stats: Object.freeze({
-    p: Object.freeze({ hp: 3, attack: 2, defence: 1 }),
-    n: Object.freeze({ hp: 5, attack: 4, defence: 2 }),
-    b: Object.freeze({ hp: 5, attack: 4, defence: 2 }),
-    r: Object.freeze({ hp: 7, attack: 5, defence: 3 }),
-    q: Object.freeze({ hp: 9, attack: 6, defence: 3 }),
-    k: Object.freeze({ hp: 14, attack: 4, defence: 4 }),
-  }),
-});
 /**
- * Configuration 2026-11-10.2 (docs/battle-rules.md, "Retuning"): harder
- * hits and a sturdier king, so half of all battles defeat the defender while
- * one attack in seven is still repelled.
+ * Configuration 2026-11-10.2 (docs/battle-rules.md): about half of all
+ * battles defeat the defender and one attack in seven is repelled.
  */
 export const BATTLE_RULES: BattleRules = Object.freeze({
   die: 6,

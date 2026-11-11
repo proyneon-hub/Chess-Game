@@ -7,14 +7,14 @@ import {
   submitMove,
 } from "@/lib/game";
 import { publicState, type PublicMatch } from "@/lib/game/publicState";
-import { migrateState } from "@/lib/game/migrate";
 import {
+  loadState,
   parseAction,
   type ActionRequest,
   UUID,
   validateState,
 } from "@/lib/game/validation";
-import { rulesFor } from "@/lib/rpg/config";
+import { rulesFor } from "@/lib/battle/config";
 import { GameMatch, MATCH_RETENTION_MS } from "@/models/GameMatch";
 export type { PublicMatch } from "@/lib/game/publicState";
 type Receipt = {
@@ -53,7 +53,7 @@ const publicMatch = (m: StoredMatch, id: string): PublicMatch => ({
   playerSide: playerSide(m, id),
   waitingForOpponent: !m.blackPlayerId,
   version: m.version,
-  state: publicState(migrateState(m.state)),
+  state: publicState(loadState(m.state)),
 });
 export async function createServerMatch(playerId: string) {
   await connectToDatabase();
@@ -95,7 +95,7 @@ export async function joinServerMatch(inviteId: string, playerId: string) {
   const found = await GameMatch.findOne({ inviteId }).lean();
   if (!found) return response(404, "Match not found.");
   const m = stored(found);
-  migrateState(m.state);
+  loadState(m.state);
   if (playerSide(m, playerId))
     return response(200, null, publicMatch(m, playerId));
   const claimed = await GameMatch.findOneAndUpdate(
@@ -164,7 +164,7 @@ export async function submitServerMove(
   const m = stored(found),
     side = playerSide(m, playerId);
   if (!side) return response(403, "You are not a player in this match.");
-  const state = migrateState(m.state),
+  const state = loadState(m.state),
     hash = requestHash(action),
     duplicate = receiptResponse(m, playerId, action, hash);
   if (duplicate) return duplicate;
