@@ -37,6 +37,8 @@ test("pieces show HP, a selection shows odds, and a battle shows its dice", asyn
     "aria-label",
     /White pawn, 3 of 3 HP, attack 3, defence 1/,
   );
+  // Full-strength pieces carry no HP marker on the board itself.
+  await expect(page.locator("[data-square] [data-hp]")).toHaveCount(0);
   const panel = page.getByRole("region", { name: "Battle" });
   await expect(
     panel.getByRole("meter", { name: "White king HP" }),

@@ -59,10 +59,10 @@ type SquareProps = {
   c: number;
   piece: string | null;
   marks: Marks;
-  /** Battle Chess: remaining and full HP, a spoken stat line, and the
-   * selected piece's chance (percent) to defeat the piece here. */
+  /** Battle Chess: remaining HP (shown only when wounded), a spoken stat
+   * line, and the selected piece's chance (percent) to defeat the piece. */
   hp: number | null;
-  maxHp: number | null;
+  wounded: boolean;
   stats: string | null;
   chance: number | null;
   focusable: boolean;
@@ -79,7 +79,7 @@ type SquareProps = {
 const sameProps = (a: SquareProps, b: SquareProps) =>
   a.piece === b.piece &&
   a.hp === b.hp &&
-  a.maxHp === b.maxHp &&
+  a.wounded === b.wounded &&
   a.stats === b.stats &&
   a.chance === b.chance &&
   a.focusable === b.focusable &&
@@ -95,7 +95,7 @@ const BoardSquare = memo(function BoardSquare({
   piece: p,
   marks: m,
   hp,
-  maxHp,
+  wounded,
   stats,
   chance,
   focusable,
@@ -172,35 +172,14 @@ const BoardSquare = memo(function BoardSquare({
           {PIECE_SYMBOLS[p] + "︎"}
         </span>
       )}
-      {p && hp !== null && maxHp !== null && (
-        <>
-          <span
-            aria-hidden="true"
-            data-hp={hp}
-            className="absolute inset-x-[8%] bottom-[4%] h-[9%] min-h-[4px] overflow-hidden rounded-sm border border-black/80 bg-black/70"
-          >
-            <span
-              className="block h-full"
-              style={{
-                width: `${(100 * hp) / maxHp}%`,
-                background:
-                  hp * 3 <= maxHp
-                    ? "#f87171"
-                    : hp * 3 <= maxHp * 2
-                      ? "#fbbf24"
-                      : "#4ade80",
-              }}
-            />
-          </span>
-          {hp < maxHp && (
-            <span
-              aria-hidden="true"
-              className="absolute right-0 top-0 rounded-bl bg-black/80 px-1 text-[10px] font-bold leading-4 text-white"
-            >
-              {hp}
-            </span>
-          )}
-        </>
+      {p && hp !== null && wounded && (
+        <span
+          aria-hidden="true"
+          data-hp={hp}
+          className="absolute right-0 top-0 rounded-bl bg-black/80 px-1 text-[10px] font-bold leading-4 text-white"
+        >
+          {hp}
+        </span>
       )}
       {chance !== null && (
         <span
@@ -306,7 +285,7 @@ export function Board({
               return (
                 <BoardSquare
                   hp={unit?.hp ?? null}
-                  maxHp={unit?.maxHp ?? null}
+                  wounded={!!unit && unit.hp < unit.maxHp}
                   stats={
                     unit
                       ? `${unit.hp} of ${unit.maxHp} HP, attack ${unit.attack}, defence ${unit.defence}`
