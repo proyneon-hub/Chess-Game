@@ -10,7 +10,7 @@ import { computerChoice } from "../lib/ai/computerChoice";
 import { DIFFICULTY } from "../lib/ai/difficulty";
 import { refusalFallback } from "../lib/ai/restraint";
 import { ownPolitics } from "../lib/ai/politicalEvaluation";
-import { configFor, DEFAULT_CONFIG } from "../lib/rpg/config";
+import { configFor, V6_CONFIG } from "../lib/rpg/config";
 import { hasEncounters } from "../lib/rpg/capabilities";
 import { presence, type Channel } from "../lib/rpg/presence";
 import { seedRng, draw, type RngState } from "../lib/rpg/rng";
@@ -46,7 +46,7 @@ for (let i = 2; i < process.argv.length; i += 2) {
 const styles = (flags["--style"] ?? STYLES.join(",")).split(",") as Style[],
   games = Number(flags["--games"] ?? 30),
   seedStart = Number(flags["--seed-start"] ?? 7000),
-  config = flags["--config"] ?? DEFAULT_CONFIG.version,
+  config = flags["--config"] ?? V6_CONFIG.version,
   difficulty = (flags["--difficulty"] ?? "normal") as Difficulty,
   traceSeed = flags["--trace"] === undefined ? null : Number(flags["--trace"]),
   cap = 200;

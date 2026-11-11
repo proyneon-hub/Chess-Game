@@ -1,13 +1,19 @@
 import { hasEncounters, hasProgression } from "@/lib/rpg/capabilities";
 import { responseMoves } from "@/lib/rpg/encounters/objectives";
 import type { GameState, MoveAttempt } from "@/lib/game/types";
-import { getAllLegalMoves, sameIntention, submitMove } from "@/lib/game";
+import {
+  getAllLegalMoves,
+  movesFor,
+  sameIntention,
+  submitMove,
+} from "@/lib/game";
 import { rulesFor } from "@/lib/rpg/config";
 import { politicalScore, ownPolitics } from "./politicalEvaluation";
 import { evaluateBoard } from "@/lib/ai/evaluate";
 import { applyMove } from "@/lib/chess";
 import { materializeView } from "./leadershipView";
 export function refusalFallback(s: GameState): MoveAttempt | undefined {
+  if (s.battle) return movesFor(s)[0];
   const moves = getAllLegalMoves(s.board, s.sideToMove, s.rights);
   if (hasProgression(s.simulation) && s.pendingRefusal)
     return moves.find((m) => !sameIntention(m, s.pendingRefusal!)) ?? moves[0];

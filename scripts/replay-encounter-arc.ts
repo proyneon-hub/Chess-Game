@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "../lib/rpg/config";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createGameState, submitMove, getAllLegalMoves } from "../lib/game";
 import type { MoveAttempt } from "../lib/game/types";
@@ -14,7 +15,7 @@ const seed = Number(process.argv[2] ?? 42),
 const fixture = JSON.parse(
   readFileSync("tests/goldens/natural-progression-v3.json", "utf8"),
 );
-let s = createGameState(seed);
+let s = createGameState(seed, V6_CONFIG.version);
 const rng = seedRng(seed),
   trace = [];
 for (

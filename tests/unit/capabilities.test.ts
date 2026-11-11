@@ -41,7 +41,9 @@ it("each generation's capabilities are fixed", () => {
     "soundRequests",
     "turnLevelDeltaCap",
   ]);
-  expect(() => capabilities({ schemaVersion: 7 })).toThrow();
+  // Battle Chess (7) has no hidden politics at all.
+  expect(on(7)).toEqual([]);
+  expect(() => capabilities({ schemaVersion: 8 })).toThrow();
 });
 
 it("type guards follow each config's generation", () => {

@@ -78,11 +78,12 @@ type Simulation = NonNullable<GameState["simulation"]>;
  * established, so the order is part of the contract.
  */
 export function validateState(value: unknown): asserts value is GameState {
-  if (!record(value) || !integer(value.schemaVersion, 1, 6)) fail();
+  if (!record(value) || !integer(value.schemaVersion, 1, 7)) fail();
   const s = value as GameState;
   const ids = checkBoard(s);
   checkRightsAndHistory(s);
   if (s.schemaVersion === 1) return checkLegacy(s, ids);
+  if (s.schemaVersion === 7) return checkBattle(s, ids);
   const sim = checkSimulationHeader(s);
   checkKingdoms(sim);
   checkSubjects(s, sim, ids);
@@ -106,7 +107,12 @@ function checkBoard(s: GameState): Set<string> {
             p === null || (typeof p === "string" && /^[kqrbnpKQRBNP]$/.test(p)),
         ),
     ) ||
-    !kingsValid(s.board)
+    // Battle Chess ends with a king defeated, so a finished game has one.
+    !(s.schemaVersion === 7 && s.status === "finished"
+      ? ["K", "k"].every(
+          (k) => s.board.flat().filter((p) => p === k).length <= 1,
+        )
+      : kingsValid(s.board))
   )
     fail();
   if (
@@ -192,6 +198,7 @@ function checkRightsAndHistory(s: GameState) {
         "threefold",
         "fifty-move",
         "regicide",
+        "king-defeated",
       ].includes(s.terminal.reason) ||
         ![null, "white", "black"].includes(s.terminal.winner) ||
         !integer(s.terminal.terminalPly)))
@@ -200,6 +207,60 @@ function checkRightsAndHistory(s: GameState) {
   if (
     s.pendingRefusal &&
     (!validSquare(s.pendingRefusal.from) || !validSquare(s.pendingRefusal.to))
+  )
+    fail();
+}
+
+/** Battle Chess (schema 7): no simulation; one visible unit per piece. */
+function checkBattle(s: GameState, ids: Set<string>) {
+  const b = s.battle;
+  if (
+    s.rulesetVersion !== "battle-v1" ||
+    configFor(s.configVersion)?.generation !== 7 ||
+    s.simulation !== null ||
+    s.pendingRefusal !== null ||
+    s.warning !== null ||
+    !record(b) ||
+    !record(b.rngState) ||
+    b.rngState.algorithm !== "mulberry32-v1" ||
+    !["initialization", "gameplay", "narrative"].every((k) =>
+      integer((b.rngState as Record<string, unknown>)[k], 0, 0xffffffff),
+    ) ||
+    !integer(b.count) ||
+    !record(b.units) ||
+    Object.keys(b.units).length !== ids.size ||
+    ![...ids].every((id) => {
+      const u = b.units[id];
+      return (
+        record(u) &&
+        integer(u.maxHp, 1, 99) &&
+        integer(u.hp, 1, u.maxHp) &&
+        integer(u.attack, 0, 99) &&
+        integer(u.defence, 0, 99)
+      );
+    })
+  )
+    fail();
+  const l = b!.last;
+  if (
+    l !== null &&
+    (!record(l) ||
+      !validSquare(l.from) ||
+      !validSquare(l.target) ||
+      ![l.attacker, l.defender].every(
+        (p) => typeof p === "string" && /^[kqrbnpKQRBNP]$/.test(p),
+      ) ||
+      ![
+        l.ply,
+        l.attackRoll,
+        l.defenceRoll,
+        l.attackTotal,
+        l.defenceTotal,
+        l.damage,
+        l.attackerHp,
+        l.defenderHp,
+      ].every((n) => integer(n, 0, 999)) ||
+      !["defeated", "wounded", "repelled", "fell"].includes(l.outcome))
   )
     fail();
 }

@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
@@ -317,7 +318,7 @@ describe("actual MongoDB coordination", () => {
   });
   it("online refusal retry acknowledges one grievance and no second roll", async () => {
     const { white, m } = await match();
-    const state = createGameState(1);
+    const state = createGameState(1, V6_CONFIG.version);
     state.ply = 16;
     state.simulation!.turnContext.ply = 16;
     const sub = subjectAt(state, [6, 4]);
@@ -389,7 +390,7 @@ describe("actual MongoDB coordination", () => {
     );
   });
   it("legacy matches remain readable/playable and future schemas remain untouched", async () => {
-    const s = createGameState(1),
+    const s = createGameState(1, V6_CONFIG.version),
       pieceIds = initializePieceIds(s.board);
     const baseline = {
       board: s.board,
@@ -460,7 +461,7 @@ describe("runtime contracts and nested privacy", () => {
     expect(parseAction(good)).not.toBeNull();
   });
   it("public projection recursively drops added private fields", () => {
-    const s = createGameState(1);
+    const s = createGameState(1, V6_CONFIG.version);
     const dirty = s as unknown as Record<string, unknown>;
     dirty.futureSecret = "secret";
     s.moves.push({
@@ -485,7 +486,7 @@ describe("runtime contracts and nested privacy", () => {
     expect(JSON.stringify(dto)).not.toContain("secret");
   });
   it("runtime saved-state validation rejects broken identity, stats and future config", () => {
-    const valid = createGameState(2);
+    const valid = createGameState(2, V6_CONFIG.version);
     expect(() => validateState(valid)).not.toThrow();
     for (const mutate of [
       (s: typeof valid) => {

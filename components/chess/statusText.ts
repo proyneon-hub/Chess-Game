@@ -19,7 +19,9 @@ export function statusText({
   message,
 }: StatusInput): string {
   if (game.result) return game.result;
-  if (isInCheck(game.board, game.sideToMove === "white")) return "Check!";
+  // Battle Chess has no check: a king is attacked like any other piece.
+  if (!game.rules && isInCheck(game.board, game.sideToMove === "white"))
+    return "Check!";
   if (game.warning) return game.warning.message;
   if (kind === "online") {
     if (online.error) return online.error;

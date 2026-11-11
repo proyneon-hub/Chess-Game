@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState, submitMove } from "@/lib/game";
 import { boardFixture, subjectAt } from "../fixtures";
@@ -63,7 +64,7 @@ it("promotion preserves identity and memories, updates role stats, envy is selec
   );
 });
 it("relationships and disputes have caps, reconcile and cool down", () => {
-  const s = createGameState(2),
+  const s = createGameState(2, V6_CONFIG.version),
     subs = Object.values(s.simulation!.subjects).filter(
       (x) => x.side === "white" && x.currentKind !== "k",
     );
@@ -87,7 +88,7 @@ it("relationships and disputes have caps, reconcile and cool down", () => {
   tickRelationships(s, "white");
 });
 it("memories and political values stay bounded", () => {
-  const s = createGameState(3),
+  const s = createGameState(3, V6_CONFIG.version),
     sub = subjectAt(s, [6, 0]);
   for (let n = 0; n < 30; n++) {
     s.revision = n;

@@ -1,8 +1,23 @@
 # Chess
 
-Chess for local pass-and-play, computer opponents, and private online invites. The interface uses ordinary chess controls. Pieces have persistent, hidden political memories; their behavior follows the same deterministic rules in every mode.
+Chess for local pass-and-play, computer opponents, and private online invites, played as **Battle Chess**: pieces move as in chess, but every piece has HP, attack and defence, every capture is a dice battle, and you win by defeating the enemy king. The same rules run in every mode.
 
 [Play Chess — no sign-in required](https://test-chess-game-roy-kappa-five.vercel.app)
+
+## Battle Chess (new games)
+
+- Each piece shows an HP bar on the board. Select a piece to see its HP, attack and defence, and its chance to defeat each enemy it can reach.
+- Moving onto an enemy piece starts a battle. Both sides roll a six-sided die; the attacker adds its attack and the defender its defence.
+- If the attack total beats the defence total, the defender loses the difference in HP (at least 3). At 0 HP it is defeated and the attacker takes the square. A defender that survives keeps its square, and the attacker stays where it was.
+- Otherwise, including on a tie, the attack is repelled and the attacker loses 1 HP. A piece that drops to 0 HP this way is removed.
+- Damage is permanent. A promoted pawn becomes a full-strength piece.
+- There is no check or checkmate. Kings can move into danger and can be attacked; the game ends when a king reaches 0 HP.
+
+The full rules, the stat table and the balance measurements are in [docs/battle-rules.md](docs/battle-rules.md).
+
+## Hidden Kingdom (older saved games)
+
+Games started before Battle Chess keep the rules they began with. The rest of this section, and the hesitation and conspiracy notes below, describe those older games.
 
 The Hidden Kingdom release adds persistent piece agency, tyranny and fear, rivalries, staged conspiracies, deterministic turn handling, private online state, and computer opponents using the shared rules engine. The board retains ordinary chess controls with no visible RPG selector or hidden statistics.
 
@@ -34,21 +49,24 @@ Open [localhost:3000](http://localhost:3000). Local and computer games need no d
 ## Play
 
 - **Play here:** two players, one board, with Undo for up to 20 completed turns.
-- **Play computer:** White against a worker-based opponent. Easy searches depth 1 / 150 ms and plays any move within 0.8 pawns of its best; Normal targets depth 2 / 250 ms; Advanced targets depth 4 / 1,000 ms. These are soft search budgets.
+- **Play computer:** White against a worker-based opponent. In Battle Chess, Easy searches depth 1 and plays any move within 0.8 pawns of its best; Normal searches depth 3; Advanced searches depth 5 within about 1.5 s. Older games use depth 1, 2 and 4. These are soft search budgets.
 - **Play online:** create a private invite. The creator is White; the recipient explicitly selects **Join as Black**. Black sees the board from Black's side. Keep the same browser profile to retain the signed guest identity; it renews with activity and expires after 30 days without a visit, like inactive matches.
 - Select a piece and a legal destination. Tab and arrow keys focus squares; Enter selects. Promotion defaults to queen and offers rook, bishop, and knight.
-- After a piece hesitates, **Repeat order** executes that command; a different legal order also completes the turn. **Retry connection** resends the same network request.
-- Undo during a pending hesitation restores the start of that turn first. A later Undo reverses the preceding completed turn. New Game resets the seed; Leave cancels online work and clears the invite URL.
+- A battle always uses the turn, whether it is won or repelled. Undo restores the position before it, and the same attack then rolls the same dice, so Undo cannot be used to re-roll.
+- **Retry connection** resends the same network request. New Game resets the seed; Leave cancels online work and clears the invite URL.
+- In an older Hidden Kingdom game, **Repeat order** executes a hesitated command (a different legal order also completes the turn), and Undo during a pending hesitation restores the start of that turn first.
 
-Castling, en passant, promotion choice, checkmate, stalemate, insufficient material, threefold/50-move claims, and fivefold/75-move automatic draws are supported. Draw rights deliberately use the visible chess position and ignore politics. This is an intentional chess variant, not a claim of certified tournament compliance.
+Battle Chess keeps castling (allowed even while the king is attacked), en passant (as a battle against the pawn), promotion choice, threefold/50-move claims and fivefold/75-move automatic draws. A battle resets the draw counters, because lost HP never returns. Older games also keep checkmate, stalemate and insufficient material. This is an intentional chess variant, not a claim of certified tournament compliance.
 
 ## Developer rule notes
 
-New games use schema 6, `hidden-kingdom-v6` (configuration `2026-09-23.1`): ignored requests leave pieces restless, rook pawns are not asked to act, visibly shaken pieces may withdraw when sent back into danger, a harsh court's accumulated harm can raise a complaint that, renewed, becomes a warned conspiracy, and an otherwise quiet turn may carry a brief line about a piece settling or growing tense. See [the playtest results](docs/v6-playtest/results.md). Saved `2026-09-10.1` and `2026-09-22.1` games keep their generation-5 rules. Existing legacy, v2, v3 and v4 saves retain their recorded rules and behavior. What each generation does differently is named in `lib/rpg/capabilities.ts`; a row must never change once saves exist, so new behavior needs a new generation. `tests/unit/replay-fingerprint.test.ts` pins seeded replays across v2–v5, so refactors must leave its hashes unchanged. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
+New games use schema 7, `battle-v1` (configuration `2026-11-10.2`; games begun on `2026-11-10.1` keep that first stat table): the reducer in `lib/battle/resolve.ts`, movement without check in `lib/battle/moves.ts`, the stat table and dice odds in `lib/battle/stats.ts`, and a separate chance-node search in `lib/battle/search.ts`. A battle game has no hidden simulation; its stats and last battle are public, and only piece ids and the dice state stay private. `npx tsx scripts/battle-balance.ts` measures battle frequency with the computer playing itself.
+
+The previous default was schema 6, `hidden-kingdom-v6` (configuration `2026-09-23.1`): ignored requests leave pieces restless, rook pawns are not asked to act, visibly shaken pieces may withdraw when sent back into danger, a harsh court's accumulated harm can raise a complaint that, renewed, becomes a warned conspiracy, and an otherwise quiet turn may carry a brief line about a piece settling or growing tense. See [the playtest results](docs/v6-playtest/results.md). Saved `2026-09-10.1` and `2026-09-22.1` games keep their generation-5 rules. Existing legacy, v2, v3 and v4 saves retain their recorded rules and behavior. What each generation does differently is named in `lib/rpg/capabilities.ts`; a row must never change once saves exist, so new behavior needs a new generation. `tests/unit/replay-fingerprint.test.ts` pins seeded replays across v2–v5, so refactors must leave its hashes unchanged. The first eight completed plies always execute ordinary legal moves. Later commands may encounter bounded hesitation, a safe retreat, or a rare heroic extension. There is one refusal budget per turn. Kings and check escapes always obey. Obeyed avoidable exposure and continued neglect can damage trust; meaningful rescue and protection can repair it. Subjects remember coercion, losses, promotion, and rivalries. After a refusal the v3/v4 computer weighs a safer alternative against repeating the order. Tyranny can improve immediate compliance while increasing grievances.
 
 A late-game conspiracy needs strict causal prerequisites, two eligible own turns, three persistent warning stages, and three response turns before an attempt. Guards, separation, leadership recovery, or king movement provide counterplay. Regicide retains the king on the board and creates an explicit terminal result. Ordinary chess results take precedence.
 
-The UI has no RPG selector, hidden statistics, or diagnostics panel. `?debug=1` does not reveal them. Local/computer concealment is experiential: browser source and memory can be inspected. Online RNG, subjects, political values, and internal plot objects remain server-private behind a nested public allowlist.
+For Hidden Kingdom games the UI has no RPG selector, hidden statistics, or diagnostics panel. `?debug=1` does not reveal them. Local/computer concealment is experiential: browser source and memory can be inspected. Online RNG, subjects, political values, and internal plot objects remain server-private behind a nested public allowlist.
 
 ## Online persistence
 
@@ -91,7 +109,8 @@ Read the historical [implementation checklist and verification report](docs/hidd
 | `components/chess/`, `hooks/`       | Board, promotion, history, local undo, online polling, AI lifecycle |
 | `lib/chess.ts`, `lib/chessRules.ts` | Ordinary movement, attack maps, special rights and draws            |
 | `lib/game.ts`, `lib/game/`          | Shared reducer, versioned types, validation, public DTO, migration  |
-| `lib/rpg/`                          | Seeded subjects, leadership, relationships, agency, court scheduler |
+| `lib/battle/`                       | Battle Chess: stats and odds, movement, reducer, computer search    |
+| `lib/rpg/`                          | Hidden Kingdom: subjects, leadership, agency, court scheduler       |
 | `lib/rpgChess.ts`                   | Legacy-only D20 compatibility resolver                              |
 | `lib/ai/`                           | Iterative worker search and own-side political evaluation           |
 | `lib/serverMatches.ts`, `models/`   | MongoDB authority, versions and receipts                            |
@@ -107,7 +126,7 @@ Public access was verified on 2026-09-07 against production commit `0e73af7`: HT
 
 Vercel's generated deployment/team URLs remain sign-in protected; share the public production domain above. The historical `chess-game-six-zeta.vercel.app` address returns `DEPLOYMENT_NOT_FOUND`. No deployment-protection change was needed once the configured public domain was identified.
 
-Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. To rotate it, move the old value to `CHESS_AUTH_SECRET_PREVIOUS`; guests are re-signed on their next request, and the previous secret can be removed after 30 days. Existing unversioned matches continue through the legacy adapter; new matches use Hidden Kingdom rules. No destructive database migration is required.
+Configure `MONGODB_URI` and a stable, long random `CHESS_AUTH_SECRET` in Vercel's Production environment for private online games. Keep the signing secret stable across releases so existing guest sessions retain access. To rotate it, move the old value to `CHESS_AUTH_SECRET_PREVIOUS`; guests are re-signed on their next request, and the previous secret can be removed after 30 days. Existing unversioned matches continue through the legacy adapter; new matches use Battle Chess rules. No destructive database migration is required.
 
 The release passed lint, TypeScript, formatting, the production build, **62 unit/integration tests**, and **9 production-browser tests**. The recorded 1,000-game simulation had zero invalid states, stalls, errors, or opening anomalies. See the [verification report](docs/hidden-kingdom-implementation.md) for coverage and numerical tuning. Nine high dependency findings remain documented in the retained Next.js 14/eslint stack.
 

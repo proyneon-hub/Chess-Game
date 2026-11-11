@@ -1,10 +1,11 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState } from "@/lib/game";
 import { publicState, type PublicMatch } from "@/lib/game/publicState";
 import { statusText, type StatusInput } from "@/components/chess/statusText";
 import { boardFixture } from "../fixtures";
 
-const game = publicState(createGameState(1));
+const game = publicState(createGameState(1, V6_CONFIG.version));
 const remote = { waitingForOpponent: false } as PublicMatch;
 const base: StatusInput = {
   game,

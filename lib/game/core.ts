@@ -15,11 +15,13 @@ export function finish(
   s.status = "finished";
   s.warning = null;
   s.result =
-    reason === "regicide"
-      ? `The king falls to his own court. ${winner === "white" ? "White" : "Black"} wins.`
-      : reason === "checkmate"
-        ? `Checkmate — ${winner === "white" ? "White" : "Black"} wins!`
-        : reason === "stalemate"
-          ? "Stalemate — draw."
-          : `Draw — ${reason.replaceAll("-", " ")}.`;
+    reason === "king-defeated"
+      ? `The ${winner === "white" ? "black" : "white"} king has fallen. ${winner === "white" ? "White" : "Black"} wins.`
+      : reason === "regicide"
+        ? `The king falls to his own court. ${winner === "white" ? "White" : "Black"} wins.`
+        : reason === "checkmate"
+          ? `Checkmate — ${winner === "white" ? "White" : "Black"} wins!`
+          : reason === "stalemate"
+            ? "Stalemate — draw."
+            : `Draw — ${reason.replaceAll("-", " ")}.`;
 }

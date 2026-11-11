@@ -1,4 +1,9 @@
 import { tuningCandidates, readableCandidates } from "./historicalConfigs";
+import {
+  BATTLE_RULES,
+  BATTLE_RULES_1,
+  type BattleRules,
+} from "@/lib/battle/stats";
 // Immutable registry: never alter this entry for an active saved match. Add a
 // new configVersion when balance changes. Values are original design defaults.
 const ORIGINAL = Object.freeze({
@@ -121,7 +126,9 @@ export type ProgressionConfig = {
 export type RuleConfig = {
   readonly [K in keyof typeof ORIGINAL]: K extends "version" ? string : number;
 } & {
-  readonly generation: 2 | 3 | 4 | 5 | 6;
+  readonly generation: 2 | 3 | 4 | 5 | 6 | 7;
+  /** Generation 7 (Battle Chess) only. */
+  readonly battle?: BattleRules;
   readonly responsibility?: {
     readonly rivalryWindow: number;
     readonly preferNearbyLeader: boolean;
@@ -288,8 +295,26 @@ export const V6_CONFIG: RuleConfig = Object.freeze({
     plotPly: 40,
   }),
 });
+// Generation 7, Battle Chess (docs/battle-rules.md): no hidden politics. Every
+// capture is a visible dice battle and a king is defeated, not checkmated.
+// Only the shared limits (undo, receipts) are read from the inherited keys.
+export const BATTLE_CONFIG_1: RuleConfig = Object.freeze({
+  ...ORIGINAL,
+  version: "2026-11-10.1",
+  generation: 7,
+  battle: BATTLE_RULES_1,
+});
+// The retuned table. Games begun on 2026-11-10.1 keep the table above.
+export const BATTLE_CONFIG: RuleConfig = Object.freeze({
+  ...ORIGINAL,
+  version: "2026-11-10.2",
+  generation: 7,
+  battle: BATTLE_RULES,
+});
+export const rulesetName = (generation: number) =>
+  generation === 7 ? "battle-v1" : `hidden-kingdom-v${generation}`;
 /** What new games use. CONFIG stays the v5 baseline that reports refer to. */
-export const DEFAULT_CONFIG = V6_CONFIG;
+export const DEFAULT_CONFIG = BATTLE_CONFIG;
 export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [ORIGINAL.version]: Object.freeze({ ...ORIGINAL, generation: 2 }),
   [AGENCY_TUNED.version]: Object.freeze({ ...AGENCY_TUNED, generation: 2 }),
@@ -304,6 +329,8 @@ export const CONFIGS: Readonly<Record<string, RuleConfig>> = Object.freeze({
   [CONFIG.version]: CONFIG,
   [PLAYTEST_CONFIG.version]: PLAYTEST_CONFIG,
   [V6_CONFIG.version]: V6_CONFIG,
+  [BATTLE_CONFIG_1.version]: BATTLE_CONFIG_1,
+  [BATTLE_CONFIG.version]: BATTLE_CONFIG,
   ...Object.fromEntries(READABLE_CANDIDATES.map((c) => [c.version, c])),
 });
 export const configFor = (version: string) =>
@@ -323,7 +350,7 @@ export function rulesFor(s: {
   if (
     !rules ||
     s.schemaVersion !== rules.generation ||
-    s.rulesetVersion !== `hidden-kingdom-v${rules.generation}`
+    s.rulesetVersion !== rulesetName(rules.generation)
   )
     throw new Error("Unsupported rules configuration.");
   return rules;

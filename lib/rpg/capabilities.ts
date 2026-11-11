@@ -92,6 +92,13 @@ const BY_SCHEMA: Record<number, Capabilities> = {
     frightenedWithdrawal: true,
     ambientFlavor: true,
   },
+  // Battle Chess has no hidden politics; it never reaches these branches.
+  7: {
+    ...legacy,
+    disputeRefusals: false,
+    riskyMoveFear: false,
+    plotRoll: false,
+  },
 };
 
 export function capabilities(s: { schemaVersion: number }): Capabilities {

@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   type Board,
@@ -42,7 +43,7 @@ describe("baseline regressions", () => {
   });
   it("opening commands execute even on the old natural-one draw", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
-    const result = submitMove(createGameState(), {
+    const result = submitMove(createGameState(undefined, V6_CONFIG.version), {
       from: [6, 4],
       to: [4, 4],
       side: "white",

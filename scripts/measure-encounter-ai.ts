@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "../lib/rpg/config";
 import { writeFileSync } from "node:fs";
 import { createGameState, getAllLegalMoves } from "../lib/game";
 import { searchMoves } from "../lib/ai/search";
@@ -7,9 +8,9 @@ import { constructedV5Court } from "../tests/encounter-fixtures";
 import type { GameState } from "../lib/game/types";
 // Synthetic benchmark fixtures, explicitly excluded from gameplay frequency.
 const samples: { name: string; state: GameState }[] = [
-  { name: "quiet", state: createGameState(731) },
+  { name: "quiet", state: createGameState(731, V6_CONFIG.version) },
 ];
-const multiple = createGameState(731);
+const multiple = createGameState(731, V6_CONFIG.version);
 multiple.ply = 40;
 multiple.simulation!.turnContext.ply = 40;
 multiple.simulation!.kingdoms.white.ownTurnsCompleted = 20;

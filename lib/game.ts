@@ -43,7 +43,16 @@ import type {
   ResolvedOrder,
 } from "@/lib/game/types";
 import { initializeSimulation, roleStats } from "@/lib/rpg/initialize";
-import { DEFAULT_CONFIG, configFor, rulesFor } from "@/lib/rpg/config";
+import {
+  DEFAULT_CONFIG,
+  configFor,
+  rulesFor,
+  rulesetName,
+} from "@/lib/rpg/config";
+import { initialUnits, submitBattleMove } from "@/lib/battle/resolve";
+import { allBattleMoves } from "@/lib/battle/moves";
+import type { BattleRules } from "@/lib/battle/stats";
+import { seedRng } from "@/lib/rpg/rng";
 import { type Draw, draw, freshSeed } from "@/lib/rpg/rng";
 import { count, event } from "@/lib/rpg/events";
 import { leadership } from "@/lib/rpg/leadership";
@@ -65,6 +74,11 @@ export const getAllLegalMoves = (
   side: Side,
   rights?: ChessRights,
 ) => allMoves(board, side, rights);
+/** Every move the side to move may submit, under the game's own rules. */
+export const movesFor = (s: GameState) =>
+  s.rulesetVersion === "battle-v1"
+    ? allBattleMoves(s.board, s.sideToMove, s.rights)
+    : allMoves(s.board, s.sideToMove, s.rights);
 export const createGameState = (
   seed: number = freshSeed(),
   configVersion: string = DEFAULT_CONFIG.version,
@@ -76,11 +90,28 @@ export const createGameState = (
   if (!config) throw new Error("Unsupported rules configuration.");
   return {
     schemaVersion: config.generation,
-    rulesetVersion: `hidden-kingdom-v${config.generation}`,
+    rulesetVersion: rulesetName(config.generation),
     configVersion,
     board,
     pieceIds,
-    simulation: initializeSimulation(board, pieceIds, seed, configVersion),
+    ...(config.battle
+      ? {
+          simulation: null,
+          battle: {
+            rngState: seedRng(seed),
+            units: initialUnits(board, pieceIds, config.battle),
+            last: null,
+            count: 0,
+          },
+        }
+      : {
+          simulation: initializeSimulation(
+            board,
+            pieceIds,
+            seed,
+            configVersion,
+          ),
+        }),
     sideToMove: "white",
     status: "active",
     result: null,
@@ -226,6 +257,8 @@ function moveMessage(s: GameState, next: Side, message: string): string {
 export type ResolverDependencies = {
   /** Test dependency, never accepted from transport. */ draw?: Draw;
   classic?: boolean;
+  /** Battle Chess measurement only: try a stat table without a config. */
+  rules?: BattleRules;
 };
 export function submitMove(
   state: GameState,
@@ -242,6 +275,8 @@ export function submitMove(
     return reject(state, "This game uses an unsupported rules configuration.");
   }
   if ("type" in action) return claimDraw(state, action.type);
+  if (state.rulesetVersion === "battle-v1")
+    return submitBattleMove(state, action, deps);
   if (
     !validSquare(action.from) ||
     !validSquare(action.to) ||

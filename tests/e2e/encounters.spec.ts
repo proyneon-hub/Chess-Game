@@ -1,4 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
+import { createGameState } from "@/lib/game";
+import { V6_CONFIG } from "@/lib/rpg/config";
 async function move(page: Page, from: string, to: string) {
   await page.locator(`[data-square="${from}"]`).click();
   await page.locator(`[data-square="${to}"]`).click();
@@ -8,9 +10,25 @@ async function move(page: Page, from: string, to: string) {
   });
   if (await repeat.isVisible()) await repeat.click();
 }
+// New games are Battle Chess, so these start from a saved Hidden Kingdom
+// (generation 6) game, the way a player returning to an older game would.
 async function opening(page: Page) {
+  const game = createGameState(undefined, V6_CONFIG.version);
+  await page.addInitScript(
+    (save) => {
+      if (sessionStorage.getItem("seeded")) return;
+      sessionStorage.setItem("seeded", "1");
+      localStorage.setItem("chess:local-game:v1", save);
+    },
+    JSON.stringify({
+      mode: "local",
+      difficulty: "normal",
+      game,
+      history: { start: game, completed: [] },
+    }),
+  );
   await page.goto("/");
-  await page.getByRole("button", { name: /Play here/ }).click();
+  await expect(page.getByText("Your game has been restored.")).toBeVisible();
   for (const [i, [from, to]] of [
     ["e2", "e4"],
     ["e7", "e5"],

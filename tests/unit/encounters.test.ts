@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState, getAllLegalMoves, submitMove } from "@/lib/game";
 import type { GameState } from "@/lib/game/types";
@@ -16,7 +17,7 @@ import { boardChoice } from "../../scripts/board-policies";
 import { seedRng } from "@/lib/rpg/rng";
 function discovery(seed = 42) {
   const rng = seedRng(seed);
-  let s = createGameState(seed);
+  let s = createGameState(seed, V6_CONFIG.version);
   while (s.ply < 18 && s.status === "active" && !encounters(s).active.length) {
     const r = submitMove(s, boardChoice(s, rng, "board-protective"));
     expect(r.accepted).toBe(true);

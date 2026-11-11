@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState, submitMove } from "@/lib/game";
 import { agencyForecast } from "@/lib/rpg/agency";
@@ -41,7 +42,7 @@ it("forecast matches resolver thresholds, consumes no RNG, and enforces guarante
       },
     }).turnConsumed,
   ).toBe(true);
-  const opening = createGameState(1);
+  const opening = createGameState(1, V6_CONFIG.version);
   expect(
     agencyForecast(opening, { from: [6, 4], to: [4, 4], side: "white" })
       .refusal,

@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "../lib/rpg/config";
 import { createGameState, submitMove } from "../lib/game";
 import { pressureChoice, cooperativeReply } from "./progression-policies";
 import { seedRng } from "../lib/rpg/rng";
@@ -5,7 +6,7 @@ import { validateState } from "../lib/game/validation";
 import { writeFileSync, mkdirSync } from "node:fs";
 const results = [];
 for (let seed = 20000; seed < 20010; seed++) {
-  let s = createGameState(seed),
+  let s = createGameState(seed, V6_CONFIG.version),
     rng = seedRng(seed),
     actions = [];
   while (s.status === "active" && s.ply < 240) {

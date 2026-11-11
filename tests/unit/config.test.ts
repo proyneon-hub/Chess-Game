@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createGameState } from "@/lib/game";
 import { migrateState } from "@/lib/game/migrate";
-import { CONFIG, DEFAULT_CONFIG, configFor } from "@/lib/rpg/config";
+import { CONFIG, V6_CONFIG, configFor } from "@/lib/rpg/config";
 import { refusalProbability } from "@/lib/rpg/agency";
 import { subjectAt } from "../fixtures";
 it("saved configuration versions retain their numeric formula", () => {
@@ -28,7 +28,7 @@ it("low-pressure high-loyalty commands stay within the calm limit", () => {
   // v5 kept calm orders under 2%; the playtest config allows its calm cap.
   for (const [version, limit] of [
     [CONFIG.version, 0.02],
-    [DEFAULT_CONFIG.version, DEFAULT_CONFIG.progression!.calmCap],
+    [V6_CONFIG.version, V6_CONFIG.progression!.calmCap],
   ] as const)
     for (let seed = 0; seed < 100; seed++) {
       const s = createGameState(seed, version);

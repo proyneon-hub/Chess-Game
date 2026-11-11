@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { type Difficulty } from "@/lib/game";
 import type { GameState, MoveAttempt, MoveResult } from "@/lib/game/types";
 import type { LocalEngine } from "@/hooks/useLocalGame";
-import { DIFFICULTY } from "@/lib/ai/difficulty";
+import { BATTLE_DIFFICULTY, DIFFICULTY } from "@/lib/ai/difficulty";
 // A rejected search result leaves the game unchanged, so the turn effect would
 // never rerun. Try the legal fallback before giving up on this turn.
 export function submitWithFallback(
@@ -42,12 +42,23 @@ export function useComputerTurn(
     let cancelled = false,
       settled = false;
     const revision = game.revision;
+    const level = (game.battle ? BATTLE_DIFFICULTY : DIFFICULTY)[difficulty];
     const fallback = engine.refusalFallback(game);
-    const commit = (move: MoveAttempt | undefined) => {
+    const apply = (move: MoveAttempt | undefined) => {
       if (cancelled || settled || !move) return;
       const result = submitWithFallback(submit, move, fallback);
       settled = result.requestAccepted;
       onMessage(result.message);
+    };
+    // When the player has just fought a battle, hold the reply briefly so
+    // its dice and result can be read before the computer's move replaces
+    // them. A cancelled turn ignores the late call.
+    const readyAt =
+      performance.now() + (game.battle?.last?.ply === game.ply ? 1200 : 0);
+    const commit = (move: MoveAttempt | undefined) => {
+      const wait = readyAt - performance.now();
+      if (wait > 0) setTimeout(() => apply(move), wait);
+      else apply(move);
     };
     // After refusal, the same legal command completes with no search or roll.
     if (game.pendingRefusal && game.schemaVersion < 3) {
@@ -91,11 +102,18 @@ export function useComputerTurn(
           board: game.board,
           rights: game.rights,
           side: "black",
-          depth: DIFFICULTY[difficulty].depth,
-          budgetMs: DIFFICULTY[difficulty].budgetMs,
-          spreadCp: DIFFICULTY[difficulty].spreadCp,
-          own: engine.ownPolitics(game, "black"),
+          depth: level.depth,
+          budgetMs: level.budgetMs,
+          spreadCp: level.spreadCp,
           positions: game.positions,
+          // Battle Chess searches over the visible stats instead of politics.
+          ...(game.battle
+            ? {
+                rules: "battle",
+                units: engine.unitGrid(game),
+                battle: engine.rulesFor(game).battle,
+              }
+            : { own: engine.ownPolitics(game, "black") }),
         },
       });
     } catch {
@@ -105,7 +123,7 @@ export function useComputerTurn(
       if (searching) discard();
       searching = false;
       commit(fallback);
-    }, DIFFICULTY[difficulty].watchdogMs);
+    }, level.watchdogMs);
     return () => {
       cancelled = true;
       clearTimeout(watchdog);

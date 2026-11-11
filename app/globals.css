@@ -68,3 +68,35 @@
     box-shadow: inset 0 0 24px rgba(239, 68, 68, 1);
   }
 }
+
+/* Battle Chess: a struck square flashes, a repelled attacker shakes. Both
+   settle into a static outline, and reduced motion (above) skips straight
+   to it. */
+.battle-hit {
+  animation: battleHit 0.9s ease-out;
+}
+.battle-repel {
+  animation: battleRepel 0.5s ease-out;
+}
+@keyframes battleHit {
+  0% {
+    background: rgba(220, 38, 38, 0.85);
+    transform: scale(1.12);
+  }
+  100% {
+    background: transparent;
+    transform: scale(1);
+  }
+}
+@keyframes battleRepel {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-12%);
+  }
+  75% {
+    transform: translateX(12%);
+  }
+}

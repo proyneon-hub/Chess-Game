@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { createGameState, submitMove } from "@/lib/game";
 import { searchMoves } from "@/lib/ai/search";
@@ -65,7 +66,7 @@ it("nonterminal political preference stays capped and imminent court defense ent
   }
 });
 it("budget expiry returns a legal fallback and own projection has no enemy or RNG", () => {
-  const s = createGameState(1),
+  const s = createGameState(1, V6_CONFIG.version),
     own = ownPolitics(s, "white")!;
   expect(Object.values(own.subjects).every((x) => x.side === "white")).toBe(
     true,
@@ -136,7 +137,7 @@ it("easy play chooses among near-best moves but never passes up mate", () => {
     const result = submitMove(mate, r.moves[0], { classic: true });
     expect(result.state.terminal?.reason).toBe("checkmate");
   }
-  const s = createGameState(1);
+  const s = createGameState(1, V6_CONFIG.version);
   const input = {
     board: s.board,
     rights: s.rights,

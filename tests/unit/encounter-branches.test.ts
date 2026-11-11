@@ -1,3 +1,4 @@
+import { V6_CONFIG } from "@/lib/rpg/config";
 import { expect, it } from "vitest";
 import { v5Fixture, constructedV5Court } from "../encounter-fixtures";
 import { subjectAt } from "../fixtures";
@@ -82,7 +83,7 @@ it("withdrawal destinations strictly improve capture-adjusted command loss", () 
   ).toBeLessThan(assessOrder(s, dangerous).residual);
 });
 it("cannot reveal agency through a refusal while the opening clock still reads eight", () => {
-  let s = createGameState(42);
+  let s = createGameState(42, V6_CONFIG.version);
   for (let i = 0; i < 9; i++) {
     const m = getAllLegalMoves(s.board, s.sideToMove, s.rights)[0];
     expect(agencyForecast(s, m).guaranteed).toBe(true);
