@@ -9,9 +9,7 @@
     "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "simulate": "tsx scripts/simulate-balance.ts",
-    "measure:ai": "tsx scripts/measure-ai.ts",
-    "playtest": "tsx scripts/playtest.ts",
+    "balance": "tsx scripts/battle-balance.ts",
     "backfill:match-expiry": "tsx scripts/backfill-match-expiry.ts",
     "format:check": "prettier --check \"app/**/*.{ts,tsx}\" \"models/**/*.ts\" \"lib/**/*.ts\" \"hooks/**/*.ts\" \"components/**/*.tsx\" \"tests/**/*.ts\" \"scripts/**/*.ts\""
   },

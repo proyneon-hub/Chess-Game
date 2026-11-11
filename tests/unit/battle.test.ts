@@ -1,50 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { type Board, type Side, type Square, freshRights } from "@/lib/chess";
-import { positionKey } from "@/lib/chessRules";
+import { type Square, freshRights } from "@/lib/chess";
 import { createGameState, movesFor, submitMove } from "@/lib/game";
 import { publicState } from "@/lib/game/publicState";
 import { recordTurn, undoTurn } from "@/lib/game/undo";
 import { validateState } from "@/lib/game/validation";
-import { initializePieceIds } from "@/lib/rpgChess";
-import {
-  BATTLE_CONFIG,
-  BATTLE_CONFIG_1,
-  DEFAULT_CONFIG,
-  V6_CONFIG,
-} from "@/lib/rpg/config";
-import { initialUnits, unitGrid } from "@/lib/battle/resolve";
+import { BATTLE_CONFIG, DEFAULT_CONFIG } from "@/lib/battle/config";
+import { unitGrid } from "@/lib/battle/resolve";
 import { searchBattle } from "@/lib/battle/search";
-import {
-  BATTLE_RULES,
-  BATTLE_RULES_1,
-  freshUnit,
-  odds,
-} from "@/lib/battle/stats";
+import { BATTLE_RULES, freshUnit, odds } from "@/lib/battle/stats";
+import { KINGS, boardFixture as fixture, rolls, unitAt } from "../fixtures";
 import { statusText } from "@/components/chess/statusText";
-
-/** A Battle Chess position with full-strength units and no castling. */
-const fixture = (entries: [string, Square][], side: Side = "white") => {
-  const s = createGameState(1, BATTLE_CONFIG.version);
-  s.board = Array.from({ length: 8 }, () => Array(8).fill(null)) as Board;
-  for (const [p, [r, c]] of entries) s.board[r][c] = p;
-  s.pieceIds = initializePieceIds(s.board);
-  s.battle!.units = initialUnits(s.board, s.pieceIds);
-  s.rights = freshRights(false);
-  s.sideToMove = side;
-  s.positions = { [positionKey(s.board, side, s.rights)]: 1 };
-  return s;
-};
-/** Draws that make the dice show these faces, attacker first. */
-const rolls = (...faces: number[]) => {
-  let i = 0;
-  return () => (faces[i++] - 0.5) / BATTLE_RULES.die;
-};
-const unitAt = (s: ReturnType<typeof fixture>, [r, c]: Square) =>
-  s.battle!.units[s.pieceIds[r][c]!];
-const KINGS: [string, Square][] = [
-  ["K", [7, 4]],
-  ["k", [0, 4]],
-];
 
 describe("battle odds", () => {
   it("cover every roll and match the table by hand", () => {
@@ -57,14 +22,6 @@ describe("battle odds", () => {
     expect(o.defeat).toBeCloseTo(26 / 36);
     expect(o.wound).toBe(0);
     expect(o.repel).toBeCloseTo(10 / 36);
-    // The first table: hits on ties, for at least 1.
-    const old = odds(
-      freshUnit("p", BATTLE_RULES_1),
-      freshUnit("p", BATTLE_RULES_1),
-      BATTLE_RULES_1,
-    );
-    expect(old.defeat).toBeCloseTo(10 / 36);
-    expect(old.repel).toBeCloseTo(10 / 36);
     expect(o.fall).toBe(0);
     expect(odds({ ...pawn, hp: 1 }, rook).fall).toBeCloseTo(
       odds(pawn, rook).repel,
@@ -77,40 +34,9 @@ describe("battle resolution", () => {
   it("new games are Battle Chess with visible units and no politics", () => {
     const s = createGameState(7);
     expect(DEFAULT_CONFIG).toBe(BATTLE_CONFIG);
-    expect([s.schemaVersion, s.rulesetVersion, s.simulation]).toEqual([
-      7,
-      "battle-v1",
-      null,
-    ]);
-    expect(Object.keys(s.battle!.units)).toHaveLength(32);
+    expect([s.schemaVersion, s.rulesetVersion]).toEqual([7, "battle-v1"]);
+    expect(Object.keys(s.battle.units)).toHaveLength(32);
     expect(() => validateState(structuredClone(s))).not.toThrow();
-  });
-
-  it("a game begun on the first table keeps it", () => {
-    const s = createGameState(7, BATTLE_CONFIG_1.version);
-    expect(unitAt(s, [7, 4])).toMatchObject({ maxHp: 14, defence: 4 });
-    expect(unitAt(s, [6, 0]).attack).toBe(2);
-    expect(publicState(s).dice).toMatchObject({
-      minDamage: 1,
-      defenderWinsTies: false,
-    });
-    // An equal total still hits under the first table: 3+2 against 4+1.
-    let t = s;
-    for (const [from, to, side] of [
-      [[6, 4], [4, 4], "white"],
-      [[1, 3], [3, 3], "black"],
-    ] as const)
-      t = submitMove(t, { from: [...from], to: [...to], side }).state;
-    const tie = submitMove(
-      t,
-      { from: [4, 4], to: [3, 3], side: "white" },
-      { draw: rolls(3, 4) },
-    );
-    expect(tie.state.battle!.last).toMatchObject({
-      outcome: "wounded",
-      damage: 1,
-    });
-    expect(() => validateState(structuredClone(tie.state))).not.toThrow();
   });
 
   it("an equal total is repelled", () => {
@@ -120,7 +46,7 @@ describe("battle resolution", () => {
       { from: [4, 4], to: [2, 3], side: "white" },
       { draw: rolls(1, 3) },
     );
-    expect(r.state.battle!.last).toMatchObject({
+    expect(r.state.battle.last).toMatchObject({
       outcome: "repelled",
       attackTotal: 6,
       defenceTotal: 6,
@@ -142,8 +68,8 @@ describe("battle resolution", () => {
     ]);
     expect(r.state.board[2][3]).toBe("N");
     expect(r.state.board[4][4]).toBeNull();
-    expect(Object.keys(r.state.battle!.units)).toHaveLength(3);
-    expect(r.state.battle!.last).toMatchObject({
+    expect(Object.keys(r.state.battle.units)).toHaveLength(3);
+    expect(r.state.battle.last).toMatchObject({
       outcome: "defeated",
       attackTotal: 11,
       defenceTotal: 2,
@@ -166,7 +92,7 @@ describe("battle resolution", () => {
     expect(r.state.board[2][3]).toBe("r");
     // 1+5 against 1+3 is a difference of 2, raised to the minimum of 3.
     expect(unitAt(r.state, [2, 3]).hp).toBe(4);
-    expect(r.state.battle!.last!.outcome).toBe("wounded");
+    expect(r.state.battle.last!.outcome).toBe("wounded");
     expect([r.turnConsumed, r.state.sideToMove, r.state.ply]).toEqual([
       true,
       "black",
@@ -189,13 +115,13 @@ describe("battle resolution", () => {
       side: "white" as const,
     };
     const r = submitMove(s, move, { draw: rolls(1, 6) });
-    expect(r.state.battle!.last!.outcome).toBe("repelled");
+    expect(r.state.battle.last!.outcome).toBe("repelled");
     expect(unitAt(r.state, [3, 3]).hp).toBe(2);
     expect(unitAt(r.state, [2, 4]).hp).toBe(7);
     expect(r.state.board[3][3]).toBe("P");
     unitAt(s, [3, 3]).hp = 1;
     const fell = submitMove(s, move, { draw: rolls(1, 6) });
-    expect(fell.state.battle!.last!.outcome).toBe("fell");
+    expect(fell.state.battle.last!.outcome).toBe("fell");
     expect(fell.state.board[3][3]).toBeNull();
     expect(fell.state.pieceIds[3][3]).toBeNull();
     expect(() => validateState(structuredClone(fell.state))).not.toThrow();
@@ -350,7 +276,6 @@ describe("battle state outside the reducer", () => {
       { draw: rolls(2, 1) },
     );
     const view = publicState(r.state);
-    expect(view.rules).toBe("battle");
     expect(view.units![2][3]).toEqual({
       hp: 4,
       maxHp: 7,
@@ -367,9 +292,6 @@ describe("battle state outside the reducer", () => {
     const json = JSON.stringify(view);
     for (const hidden of ["pieceIds", "rngState", "gameplay", "white_knight"])
       expect(json).not.toContain(hidden);
-    // Older rules keep their public shape.
-    const old = publicState(createGameState(1, V6_CONFIG.version));
-    expect("rules" in old || "units" in old || "battle" in old).toBe(false);
   });
 
   it("is deterministic per seed, and undo cannot re-roll a battle", () => {
@@ -397,17 +319,19 @@ describe("battle state outside the reducer", () => {
     const history = recordTurn({ start: s, completed: [] }, first);
     const undone = undoTurn(history, first.state);
     expect(undone.game).toBe(s);
-    expect(submitMove(undone.game, move).state.battle!.last).toEqual(
-      first.state.battle!.last,
+    expect(submitMove(undone.game, move).state.battle.last).toEqual(
+      first.state.battle.last,
     );
   });
 
   it("rejects tampered saved units", () => {
     const s = createGameState(5);
     for (const tamper of [
-      (x: typeof s) => (Object.values(x.battle!.units)[0].hp = 99),
-      (x: typeof s) => delete x.battle!.units[Object.keys(x.battle!.units)[0]],
+      (x: typeof s) => (Object.values(x.battle.units)[0].hp = 99),
+      (x: typeof s) => delete x.battle.units[Object.keys(x.battle.units)[0]],
       (x: typeof s) => ((x as { battle?: unknown }).battle = undefined),
+      (x: typeof s) => ((x as { schemaVersion: number }).schemaVersion = 6),
+      (x: typeof s) => (x.configVersion = "2026-09-23.1"),
       (x: typeof s) => (x.board[7][4] = null),
     ]) {
       const copy = structuredClone(s);

@@ -1,5 +1,4 @@
 import type { PublicGame } from "@/lib/game/publicState";
-import { squareName } from "@/lib/chess";
 export function GameHistory({ game }: { game: PublicGame }) {
   return (
     <>
@@ -26,20 +25,7 @@ export function GameHistory({ game }: { game: PublicGame }) {
             game.events
               .slice()
               .reverse()
-              .map((e) => (
-                <li
-                  key={e.seq}
-                  className={e.special ? "text-amber-200" : undefined}
-                >
-                  {e.message}
-                  {e.special && e.intended && e.actual && (
-                    <span className="block text-xs">
-                      Ordered {squareName(e.intended)}; reached{" "}
-                      {squareName(e.actual)}.
-                    </span>
-                  )}
-                </li>
-              ))
+              .map((e) => <li key={e.seq}>{e.message}</li>)
           ) : (
             <li>Game started. White to move.</li>
           )}

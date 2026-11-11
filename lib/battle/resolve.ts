@@ -11,7 +11,7 @@ import {
   validSquare,
 } from "@/lib/chess";
 import { nextRights, positionKey } from "@/lib/chessRules";
-import { finish } from "@/lib/game/core";
+import { event, finish } from "@/lib/game/core";
 import type {
   ActionOutcome,
   BattleRecord,
@@ -19,9 +19,8 @@ import type {
   MoveAttempt,
   MoveResult,
 } from "@/lib/game/types";
-import { rulesFor } from "@/lib/rpg/config";
-import { event } from "@/lib/rpg/events";
-import { type Draw, draw } from "@/lib/rpg/rng";
+import { type Draw, draw } from "@/lib/game/rng";
+import { rulesFor } from "./config";
 import { allBattleMoves, battleMoves, battleTarget } from "./moves";
 import {
   BATTLE_RULES,
@@ -34,13 +33,11 @@ import {
 
 const reject = (state: GameState, message: string): MoveResult => ({
   state,
-  accepted: false,
   requestAccepted: false,
   turnConsumed: false,
   boardChanged: false,
   resolution: null,
   message,
-  special: false,
 });
 /** Fresh full-strength units for every piece on a board. */
 export const initialUnits = (
@@ -60,7 +57,7 @@ export const initialUnits = (
 export const unitGrid = (s: GameState): UnitGrid =>
   s.pieceIds.map((row) =>
     row.map((id) => {
-      const u = id ? s.battle?.units[id] : null;
+      const u = id ? s.battle.units[id] : null;
       return u
         ? { hp: u.hp, maxHp: u.maxHp, attack: u.attack, defence: u.defence }
         : null;
@@ -74,7 +71,6 @@ export function submitBattleMove(
   deps: { draw?: Draw; rules?: BattleRules } = {},
 ): MoveResult {
   if (
-    !state.battle ||
     !validSquare(action.from) ||
     !validSquare(action.to) ||
     (action.promotion !== undefined &&
@@ -94,13 +90,13 @@ export function submitBattleMove(
     piece.toLowerCase() === "p" && (action.to[0] === 0 || action.to[0] === 7);
   if (action.promotion && !promotes)
     return reject(state, "Promotion is not available here.");
-  const rules = deps.rules ?? rulesFor(state).battle ?? BATTLE_RULES;
+  const rules = deps.rules ?? rulesFor(state).battle;
   const from: [number, number] = [...action.from],
     to: [number, number] = [...action.to],
     promotion = promotes ? (action.promotion ?? "q") : undefined,
     move = { from, to, side: action.side, ...(promotion ? { promotion } : {}) };
   const s = structuredClone(state),
-    battle = s.battle!;
+    battle = s.battle;
   const rng: Draw = deps.draw ?? ((stream) => draw(battle.rngState, stream));
   const roll = () => 1 + Math.min(rules.die - 1, Math.floor(rng() * rules.die));
   const next: Side = white ? "black" : "white";
@@ -188,8 +184,6 @@ export function submitBattleMove(
   s.ply++;
   s.revision++;
   s.lastMove = [from, to];
-  s.specialSquare = null;
-  s.pendingRefusal = null;
   const key = positionKey(s.board, next, s.rights);
   if (
     !s.rights.halfmove ||
@@ -223,16 +217,15 @@ export function submitBattleMove(
     if (promotion && advanced)
       message += ` Promoted to ${promotion.toUpperCase()}.`;
   }
-  event(s, record ? "battle" : "move", message, { square: target ?? to });
+  event(s, message, target ?? to);
   if (s.result) {
-    event(s, "result", s.result);
+    event(s, s.result);
     message = `${message} ${s.result}`;
   }
   s.moves.push({
     number: s.ply,
     text: `${s.ply}. ${text}`,
     message,
-    special: false,
   });
   s.sideToMove = next;
   const outcome: ActionOutcome = {
@@ -241,8 +234,7 @@ export function submitBattleMove(
     boardChanged: true,
     resolution: s.terminal ? "terminal" : "executed",
     message,
-    special: false,
   };
   s.lastAction = outcome;
-  return { ...outcome, state: s, accepted: true };
+  return { ...outcome, state: s };
 }

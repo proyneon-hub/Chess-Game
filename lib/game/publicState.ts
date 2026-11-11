@@ -1,60 +1,41 @@
-import { hasEncounters } from "@/lib/rpg/capabilities";
-import { publicEncounters } from "@/lib/rpg/encounters/publicView";
-import type { GameState, Intention, PublicEvent, Side } from "@/lib/game/types";
+import type { GameState, PublicEvent, Side } from "@/lib/game/types";
 import type { Square } from "@/lib/chess";
 import { positionKey } from "@/lib/chessRules";
+import { rulesFor } from "@/lib/battle/config";
 import { unitGrid } from "@/lib/battle/resolve";
-import { BATTLE_RULES } from "@/lib/battle/stats";
-import { configFor } from "@/lib/rpg/config";
 const square = (s: Square | null): Square | null => (s ? [s[0], s[1]] : null);
-const intention = (m: Intention | null): Intention | null =>
-  m
-    ? {
-        from: square(m.from)!,
-        to: square(m.to)!,
-        ...(m.promotion ? { promotion: m.promotion } : {}),
-      }
-    : null;
-/** The game's own dice rules, so the browser shows this game's odds. */
-const dice = (s: GameState) => {
-  const r = configFor(s.configVersion)?.battle ?? BATTLE_RULES;
-  return {
-    die: r.die,
-    repel: r.repel,
-    minDamage: r.minDamage ?? 1,
-    defenderWinsTies: r.defenderWinsTies ?? false,
-  };
-};
+/** What both players may see. Piece ids and the dice state stay private. */
 export function publicState(s: GameState) {
+  const rules = rulesFor(s).battle,
+    b = s.battle.last;
   // Every nested record is allowlisted too. Future private fields stay private.
   return {
-    ...(hasEncounters(s.simulation) ? { encounters: publicEncounters(s) } : {}),
-    // Battle Chess only, so older games' public shape is unchanged.
-    ...(s.battle
-      ? {
-          rules: "battle" as const,
-          dice: dice(s),
-          units: unitGrid(s),
-          battle: s.battle.last
-            ? {
-                ply: s.battle.last.ply,
-                from: square(s.battle.last.from)!,
-                target: square(s.battle.last.target)!,
-                attacker: s.battle.last.attacker,
-                defender: s.battle.last.defender,
-                attackRoll: s.battle.last.attackRoll,
-                defenceRoll: s.battle.last.defenceRoll,
-                attackTotal: s.battle.last.attackTotal,
-                defenceTotal: s.battle.last.defenceTotal,
-                damage: s.battle.last.damage,
-                attackerHp: s.battle.last.attackerHp,
-                defenderHp: s.battle.last.defenderHp,
-                outcome: s.battle.last.outcome,
-              }
-            : null,
-        }
-      : {}),
     board: s.board.map((r) => r.map((p) => p)),
+    // The game's own dice rules, so the browser shows this game's odds.
+    dice: {
+      die: rules.die,
+      repel: rules.repel,
+      minDamage: rules.minDamage ?? 1,
+      defenderWinsTies: rules.defenderWinsTies ?? false,
+    },
+    units: unitGrid(s),
+    battle: b
+      ? {
+          ply: b.ply,
+          from: square(b.from)!,
+          target: square(b.target)!,
+          attacker: b.attacker,
+          defender: b.defender,
+          attackRoll: b.attackRoll,
+          defenceRoll: b.defenceRoll,
+          attackTotal: b.attackTotal,
+          defenceTotal: b.defenceTotal,
+          damage: b.damage,
+          attackerHp: b.attackerHp,
+          defenderHp: b.defenderHp,
+          outcome: b.outcome,
+        }
+      : null,
     sideToMove: s.sideToMove,
     status: s.status,
     result: s.result,
@@ -83,28 +64,17 @@ export function publicState(s: GameState) {
     lastMove: s.lastMove
       ? ([square(s.lastMove[0])!, square(s.lastMove[1])!] as [Square, Square])
       : null,
-    specialSquare: square(s.specialSquare),
     moves: s.moves.map((m) => ({
       number: m.number,
       text: m.text,
       message: m.message,
-      special: m.special,
     })),
-    // Public events are append-only, so an ordinal is stable. The raw seq is
-    // shared with private events and its gaps would reveal hidden rolls.
     events: s.events.map((e, i): PublicEvent => ({
       seq: i + 1,
       ply: e.ply,
       message: e.message,
       square: square(e.square),
-      intended: square(e.intended),
-      actual: square(e.actual),
-      special: e.special,
     })),
-    warning: s.warning
-      ? { message: s.warning.message, square: square(s.warning.square) }
-      : null,
-    pendingRefusal: intention(s.pendingRefusal),
     lastAction: s.lastAction
       ? {
           requestAccepted: s.lastAction.requestAccepted,
@@ -112,7 +82,6 @@ export function publicState(s: GameState) {
           boardChanged: s.lastAction.boardChanged,
           resolution: s.lastAction.resolution,
           message: s.lastAction.message,
-          special: s.lastAction.special,
         }
       : null,
     drawClaims: {

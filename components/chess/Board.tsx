@@ -3,8 +3,6 @@ import { memo, useRef, useState, type KeyboardEvent } from "react";
 import {
   type Square,
   PIECE_SYMBOLS,
-  findKing,
-  isInCheck,
   isWhite,
   pieceName,
   sameSquare,
@@ -17,10 +15,6 @@ type Marks = {
   chosen: boolean;
   legal: boolean;
   last: boolean;
-  special: boolean;
-  checked: boolean;
-  warning: boolean;
-  intended: boolean;
   /** Battle Chess: hit in the last battle / the attacker that was repelled. */
   struck: boolean;
   repelled: boolean;
@@ -41,12 +35,8 @@ const label = (
 ) =>
   [
     `${squareName(sq)} ${p ? pieceName(p) : "empty"}`,
-    m.checked && "check",
     m.legal && "legal destination",
     m.last && "last move",
-    m.special && "unexpected destination",
-    m.warning && "warning",
-    m.intended && "ordered destination",
     m.struck && "hit in the last battle",
     m.repelled && "repelled in the last battle",
     stats,
@@ -59,10 +49,10 @@ type SquareProps = {
   c: number;
   piece: string | null;
   marks: Marks;
-  /** Battle Chess: remaining and full HP, a spoken stat line, and the
-   * selected piece's chance (percent) to defeat the piece here. */
+  /** Battle Chess: remaining HP (shown only when wounded), a spoken stat
+   * line, and the selected piece's chance (percent) to defeat the piece. */
   hp: number | null;
-  maxHp: number | null;
+  wounded: boolean;
   stats: string | null;
   chance: number | null;
   focusable: boolean;
@@ -79,7 +69,7 @@ type SquareProps = {
 const sameProps = (a: SquareProps, b: SquareProps) =>
   a.piece === b.piece &&
   a.hp === b.hp &&
-  a.maxHp === b.maxHp &&
+  a.wounded === b.wounded &&
   a.stats === b.stats &&
   a.chance === b.chance &&
   a.focusable === b.focusable &&
@@ -95,7 +85,7 @@ const BoardSquare = memo(function BoardSquare({
   piece: p,
   marks: m,
   hp,
-  maxHp,
+  wounded,
   stats,
   chance,
   focusable,
@@ -138,19 +128,6 @@ const BoardSquare = memo(function BoardSquare({
           }
         />
       )}
-      {(m.special || m.warning) && (
-        <span className="actual-destination absolute inset-0 border-4 border-dashed border-amber-400" />
-      )}
-      {m.intended && (
-        <span className="intended-destination absolute inset-1 border-2 border-dotted border-blue-800" />
-      )}
-      {m.checked && (
-        <span className="absolute inset-0 border-4 border-red-800 ring-2 ring-inset ring-white/80">
-          <span className="absolute right-0 top-0 text-xs font-bold text-red-900">
-            !
-          </span>
-        </span>
-      )}
       {m.struck && (
         <span className="battle-hit absolute inset-0 border-4 border-red-700 ring-2 ring-inset ring-white/80" />
       )}
@@ -172,35 +149,14 @@ const BoardSquare = memo(function BoardSquare({
           {PIECE_SYMBOLS[p] + "︎"}
         </span>
       )}
-      {p && hp !== null && maxHp !== null && (
-        <>
-          <span
-            aria-hidden="true"
-            data-hp={hp}
-            className="absolute inset-x-[8%] bottom-[4%] h-[9%] min-h-[4px] overflow-hidden rounded-sm border border-black/80 bg-black/70"
-          >
-            <span
-              className="block h-full"
-              style={{
-                width: `${(100 * hp) / maxHp}%`,
-                background:
-                  hp * 3 <= maxHp
-                    ? "#f87171"
-                    : hp * 3 <= maxHp * 2
-                      ? "#fbbf24"
-                      : "#4ade80",
-              }}
-            />
-          </span>
-          {hp < maxHp && (
-            <span
-              aria-hidden="true"
-              className="absolute right-0 top-0 rounded-bl bg-black/80 px-1 text-[10px] font-bold leading-4 text-white"
-            >
-              {hp}
-            </span>
-          )}
-        </>
+      {p && hp !== null && wounded && (
+        <span
+          aria-hidden="true"
+          data-hp={hp}
+          className="absolute right-0 top-0 rounded-bl bg-black/80 px-1 text-[10px] font-bold leading-4 text-white"
+        >
+          {hp}
+        </span>
       )}
       {chance !== null && (
         <span
@@ -226,21 +182,11 @@ export function Board({
   flipped: boolean;
   onSquare: (s: Square) => void;
 }) {
-  const indices = Array.from({ length: 8 }, (_, i) => (flipped ? 7 - i : i)),
-    // Battle Chess has no check; its kings are simply attacked.
-    check =
-      !game.rules && isInCheck(game.board, game.sideToMove === "white")
-        ? findKing(game.board, game.sideToMove === "white")
-        : null;
+  const indices = Array.from({ length: 8 }, (_, i) => (flipped ? 7 - i : i));
   // The battle that the latest ply fought, if it fought one.
   const fought =
     game.battle && game.battle.ply === game.moves.length ? game.battle : null;
   const attackerUnit = selected && game.units?.[selected[0]][selected[1]];
-  const lastEvent = game.events.findLast((e) => e.actual),
-    deviated =
-      lastEvent?.intended &&
-      lastEvent.actual &&
-      !sameSquare(lastEvent.intended, lastEvent.actual);
   // One tab stop for the whole board (roving tabindex): the square that last
   // had focus, the selection, or the king's home square on the viewer's side.
   const [focused, setFocused] = useState<Square | null>(null),
@@ -306,7 +252,7 @@ export function Board({
               return (
                 <BoardSquare
                   hp={unit?.hp ?? null}
-                  maxHp={unit?.maxHp ?? null}
+                  wounded={!!unit && unit.hp < unit.maxHp}
                   stats={
                     unit
                       ? `${unit.hp} of ${unit.maxHp} HP, attack ${unit.attack}, defence ${unit.defence}`
@@ -332,14 +278,6 @@ export function Board({
                     chosen: !!selected && sameSquare(selected, sq),
                     legal: moves.some((m) => sameSquare(m, sq)),
                     last: !!game.lastMove?.some((m) => sameSquare(m, sq)),
-                    special:
-                      !!game.specialSquare &&
-                      sameSquare(game.specialSquare, sq),
-                    checked: !!check && sameSquare(check, sq),
-                    warning:
-                      !!game.warning?.square &&
-                      sameSquare(game.warning.square, sq),
-                    intended: !!deviated && sameSquare(lastEvent.intended!, sq),
                     struck:
                       !!fought &&
                       fought.damage > 0 &&

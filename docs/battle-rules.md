@@ -1,15 +1,14 @@
 # Battle Chess rules (`battle-v1`, schema 7)
 
-New games use configuration `2026-11-10.2`. Games begun on the first table,
-`2026-11-10.1`, keep it (see "Retuning" below), and games started under
-Hidden Kingdom (schemas 1–6) keep the rules they began with.
+Games use configuration `2026-11-10.2`. Battle Chess is the only ruleset:
+games saved under the rules that preceded it can no longer be opened.
 
 ## Why
 
-A playtest of Hidden Kingdom generation 6 found its RPG layer mostly passive:
-request cards sat in a side panel, a piece refused about 1 order in 40, and
-withdrawals and conspiracies almost never happened. Battle Chess replaces it
-for new games with one visible mechanic that fires many times every game.
+The game's earlier RPG layer was a hidden politics simulation. A playtest
+found it mostly passive: request cards sat in a side panel, a piece refused
+about 1 order in 40, and its rarer events almost never happened. Battle Chess
+replaced it with one visible mechanic that fires many times every game.
 
 ## Rules
 
@@ -61,7 +60,7 @@ the same attack rolls the same dice.
 
 ## What the player sees
 
-- An HP bar under every piece, and the HP number on wounded pieces.
+- The remaining HP as a number on each wounded piece.
 - With a piece selected: its stats, and for each enemy in reach the chance to
   defeat it, to wound it and to be repelled, with the damage range. The
   chance to defeat is also shown on the target square.
@@ -73,8 +72,7 @@ the same attack rolls the same dice.
 
 ## Computer opponent
 
-`lib/battle/search.ts` is separate from the Hidden Kingdom search. An attack
-is a chance node weighed by the exact dice odds over three outcomes: defender
+In `lib/battle/search.ts` an attack is a chance node weighed by the exact dice odds over three outcomes: defender
 defeated, attacker fallen, or everyone surviving with averaged HP loss. The
 outcomes of a battle cannot share a search window, so each is searched one
 ply shallower than a quiet move. The evaluation is the chess evaluation less
@@ -151,8 +149,6 @@ moved to depth 3 and Advanced to depth 5.
 
 ## Known gaps
 
-- **Online play is untested here.** The integration and browser tests that
-  need MongoDB could not run in the environment this was built in.
 - **Some games run long.** One of the two 150-game mirror runs had a median
   of 94 plies, and 7–10% of mirror games ended at the 300-ply cap or on a
   move-count draw.

@@ -8,31 +8,6 @@
 .chess-square {
   touch-action: manipulation;
 }
-.intended-destination {
-  animation: intendedOrder 1.5s ease-out;
-}
-.actual-destination {
-  animation: actualOrder 1.5s ease-out;
-}
-@keyframes intendedOrder {
-  0%,
-  40% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.5;
-  }
-}
-@keyframes actualOrder {
-  0%,
-  40% {
-    opacity: 0.2;
-  }
-  65%,
-  100% {
-    opacity: 1;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -42,34 +17,7 @@
   }
 }
 
-.chess-board {
-  --square-size: clamp(38px, calc((94vw - 20px) / 8), 70px);
-  touch-action: manipulation;
-}
-
-@media (min-width: 640px) {
-  .chess-board {
-    --square-size: clamp(58px, 7vw, 70px);
-  }
-}
-
-@media (min-width: 1024px) {
-  .chess-board {
-    --square-size: 70px;
-  }
-}
-
-@keyframes dangerPulse {
-  from {
-    box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.55);
-  }
-
-  to {
-    box-shadow: inset 0 0 24px rgba(239, 68, 68, 1);
-  }
-}
-
-/* Battle Chess: a struck square flashes, a repelled attacker shakes. Both
+/* A struck square flashes, a repelled attacker shakes. Both
    settle into a static outline, and reduced motion (above) skips straight
    to it. */
 .battle-hit {

@@ -86,8 +86,6 @@ export function useLocalGame() {
     undo,
     restoreSaved,
     save,
-    canUndo:
-      !!game &&
-      (!!game.pendingRefusal || (history.current?.completed.length ?? 0) > 0),
+    canUndo: !!game && (history.current?.completed.length ?? 0) > 0,
   };
 }

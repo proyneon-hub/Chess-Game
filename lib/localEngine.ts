@@ -1,18 +1,15 @@
 // Everything local and computer play needs from the rules engine, loaded on
 // demand (see hooks/useLocalGame.ts) so the menu and online play do not
-// download it. Online play only needs lib/chess and the server's public state.
+// download it. Online play needs only the public state and the odds maths.
 import type { LocalSave } from "@/hooks/localSave";
 import { clearLocalGame, readLocalSave } from "@/hooks/localSave";
-import { migrateState } from "@/lib/game/migrate";
-import { record } from "@/lib/game/validation";
+import { loadState, record } from "@/lib/game/validation";
 
-export { createGameState, submitMove } from "@/lib/game";
 export { recordTurn, undoTurn } from "@/lib/game/undo";
 export { publicState } from "@/lib/game/publicState";
-export { refusalFallback } from "@/lib/ai/restraint";
-export { ownPolitics } from "@/lib/ai/politicalEvaluation";
+export { createGameState, movesFor, submitMove } from "@/lib/game";
 export { unitGrid } from "@/lib/battle/resolve";
-export { rulesFor } from "@/lib/rpg/config";
+export { rulesFor } from "@/lib/battle/config";
 
 /** Returns a saved game only if every stored state validates. */
 export function loadLocalGame(): LocalSave | null {
@@ -33,10 +30,10 @@ export function loadLocalGame(): LocalSave | null {
     return {
       mode: v.mode,
       difficulty: v.difficulty,
-      game: migrateState(v.game),
+      game: loadState(v.game),
       history: {
-        start: migrateState(v.history.start),
-        completed: v.history.completed.map(migrateState),
+        start: loadState(v.history.start),
+        completed: v.history.completed.map(loadState),
       },
     };
   } catch {

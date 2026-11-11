@@ -4,37 +4,15 @@ import {
   type Side,
   type Square,
   type PromotionKind,
-  applyMove,
-  getLegalMoves,
-  isInCheck,
-  isWhite,
-  kingContext,
 } from "@/lib/chess";
 
-export type ChessMove = {
+type ChessMove = {
   from: Square;
   to: Square;
   side: Side;
   promotion?: PromotionKind;
 };
-export const allMoves = (
-  board: Board,
-  side: Side,
-  rights?: ChessRights,
-): ChessMove[] => {
-  const out: ChessMove[] = [],
-    white = side === "white",
-    context = kingContext(board, white);
-  for (let r = 0; r < 8; r++)
-    for (let c = 0; c < 8; c++)
-      for (const to of getLegalMoves(board, r, c, white, rights, context)) {
-        if (board[r][c]?.toLowerCase() === "p" && (to[0] === 0 || to[0] === 7))
-          for (const promotion of ["q", "r", "b", "n"] as const)
-            out.push({ from: [r, c], to, side, promotion });
-        else out.push({ from: [r, c], to, side });
-      }
-  return out;
-};
+/** Castling rights, the en passant square and the move clocks after a move. */
 export function nextRights(
   board: Board,
   rights: ChessRights,
@@ -76,15 +54,17 @@ export function nextRights(
   n.fullmove += move.side === "black" ? 1 : 0;
   return n;
 }
+/** Identifies a position for repetition: board, side, castling, en passant. */
 export function positionKey(
   board: Board,
   side: Side,
   rights: ChessRights,
 ): string {
-  // En passant matters only if a legal capture actually exists (including pins).
+  // En passant matters only if a pawn of the side to move can use it.
   const ep = rights.enPassant;
   const meaningful =
     ep &&
+    !board[ep[0]][ep[1]] &&
     [-1, 1].some((dc) => {
       const r = ep[0] + (side === "white" ? 1 : -1),
         c = ep[1] + dc;
@@ -92,9 +72,7 @@ export function positionKey(
         c >= 0 &&
         c < 8 &&
         board[r]?.[c] === (side === "white" ? "P" : "p") &&
-        getLegalMoves(board, r, c, side === "white", rights).some(
-          (t) => t[0] === ep[0] && t[1] === ep[1],
-        )
+        board[r][ep[1]] === (side === "white" ? "p" : "P")
       );
     });
   return (
@@ -107,52 +85,6 @@ export function positionKey(
     ` ${meaningful ? ep!.join(",") : "-"}`
   );
 }
-export function insufficientMaterial(board: Board): boolean {
-  const pieces: { p: string; r: number; c: number }[] = [];
-  board.forEach((row, r) =>
-    row.forEach((p, c) => {
-      if (p && p.toLowerCase() !== "k")
-        pieces.push({ p: p.toLowerCase(), r, c });
-    }),
-  );
-  if (!pieces.length) return true;
-  if (pieces.length === 1 && "bn".includes(pieces[0].p)) return true;
-  return (
-    pieces.every((x) => x.p === "b") &&
-    pieces.every((x) => (x.r + x.c) % 2 === (pieces[0].r + pieces[0].c) % 2)
-  );
-}
-export function perft(
-  board: Board,
-  side: Side,
-  rights: ChessRights,
-  depth: number,
-): number {
-  if (!depth) return 1;
-  return allMoves(board, side, rights).reduce(
-    (n, m) =>
-      n +
-      perft(
-        applyMove(board, m.from, m.to, m.promotion, rights),
-        side === "white" ? "black" : "white",
-        nextRights(board, rights, m),
-        depth - 1,
-      ),
-    0,
-  );
-}
-export const kingsValid = (board: Board) =>
-  board.flat().filter((p) => p === "K").length === 1 &&
-  board.flat().filter((p) => p === "k").length === 1;
-export const legalFinalBoard = (board: Board, side: Side) =>
-  kingsValid(board) && !isInCheck(board, side === "white");
-export const captureSquare = (board: Board, move: ChessMove): Square | null =>
-  board[move.to[0]][move.to[1]]
-    ? move.to
-    : board[move.from[0]][move.from[1]]?.toLowerCase() === "p" &&
-        move.from[1] !== move.to[1]
-      ? [move.from[0], move.to[1]]
-      : null;
 export const material: Record<string, number> = {
   p: 100,
   n: 320,
@@ -161,4 +93,3 @@ export const material: Record<string, number> = {
   q: 900,
   k: 20000,
 };
-export const sideOf = (p: string): Side => (isWhite(p) ? "white" : "black");
