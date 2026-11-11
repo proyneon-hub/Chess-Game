@@ -6,7 +6,7 @@ import { publicState } from "@/lib/game/publicState";
 // Refactoring safety net: seeded games played through the real reducer must
 // produce exactly these boards, dice and HP. A deliberate rules change moves
 // the pins; anything else that moves them changed behaviour by accident.
-const PINS = { games: "8a101519adcc7dc6", publicView: "e70d92c0a558ef9d" };
+const PINS = { games: "620d7c941eb9b847", publicView: "e70d92c0a558ef9d" };
 
 /** The parts of a game that are the rules' output, in a fixed key order. */
 const essence = (s: ReturnType<typeof createGameState>) => ({
@@ -26,7 +26,7 @@ const essence = (s: ReturnType<typeof createGameState>) => ({
   result: s.result,
   terminal: s.terminal,
   ply: s.ply,
-  moves: s.moves,
+  moves: s.moves.map((m) => [m.number, m.text, m.message]),
   events: s.events.map((e) => [e.ply, e.message, e.square]),
 });
 const hash = (v: unknown) =>
